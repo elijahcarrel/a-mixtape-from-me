@@ -12,8 +12,8 @@ router = APIRouter()
 STATE_KEY = "spotify_auth_state"
 CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
-REDIRECT_URI = os.environ["SPOTIFY_REDIRECT_URI"]
-DEFAULT_NEXT_URI = os.environ["SPOTIFY_DEFAULT_NEXT_URI"]
+REDIRECT_URI = os.environ["NEXT_PUBLIC_VERCEL_URL"] + os.environ["SPOTIFY_REDIRECT_URI"]
+DEFAULT_NEXT_URI = os.environ["NEXT_PUBLIC_VERCEL_URL"] + os.environ["SPOTIFY_DEFAULT_NEXT_URI"]
 
 def generate_random_string(string_length):
     possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
