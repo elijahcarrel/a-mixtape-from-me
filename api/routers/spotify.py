@@ -12,8 +12,8 @@ router = APIRouter()
 STATE_KEY = "spotify_auth_state"
 CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
-URI = os.environ["SPOTIFY_REDIRECT_URI"]
-REDIRECT_URI = URI + "/callback"
+REDIRECT_URI = os.environ["SPOTIFY_REDIRECT_URI"]
+DEFAULT_NEXT_URI = os.environ["SPOTIFY_DEFAULT_NEXT_URI"]
 
 def generate_random_string(string_length):
     possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -31,7 +31,7 @@ def read_root(response: Response, request: Request):
     scope = "user-read-private user-read-email user-read-recently-played user-top-read"
 
     # Get the 'next' parameter from the query string, default if not provided
-    next_url = request.query_params.get("next") or "http://localhost:3000/spotify/playlists"
+    next_url = request.query_params.get("next") or DEFAULT_NEXT_URI
 
     params = {
         "response_type": "code",
