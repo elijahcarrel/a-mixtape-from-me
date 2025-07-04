@@ -40,6 +40,10 @@ def read_root(response: Response, request: Request):
         "redirect_uri": REDIRECT_URI,
         "state": state,
     }
+    # If the user has manually logged out, force re-prompt
+    if request.cookies.get("spotify_logged_out") == "1":
+        params["show_dialog"] = "true"
+
     response = RedirectResponse(
         url="https://accounts.spotify.com/authorize?" + urlencode(params)
     )
@@ -52,13 +56,14 @@ def callback(request: Request, response: Response):
     code = request.query_params["code"]
     state = request.query_params["state"]
     stored_state = request.cookies.get(STATE_KEY)
-    next_url = request.cookies.get("spotify_next_url") or "http://localhost:3000/spotify/playlists"
+    next_url = request.cookies.get("spotify_next_url") or DEFAULT_NEXT_URI
 
     if state == None or state != stored_state:
         raise HTTPException(status_code=400, detail="State mismatch")
     else:
         response.delete_cookie(STATE_KEY, path="/", domain=None)
         response.delete_cookie("spotify_next_url", path="/", domain=None)
+        response.delete_cookie("spotify_logged_out", path="/", domain=None)
 
         url = "https://accounts.spotify.com/api/token"
         request_string = CLIENT_ID + ":" + CLIENT_SECRET
@@ -82,6 +87,7 @@ def callback(request: Request, response: Response):
             response = RedirectResponse(url=next_url)
             response.set_cookie(key="accessToken", value=access_token)
             response.set_cookie(key="refreshToken", value=refresh_token)
+            response.delete_cookie("spotify_logged_out", path="/", domain=None)
 
         return response
 
@@ -119,3 +125,13 @@ def get_account(request: Request):
     if resp.status_code != 200:
         raise HTTPException(status_code=resp.status_code, detail="Failed to fetch account info from Spotify")
     return resp.json()
+
+@router.get("/logout")
+def logout(response: Response):
+    response = RedirectResponse(url="/")
+    response.delete_cookie("accessToken", path="/", domain=None)
+    response.delete_cookie("refreshToken", path="/", domain=None)
+    response.delete_cookie(STATE_KEY, path="/", domain=None)
+    response.delete_cookie("spotify_next_url", path="/", domain=None)
+    response.set_cookie("spotify_logged_out", "1", path="/")
+    return response
