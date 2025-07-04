@@ -7,6 +7,8 @@ export default function Home() {
       <Link href="/handler/signup" className="text-lg hover:underline">Register / Sign In</Link>
       <Link href={`/create/${uuidv4()}`} className="text-lg hover:underline">Create a new mixtape</Link>
       <Link href="/account" className="text-lg hover:underline">View existing mixtapes</Link>
+      <a href="/spotify/login" className="text-lg hover:underline">Login with Spotify</a>
+      <Link href="/spotify/playlists" className="text-lg hover:underline">See Spotify Playlists</Link>
     </div>
   );
 }
