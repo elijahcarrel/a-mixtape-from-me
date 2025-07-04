@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 export default function SpotifyLogin() {
   const router = useRouter();
-  const loginApiBaseUrl = "/api/py/spotify/login";
+  const loginApiBaseUrl = "/api/main/spotify/login";
   const params = new URLSearchParams();
   params.set("next", "/spotify/playlists?wasRedirected=true");
   const loginUrl = loginApiBaseUrl + "?" + params.toString();

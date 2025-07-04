@@ -11,7 +11,7 @@ export default function SpotifyPlaylists() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("/api/py/spotify/account");
+        const res = await fetch("/api/main/spotify/account");
         if (!res.ok) {
           throw new Error("Not logged in or failed to fetch account info");
         }

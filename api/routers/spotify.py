@@ -6,14 +6,15 @@ import os
 from urllib.parse import urlencode
 from fastapi import APIRouter, Response, Request, HTTPException
 from fastapi.responses import RedirectResponse
+from api.util.request import get_domain
 
 router = APIRouter()
 
 STATE_KEY = "spotify_auth_state"
 CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
-REDIRECT_URI = os.environ["NEXT_PUBLIC_VERCEL_URL"] + os.environ["SPOTIFY_REDIRECT_URI"]
-DEFAULT_NEXT_URI = os.environ["NEXT_PUBLIC_VERCEL_URL"] + os.environ["SPOTIFY_DEFAULT_NEXT_URI"]
+REDIRECT_URI = os.environ["SPOTIFY_REDIRECT_URI"]
+DEFAULT_NEXT_URI = os.environ["SPOTIFY_DEFAULT_NEXT_URI"]
 
 def generate_random_string(string_length):
     possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -31,13 +32,13 @@ def read_root(response: Response, request: Request):
     scope = "user-read-private user-read-email user-read-recently-played user-top-read"
 
     # Get the 'next' parameter from the query string, default if not provided
-    next_url = request.query_params.get("next") or DEFAULT_NEXT_URI
+    next_url = request.query_params.get("next") or get_domain(request) + DEFAULT_NEXT_URI
 
     params = {
         "response_type": "code",
         "client_id": CLIENT_ID,
         "scope": scope,
-        "redirect_uri": REDIRECT_URI,
+        "redirect_uri": get_domain(request) + REDIRECT_URI,
         "state": state,
     }
     # If the user has manually logged out, force re-prompt
@@ -56,7 +57,7 @@ def callback(request: Request, response: Response):
     code = request.query_params["code"]
     state = request.query_params["state"]
     stored_state = request.cookies.get(STATE_KEY)
-    next_url = request.cookies.get("spotify_next_url") or DEFAULT_NEXT_URI
+    next_url = request.cookies.get("spotify_next_url") or get_domain(request) + DEFAULT_NEXT_URI
 
     if state == None or state != stored_state:
         raise HTTPException(status_code=400, detail="State mismatch")
@@ -73,7 +74,7 @@ def callback(request: Request, response: Response):
 
         form_data = {
             "code": code,
-            "redirect_uri": REDIRECT_URI,
+            "redirect_uri": get_domain(request) + REDIRECT_URI,
             "grant_type": "authorization_code",
         }
 

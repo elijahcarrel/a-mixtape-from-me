@@ -19,3 +19,7 @@ def db(db_conn: connection = Depends(get_db)):
     return {
         "message": "Hello from FastAPI. Server started at " + str(time) + ". Postgres version: " + version
     } 
+
+@router.get("/app")
+def app_health():
+    return {"status": "ok"}
