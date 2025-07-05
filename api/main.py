@@ -23,10 +23,11 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-from api.routers import spotify, health
+from api.routers import auth, account, health
 
 # Import and include routers
-app.include_router(spotify.router, prefix=f"{api_prefix}/spotify", tags=["spotify"])
+app.include_router(auth.router, prefix=f"{api_prefix}/auth", tags=["auth"])
+app.include_router(account.router, prefix=f"{api_prefix}/account", tags=["account"])
 app.include_router(health.router, prefix=f"{api_prefix}/health", tags=["health"]) 
 
 @app.get(f"{api_prefix}/")

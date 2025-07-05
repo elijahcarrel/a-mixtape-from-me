@@ -3,10 +3,13 @@ import math
 import requests
 import base64
 import os
+import hashlib
+import time
 from urllib.parse import urlencode
 from fastapi import APIRouter, Response, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from api.util.request import get_domain
+from api.util.cache import token_cache, hash_token, get_user_info_from_spotify
 
 router = APIRouter()
 
@@ -26,10 +29,12 @@ def generate_random_string(string_length):
     )
     return text
 
+
+
 @router.get("/login")
 def read_root(response: Response, request: Request):
     state = generate_random_string(20)
-    scope = "user-read-private user-read-email user-read-recently-played user-top-read"
+    scope = "user-read-private user-read-email playlist-read-private playlist-read-collaborative"
 
     # Get the 'next' parameter from the query string, default if not provided
     next_url = request.query_params.get("next") or get_domain(request) + DEFAULT_NEXT_URI
@@ -84,6 +89,18 @@ def callback(request: Request, response: Response):
             data = api_response.json()
             access_token = data["access_token"]
             refresh_token = data["refresh_token"]
+            expires_in = data.get("expires_in", 3600)  # Default to 1 hour
+
+            # Cache the user info and token details
+            token_hash = hash_token(access_token)
+            user_info = get_user_info_from_spotify(access_token)
+            
+            token_cache[token_hash] = {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "expires_at": time.time() + expires_in,
+                "user_info": user_info
+            }
 
             response = RedirectResponse(url=next_url)
             response.set_cookie(key="accessToken", value=access_token)
@@ -109,23 +126,20 @@ def refresh_token(request: Request):
     else:
         data = response.json()
         access_token = data["access_token"]
-        return {"access_token": access_token} 
-
-@router.get("/account")
-def get_account(request: Request):
-    access_token = request.cookies.get("accessToken")
-    if not access_token:
-        # Try Authorization header (Bearer)
-        auth_header = request.headers.get("authorization")
-        if auth_header and auth_header.lower().startswith("bearer "):
-            access_token = auth_header[7:]
-    if not access_token:
-        raise HTTPException(status_code=401, detail="No access token provided")
-    headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.get("https://api.spotify.com/v1/me", headers=headers)
-    if resp.status_code != 200:
-        raise HTTPException(status_code=resp.status_code, detail="Failed to fetch account info from Spotify")
-    return resp.json()
+        expires_in = data.get("expires_in", 3600)
+        
+        # Update cache with new token
+        token_hash = hash_token(access_token)
+        user_info = get_user_info_from_spotify(access_token)
+        
+        token_cache[token_hash] = {
+            "access_token": access_token,
+            "refresh_token": refresh_token,  # Keep the same refresh token
+            "expires_at": time.time() + expires_in,
+            "user_info": user_info
+        }
+        
+        return {"access_token": access_token}
 
 @router.get("/logout")
 def logout(response: Response):
@@ -136,3 +150,5 @@ def logout(response: Response):
     response.delete_cookie("spotify_next_url", path="/", domain=None)
     response.set_cookie("spotify_logged_out", "1", path="/")
     return response
+
+ 
