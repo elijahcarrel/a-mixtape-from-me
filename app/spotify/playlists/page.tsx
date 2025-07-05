@@ -1,57 +1,45 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useApiRequest } from "../../hooks/useApiRequest";
+import LoadingDisplay from "../../components/LoadingDisplay";
+import ErrorDisplay from "../../components/ErrorDisplay";
+
+interface PlaylistItem {
+  name: string;
+  tracks: {
+    total: number;
+  };
+}
+
+interface PlaylistsResponse {
+  items: PlaylistItem[];
+}
 
 export default function SpotifyPlaylists() {
-  const [account, setAccount] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function fetchAccount() {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await fetch("/api/main/account/me");
-        if (!res.ok) {
-          throw new Error("Not logged in or failed to fetch account info");
-        }
-        const data = await res.json();
-        setAccount(data);
-      } catch (err: any) {
-        setError(err.message || "Unknown error");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchAccount();
-  }, []);
+  const { data: playlists, loading, error } = useApiRequest<PlaylistsResponse>({
+    url: "/api/main/account/playlists"
+  });
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center mt-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
-        <h1 className="text-2xl font-bold mb-4">Loading your Spotify account...</h1>
-      </div>
-    );
+    return <LoadingDisplay message="Loading your Spotify playlists..." />;
   }
+
   if (error) {
-    return (
-      <div className="flex flex-col items-center mt-8">
-        <h1 className="text-2xl font-bold mb-4 text-red-600">Error</h1>
-        <p className="text-gray-600">{error}</p>
-        <a href="/spotify/login" className="underline mt-4">Try logging in again</a>
-      </div>
-    );
+    return <ErrorDisplay message={error} showLoginLink={true} />;
   }
+
   return (
     <div className="flex flex-col items-center mt-8">
       <h1 className="text-2xl font-bold mb-4">Your Spotify Playlists</h1>
-      {account && (
-        <div className="mb-4">
-          <p className="text-gray-700">Logged in as <span className="font-semibold">{account.display_name || account.email}</span></p>
-        </div>
+      {playlists?.items && (
+        <ul className="mb-4">
+          {playlists.items.map((item: PlaylistItem, index: number) => (
+            <li key={index} className="text-gray-600">
+              {item.name} ({item.tracks.total} tracks)
+            </li>
+          ))}
+        </ul>
       )}
-      <p className="text-gray-600">This feature is coming soon! Once you are logged in with Spotify, your playlists will appear here.</p>
     </div>
   );
 } 

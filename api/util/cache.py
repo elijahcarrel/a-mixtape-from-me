@@ -75,10 +75,15 @@ def get_cached_user_info(access_token: str) -> Optional[Dict[str, Any]]:
                 # Remove old cache entry
                 del token_cache[token_hash]
                 
+                # Return user info with the new access token
+                user_info["access_token"] = new_access_token
                 return user_info
         
         # If refresh failed, remove expired entry
         del token_cache[token_hash]
         return None
     
-    return cache_entry["user_info"] 
+    # Return user info with the current access token
+    user_info = cache_entry["user_info"].copy()
+    user_info["access_token"] = cache_entry["access_token"]
+    return user_info 
