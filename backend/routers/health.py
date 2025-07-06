@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from psycopg2.extensions import connection
-from api.database import get_db
+from backend.database import get_db
 
 router = APIRouter()
 

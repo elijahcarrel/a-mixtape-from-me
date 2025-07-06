@@ -1,7 +1,7 @@
 import os
 import requests
 from fastapi import APIRouter, HTTPException, Depends
-from api.util.auth_middleware import get_current_user
+from backend.util.auth_middleware import get_current_user
 
 router = APIRouter()
 

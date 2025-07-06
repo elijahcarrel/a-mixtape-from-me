@@ -1,5 +1,5 @@
 from fastapi import Request, HTTPException, Depends
-from api.util.cache import get_cached_user_info
+from backend.util.cache import get_cached_user_info
 
 async def get_current_user(request: Request):
     """

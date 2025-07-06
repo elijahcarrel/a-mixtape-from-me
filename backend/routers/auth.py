@@ -1,7 +1,7 @@
 import os
 from fastapi import APIRouter, Request, HTTPException
-from api.util.stack_auth import get_user_with_access_token
-from api.util.cache import cache_user_info, remove_cached_user
+from backend.util.stack_auth import get_user_with_access_token
+from backend.util.cache import cache_user_info, remove_cached_user
 
 router = APIRouter()
 

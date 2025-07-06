@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends
-from api.util.account_middleware import authenticate_account_request, AuthenticatedRequest
+from backend.util.account_middleware import authenticate_account_request, AuthenticatedRequest
 
 router = APIRouter()
 

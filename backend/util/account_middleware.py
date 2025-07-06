@@ -1,5 +1,5 @@
 from fastapi import Request, HTTPException
-from api.util.cache import get_cached_user_info
+from backend.util.cache import get_cached_user_info
 
 class AuthenticatedRequest:
     """Wrapper class that provides authenticated request context"""

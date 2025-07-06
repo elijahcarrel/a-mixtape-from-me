@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from sqlmodel import Session
-from api.entity import MixtapeEntity
+from backend.entity import MixtapeEntity
 
 router = APIRouter()
 

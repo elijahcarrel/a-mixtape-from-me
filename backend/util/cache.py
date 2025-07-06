@@ -1,7 +1,7 @@
 import time
 import hashlib
 from typing import Dict, Optional, Any
-from api.util.stack_auth import get_user_with_access_token, validate_access_token
+from backend.util.stack_auth import get_user_with_access_token, validate_access_token
 
 # In-memory cache - can be easily replaced with Redis later
 user_cache: Dict[str, Dict[str, Any]] = {}

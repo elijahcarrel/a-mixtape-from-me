@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from api.database import create_tables
-from api.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+from backend.database import create_tables
+from backend.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 def main():
     """Initialize the database with all tables"""

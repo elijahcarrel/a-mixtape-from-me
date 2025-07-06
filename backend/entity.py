@@ -3,7 +3,7 @@ from typing import Optional, List
 from datetime import datetime, UTC
 import uuid
 from sqlmodel import Session, select
-from api.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack, User
+from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack, User
 
 class MixtapeEntity:
     def __init__(self, name: str, intro_text: Optional[str], is_public: bool, tracks: List[dict]):

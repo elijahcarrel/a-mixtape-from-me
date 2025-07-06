@@ -7,7 +7,7 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
     """Factory function to create FastAPI app with configurable database"""
     
     # Set the database URL for this app instance
-    from api.database import set_database_url, create_tables, get_db
+    from backend.database import set_database_url, create_tables, get_db
     from fastapi import Depends
     from sqlmodel import Session
     
@@ -45,7 +45,7 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
     )
     
     # Import routers
-    from api.routers import auth, account, health, spotify, mixtape
+    from backend.routers import auth, account, health, spotify, mixtape
     
     # Include routers
     app.include_router(auth.router, prefix=f"{api_prefix}/auth", tags=["auth"])
