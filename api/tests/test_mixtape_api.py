@@ -7,53 +7,41 @@ import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
+from pprint import pprint
 
 # Ensure the project root is in sys.path for 'api' imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from api.app_factory import create_app
 from api.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
-def dsn_to_url(dsn):
-    """Convert psycopg DSN to SQLAlchemy URL format"""
-    # Parse the DSN string like "user=postgres dbname=tests host=127.0.0.1 port=30484"
-    params = {}
-    for part in dsn.split():
-        if '=' in part:
-            key, value = part.split('=', 1)
-            params[key] = value
-    
-    # Build SQLAlchemy URL
-    user = params.get('user', 'postgres')
-    password = params.get('password', '')
-    host = params.get('host', 'localhost')
-    port = params.get('port', '5432')
-    dbname = params.get('dbname', 'postgres')
-    
-    if password:
-        return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{dbname}"
-    else:
-        return f"postgresql+psycopg://{user}@{host}:{port}/{dbname}"
-
 @pytest.fixture
 def engine(postgresql):
     """Create SQLAlchemy engine from pytest-postgresql fixture"""
-    db_url = dsn_to_url(postgresql.info.dsn)
+    # Build SQLAlchemy URL directly from postgresql attributes
+    if postgresql.info.password:
+        db_url = f"postgresql+psycopg://{postgresql.info.user}:{postgresql.info.password}@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
+    else:
+        db_url = f"postgresql+psycopg://{postgresql.info.user}@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
+    
     engine = create_engine(db_url)
-    return engine
+    # Create tables in this test database
+    SQLModel.metadata.create_all(engine)
+    yield engine
+    # No need to drop tables; the database will be destroyed after the test
 
 @pytest.fixture(autouse=True)
-def setup_database(engine):
-    """Setup database tables before each test and clean up after"""
-    # Create all tables
-    SQLModel.metadata.create_all(engine)
-    yield
-    # Drop all tables after test
-    SQLModel.metadata.drop_all(engine)
+def truncate_tables(engine):
+    """Truncate all tables before each test"""
+    with Session(engine) as session:
+        session.query(MixtapeAuditTrack).delete()
+        session.query(MixtapeTrack).delete()
+        session.query(MixtapeAudit).delete()
+        session.query(Mixtape).delete()
+        session.query(User).delete()
+        session.commit()
 
 @pytest.fixture
 def app(engine):
-    """Create FastAPI app with the test database"""
-    # Convert engine back to URL string for the app
     db_url = str(engine.url)
     return create_app(db_url)
 

@@ -1,6 +1,6 @@
 # entity.py: Orchestrates multi-table operations for Mixtape and related tables using SQLModel
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 from sqlmodel import Session, select
 from api.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack, User
@@ -18,7 +18,7 @@ class MixtapeEntity:
         Create a new mixtape, its tracks, and audit records in a transaction. Returns the public_id.
         """
         public_id = str(uuid.uuid4())
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         version = 1
         
         # Create mixtape
@@ -103,7 +103,7 @@ class MixtapeEntity:
         """
         Update a mixtape and its tracks, create new audit records, and increment version. Returns new version.
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         
         # Get existing mixtape
         statement = select(Mixtape).where(Mixtape.public_id == public_id)
