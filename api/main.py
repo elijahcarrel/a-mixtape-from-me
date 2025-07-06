@@ -1,47 +1,11 @@
-from fastapi import FastAPI, Request, Response
-from typing import Awaitable, Callable
-from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
+from api.app_factory import create_app
 
 # Load environment variables from .env.local file in development.
 if os.getenv('VERCEL_ENV') is None:
     load_dotenv('.env.local')
 
-api_prefix = "/api/main"
-
-# Create FastAPI instance with custom docs and openapi url
-app = FastAPI(docs_url=f"{api_prefix}/docs", openapi_url=f"{api_prefix}/openapi.json")
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
-
-from api.routers import auth, account, health, spotify, mixtape
-
-# Import and include routers
-app.include_router(auth.router, prefix=f"{api_prefix}/auth", tags=["auth"])
-app.include_router(account.router, prefix=f"{api_prefix}/account", tags=["account"])
-app.include_router(health.router, prefix=f"{api_prefix}/health", tags=["health"])
-app.include_router(spotify.router, prefix=f"{api_prefix}/spotify", tags=["spotify"])
-app.include_router(mixtape.router, prefix=f"{api_prefix}/mixtape", tags=["mixtape"]) 
-
-@app.get(f"{api_prefix}/")
-def root():
-    return {"status": "ok", "env": os.getenv("VERCEL_ENV")}
-
-@app.get(f"{api_prefix}/debug")
-async def debug(request: Request):
-    return dict(request.headers)
-
-@app.middleware("http")
-async def debug_path(request: Request, call_next: Callable[[Request], Awaitable[Response]]):
-    print(f"Incoming path: {request.url.path}")
-    response = await call_next(request)
-    print(f"Outgoing response status: {str(response.status_code)}")
-    return response
+# Create app with production database
+database_url = os.getenv('DATABASE_URL')
+app = create_app(database_url)

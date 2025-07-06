@@ -11,7 +11,7 @@ from psycopg.sql import SQL
 
 # Ensure the project root is in sys.path for 'api' imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from api.main import app as fastapi_app
+from api.app_factory import create_app
 
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), '../../schema.sql')
 
@@ -28,29 +28,34 @@ def db_conn(postgresql):
                 if stmt:
                     print(f"Running SQL: {stmt}")
                     cur.execute(stmt)
+        cur.execute('SHOW TABLES')
+        print("showing tables in db_conn")
+        print(str(cur.fetchall()))
+        conn.commit()  # Ensure schema is committed!
     # Yield a new connection for the test
     with psycopg.connect(db_url) as conn:
         yield conn
 
-@pytest.fixture(scope="session")
-def app():
-    return fastapi_app
+@pytest.fixture
+def app(postgresql):
+    db_url = postgresql.info.dsn
+    return create_app(db_url)
 
 @pytest.fixture(autouse=True)
-def wipe_tables(db_conn):
+def wipe_tables(postgresql):
     # Open a new connection for truncation
-    db_url = db_conn.info.dsn
+    db_url = postgresql.info.dsn
     with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
             cur.execute('''
                 TRUNCATE "User", Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack RESTART IDENTITY CASCADE;
             ''')
+            cur.execute('SHOW TABLES')
+            print("showing tables in wipe_tables")
+            print(str(cur.fetchall()))
 
 @pytest.fixture
-def client(app, db_conn, monkeypatch):
-    from api import database
-    # Patch get_db to yield the test connection directly
-    monkeypatch.setattr(database, "get_db", lambda: (c for c in [db_conn]))
+def client(app):
     return TestClient(app)
 
 # --- TESTS ---
