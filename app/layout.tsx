@@ -1,5 +1,6 @@
-import Link from "next/link";
 import "./globals.css";
+import { StackProvider, StackTheme } from "@stackframe/stack";
+import { stackServerApp } from "../stack";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -17,12 +18,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="main-container">
-          <div className="content-pane">
-            <Link href="/"><h1 className="page-title">A Mixtape From Me</h1></Link>
-            {children}
-          </div>
-        </div>
+        <StackProvider app={stackServerApp}>
+          <StackTheme>
+            <div className="main-container">
+              <div className="content-pane">
+                <h1 className="page-title">A Mixtape From Me</h1>
+                {children}
+              </div>
+            </div>
+          </StackTheme>
+        </StackProvider>
       </body>
     </html>
   );
