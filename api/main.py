@@ -1,12 +1,11 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
+from typing import Awaitable, Callable
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env.local file in development.
-print(f"vercel env is {str(os.getenv('VERCEL_ENV'))}")
 if os.getenv('VERCEL_ENV') is None:
-    print("loading dotenv")
     load_dotenv('.env.local')
 
 api_prefix = "/api/main"
@@ -40,7 +39,8 @@ async def debug(request: Request):
     return dict(request.headers)
 
 @app.middleware("http")
-async def debug_path(request: Request, call_next):
+async def debug_path(request: Request, call_next: Callable[[Request], Awaitable[Response]]):
     print(f"Incoming path: {request.url.path}")
     response = await call_next(request)
+    print(f"Outgoing response status: {str(response.status_code)}")
     return response

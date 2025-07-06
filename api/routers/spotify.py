@@ -47,12 +47,12 @@ def spotify_api_request(endpoint: str, **kwargs):
 def get_playlists(user_info: dict = Depends(get_current_user)):
     """Get user's playlists using service account credentials"""
     # For now, return some sample playlists since we don't have user-specific access
-    # In a real implementation, you might want to store user playlist IDs in your database
+    # In a real implementation, might want to store user playlist IDs in your database
     # and fetch them using the service account credentials
     
     # Example: Get featured playlists
     try:
-        playlists = spotify_api_request("/browse/featured-playlists?limit=20")
+        playlists = spotify_api_request("/users/spotify/playlists?limit=20")
         return playlists
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch playlists: {str(e)}")

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@stackframe/stack';
 
 interface UseApiRequestOptions<T = any> {
   url: string;
@@ -31,6 +32,7 @@ export function useApiRequest<T = any>({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const user = useUser();
 
   const makeRequest = async () => {
     setLoading(true);
@@ -40,17 +42,14 @@ export function useApiRequest<T = any>({
       // Get Stack Auth access token if authentication is required
       let authHeaders = { ...headers };
       
-      if (requireAuth) {
-        // Try to get the access token from the Stack Auth user
-        // This will work when the user is authenticated through Stack Auth
-        const user = (window as any).__STACK_USER__;
-        if (user && typeof user.getAuthJson === 'function') {
-          try {
-            const authJson = await user.getAuthJson();
+      if (requireAuth && user) {
+        try {
+          const authJson = await user.getAuthJson();
+          if (authJson.accessToken) {
             authHeaders['x-stack-access-token'] = authJson.accessToken;
-          } catch (err) {
-            console.warn('Failed to get access token:', err);
           }
+        } catch (err) {
+          console.warn('Failed to get access token:', err);
         }
       }
 
@@ -95,7 +94,7 @@ export function useApiRequest<T = any>({
 
   useEffect(() => {
     makeRequest();
-  }, [url]); // Re-run when URL changes
+  }, [url, user]); // Re-run when URL or user changes
 
   const refetch = () => {
     makeRequest();
