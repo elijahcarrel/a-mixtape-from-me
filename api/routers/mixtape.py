@@ -53,7 +53,7 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request):
     session = next(request_obj.app.state.get_db_dep())
     user_id = get_current_user_id()  # Replace with real user extraction
     try:
-        public_id = MixtapeEntity.create_in_db(session, user_id, request.name, request.intro_text, request.is_public, [track.dict() for track in request.tracks])
+        public_id = MixtapeEntity.create_in_db(session, user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
@@ -73,7 +73,7 @@ def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     try:
-        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.is_public, [track.dict() for track in request.tracks])
+        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
     except Exception as e:

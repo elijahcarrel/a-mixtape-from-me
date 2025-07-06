@@ -12,6 +12,8 @@ from sqlalchemy.engine import Engine
 # Ensure the project root is in sys.path for 'api' imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from api.app_factory import create_app
+# Import models to ensure they're registered with SQLModel metadata
+from api.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 # Utility functions for better test assertions
 def assert_response_success(response: httpx.Response, expected_status: int = 200) -> None:
@@ -64,7 +66,9 @@ def engine(postgresql) -> Generator[Engine, None, None]:
     
     engine = create_engine(db_url)
     # Create tables in this test database
+    print(f"Creating tables in database: {db_url}")
     SQLModel.metadata.create_all(engine)
+    print(f"Tables created successfully")
     yield engine
     # No need to drop tables; the database will be destroyed after the test
 
