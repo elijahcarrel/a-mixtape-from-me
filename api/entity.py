@@ -137,6 +137,9 @@ class MixtapeEntity:
         for track in mixtape.tracks:
             session.delete(track)
         
+        # Flush to ensure deletions are processed before adding new tracks
+        session.flush()
+        
         # Create new tracks
         for track_data in tracks:
             track = MixtapeTrack(
