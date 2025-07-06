@@ -6,53 +6,56 @@ import pytest
 import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import psycopg
-from psycopg.sql import SQL
+from sqlmodel import Session, SQLModel, create_engine
 
 # Ensure the project root is in sys.path for 'api' imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from api.app_factory import create_app
+from api.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
-SCHEMA_PATH = os.path.join(os.path.dirname(__file__), '../../schema.sql')
+def dsn_to_url(dsn):
+    """Convert psycopg DSN to SQLAlchemy URL format"""
+    # Parse the DSN string like "user=postgres dbname=tests host=127.0.0.1 port=30484"
+    params = {}
+    for part in dsn.split():
+        if '=' in part:
+            key, value = part.split('=', 1)
+            params[key] = value
+    
+    # Build SQLAlchemy URL
+    user = params.get('user', 'postgres')
+    password = params.get('password', '')
+    host = params.get('host', 'localhost')
+    port = params.get('port', '5432')
+    dbname = params.get('dbname', 'postgres')
+    
+    if password:
+        return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{dbname}"
+    else:
+        return f"postgresql+psycopg://{user}@{host}:{port}/{dbname}"
 
 @pytest.fixture
-def db_conn(postgresql):
-    # Open a new connection for schema setup
-    db_url = postgresql.info.dsn
-    with psycopg.connect(db_url) as conn:
-        with conn.cursor() as cur:
-            with open(SCHEMA_PATH) as f:
-                sql = f.read()
-            for statement in sql.split(';'):
-                stmt = statement.strip()
-                if stmt:
-                    print(f"Running SQL: {stmt}")
-                    cur.execute(stmt)
-        cur.execute('SHOW TABLES')
-        print("showing tables in db_conn")
-        print(str(cur.fetchall()))
-        conn.commit()  # Ensure schema is committed!
-    # Yield a new connection for the test
-    with psycopg.connect(db_url) as conn:
-        yield conn
-
-@pytest.fixture
-def app(postgresql):
-    db_url = postgresql.info.dsn
-    return create_app(db_url)
+def engine(postgresql):
+    """Create SQLAlchemy engine from pytest-postgresql fixture"""
+    db_url = dsn_to_url(postgresql.info.dsn)
+    engine = create_engine(db_url)
+    return engine
 
 @pytest.fixture(autouse=True)
-def wipe_tables(postgresql):
-    # Open a new connection for truncation
-    db_url = postgresql.info.dsn
-    with psycopg.connect(db_url) as conn:
-        with conn.cursor() as cur:
-            cur.execute('''
-                TRUNCATE "User", Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack RESTART IDENTITY CASCADE;
-            ''')
-            cur.execute('SHOW TABLES')
-            print("showing tables in wipe_tables")
-            print(str(cur.fetchall()))
+def setup_database(engine):
+    """Setup database tables before each test and clean up after"""
+    # Create all tables
+    SQLModel.metadata.create_all(engine)
+    yield
+    # Drop all tables after test
+    SQLModel.metadata.drop_all(engine)
+
+@pytest.fixture
+def app(engine):
+    """Create FastAPI app with the test database"""
+    # Convert engine back to URL string for the app
+    db_url = str(engine.url)
+    return create_app(db_url)
 
 @pytest.fixture
 def client(app):
@@ -74,6 +77,9 @@ def test_create_and_get_mixtape(client):
     ]
     # Create
     resp = client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    if resp.status_code != 201:
+        print(f"Response status: {resp.status_code}")
+        print(f"Response content: {resp.text}")
     assert resp.status_code == 201
     public_id = resp.json()["public_id"]
     # Get

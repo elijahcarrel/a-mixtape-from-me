@@ -7,12 +7,33 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
     """Factory function to create FastAPI app with configurable database"""
     
     # Set the database URL for this app instance
-    from api.database import set_database_url
+    from api.database import set_database_url, create_tables, get_db
+    from fastapi import Depends
+    from sqlmodel import Session
+    
     set_database_url(database_url)
+    
+    # Create tables if database URL is provided
+    if database_url:
+        try:
+            create_tables(database_url)
+        except Exception as e:
+            # Log the error but don't fail app creation (useful for tests)
+            print(f"Warning: Could not create tables: {e}")
     
     api_prefix = "/api/main"
     
     app = FastAPI(docs_url=f"{api_prefix}/docs", openapi_url=f"{api_prefix}/openapi.json")
+    
+    # Store the database dependency in app state
+    def get_db_dep():
+        if database_url:
+            yield from get_db(database_url)
+        else:
+            # For testing or when no database is configured
+            yield None
+    
+    app.state.get_db_dep = get_db_dep
     
     # Add CORS middleware
     app.add_middleware(
@@ -23,7 +44,7 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
         allow_headers=["*"],  # Allows all headers
     )
     
-    # Import routers (they'll use the database_url when get_db is called)
+    # Import routers
     from api.routers import auth, account, health, spotify, mixtape
     
     # Include routers
@@ -31,6 +52,7 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
     app.include_router(account.router, prefix=f"{api_prefix}/account", tags=["account"])
     app.include_router(health.router, prefix=f"{api_prefix}/health", tags=["health"])
     app.include_router(spotify.router, prefix=f"{api_prefix}/spotify", tags=["spotify"])
+    
     app.include_router(mixtape.router, prefix=f"{api_prefix}/mixtape", tags=["mixtape"])
     
     @app.get(f"{api_prefix}/")

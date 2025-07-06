@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
-from api.database import get_db
+from sqlmodel import Session
 from api.entity import MixtapeEntity
-import psycopg2
 
 router = APIRouter()
 
@@ -49,28 +48,34 @@ def get_current_user_id():
     return None  # Return None for anonymous, or user_id for authenticated
 
 @router.post("/", response_model=dict, status_code=201)
-def create_mixtape(request: MixtapeRequest, db_conn=Depends(get_db)):
+def create_mixtape(request: MixtapeRequest, request_obj: Request):
+    # Get database session from app state
+    session = next(request_obj.app.state.get_db_dep())
     user_id = get_current_user_id()  # Replace with real user extraction
     try:
-        public_id = MixtapeEntity.create_in_db(db_conn, user_id, request.name, request.intro_text, request.is_public, [track.dict() for track in request.tracks])
-    except psycopg2.Error as e:
+        public_id = MixtapeEntity.create_in_db(session, user_id, request.name, request.intro_text, request.is_public, [track.dict() for track in request.tracks])
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
-def get_mixtape(public_id: str, db_conn=Depends(get_db)):
+def get_mixtape(public_id: str, request_obj: Request):
+    # Get database session from app state
+    session = next(request_obj.app.state.get_db_dep())
     try:
-        mixtape = MixtapeEntity.load_by_public_id(db_conn, public_id)
+        mixtape = MixtapeEntity.load_by_public_id(session, public_id)
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
-def update_mixtape(public_id: str, request: MixtapeRequest, db_conn=Depends(get_db)):
+def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request):
+    # Get database session from app state
+    session = next(request_obj.app.state.get_db_dep())
     try:
-        new_version = MixtapeEntity.update_in_db(db_conn, public_id, request.name, request.intro_text, request.is_public, [track.dict() for track in request.tracks])
+        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.is_public, [track.dict() for track in request.tracks])
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
-    except psycopg2.Error as e:
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"version": new_version} 
