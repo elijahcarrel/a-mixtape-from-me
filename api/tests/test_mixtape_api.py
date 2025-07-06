@@ -6,25 +6,31 @@ import pytest
 import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import psycopg2
-
-@pytest.fixture
-def db_conn(postgresql):
-    dsn = postgresql.dsn()
-    os.environ['DATABASE_URL'] = dsn
-    SCHEMA_PATH = os.path.join(os.path.dirname(__file__), '../../schema.sql')
-    conn = psycopg2.connect(dsn)
-    with open(SCHEMA_PATH) as f:
-        sql = f.read()
-    with conn:
-        with conn.cursor() as cur:
-            cur.execute(sql)
-    yield conn
-    conn.close()
+import psycopg
+from psycopg.sql import SQL
 
 # Ensure the project root is in sys.path for 'api' imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from api.main import app as fastapi_app
+
+SCHEMA_PATH = os.path.join(os.path.dirname(__file__), '../../schema.sql')
+
+@pytest.fixture
+def db_conn(postgresql):
+    # Open a new connection for schema setup
+    db_url = postgresql.info.dsn
+    with psycopg.connect(db_url) as conn:
+        with conn.cursor() as cur:
+            with open(SCHEMA_PATH) as f:
+                sql = f.read()
+            for statement in sql.split(';'):
+                stmt = statement.strip()
+                if stmt:
+                    print(f"Running SQL: {stmt}")
+                    cur.execute(stmt)
+    # Yield a new connection for the test
+    with psycopg.connect(db_url) as conn:
+        yield conn
 
 @pytest.fixture(scope="session")
 def app():
@@ -32,17 +38,18 @@ def app():
 
 @pytest.fixture(autouse=True)
 def wipe_tables(db_conn):
-    # Truncate all tables before each test
-    with db_conn:
-        with db_conn.cursor() as cur:
+    # Open a new connection for truncation
+    db_url = db_conn.info.dsn
+    with psycopg.connect(db_url) as conn:
+        with conn.cursor() as cur:
             cur.execute('''
                 TRUNCATE "User", Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack RESTART IDENTITY CASCADE;
             ''')
 
 @pytest.fixture
 def client(app, db_conn, monkeypatch):
-    # Patch get_db to use our test connection
     from api import database
+    # Patch get_db to yield the test connection directly
     monkeypatch.setattr(database, "get_db", lambda: (c for c in [db_conn]))
     return TestClient(app)
 

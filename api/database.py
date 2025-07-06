@@ -1,23 +1,19 @@
 import os
-from psycopg2 import pool
+import psycopg
+from psycopg_pool import ConnectionPool
 
-_connection_pool = None
+_connection_pools = {}
 
-def get_connection_pool():
-    global _connection_pool
-    if _connection_pool is None:
-        connection_string = os.getenv('DATABASE_URL')
-        _connection_pool = pool.SimpleConnectionPool(
-            1,  # Minimum number of connections in the pool
-            10,  # Maximum number of connections in the pool
-            connection_string
-        )
-    return _connection_pool
+def get_connection_pool(db_url: str = None):
+    if not db_url:
+        db_url = os.getenv('DATABASE_URL', '')
+    if not db_url:
+        raise RuntimeError('DATABASE_URL must be set or provided to get_connection_pool')
+    if db_url not in _connection_pools:
+        _connection_pools[db_url] = ConnectionPool(db_url, min_size=1, max_size=10)
+    return _connection_pools[db_url]
 
-def get_db():
-    """Dependency function to get a database connection from the pool"""
-    conn = get_connection_pool().getconn()
-    try:
-        yield conn
-    finally:
-        get_connection_pool().putconn(conn) 
+def get_db(db_url: str = None):
+    pool = get_connection_pool(db_url)
+    with pool.connection() as conn:
+        yield conn 
