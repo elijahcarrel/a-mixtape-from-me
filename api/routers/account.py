@@ -10,13 +10,19 @@ async def get_authenticated_request(request: Request) -> AuthenticatedRequest:
 @router.get("/me")
 def get_account(auth_request: AuthenticatedRequest = Depends(get_authenticated_request)):
     """Get current user account information"""
-    return auth_request.user_info
+    return {
+        "id": auth_request.get_user_id(),
+        "email": auth_request.get_user_email(),
+        "name": auth_request.get_user_name(),
+        "user_info": auth_request.user_info
+    }
 
-@router.get("/playlists")
-def get_playlists(auth_request: AuthenticatedRequest = Depends(get_authenticated_request)):
-    """Get user's playlists"""
-    user_id = auth_request.user_info["id"]
-    
-    # Use the convenience method for Spotify API requests
-    playlists = auth_request.spotify_get(f"/users/{user_id}/playlists")
-    return playlists
+@router.get("/profile")
+def get_profile(auth_request: AuthenticatedRequest = Depends(get_authenticated_request)):
+    """Get user profile information"""
+    return {
+        "id": auth_request.get_user_id(),
+        "email": auth_request.get_user_email(),
+        "name": auth_request.get_user_name(),
+        "profile": auth_request.user_info
+    }

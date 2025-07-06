@@ -17,7 +17,7 @@ interface PlaylistsResponse {
 
 export default function SpotifyPlaylists() {
   const { data: playlists, loading, error } = useApiRequest<PlaylistsResponse>({
-    url: "/api/main/account/playlists"
+    url: "/api/main/spotify/playlists"
   });
 
   if (loading) {

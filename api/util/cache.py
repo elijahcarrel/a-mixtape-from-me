@@ -1,89 +1,61 @@
 import time
 import hashlib
-import requests
-import os
 from typing import Dict, Optional, Any
+from api.util.stack_auth import get_user_with_access_token, validate_access_token
 
 # In-memory cache - can be easily replaced with Redis later
-token_cache: Dict[str, Dict[str, Any]] = {}
-
-CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
-CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
+user_cache: Dict[str, Dict[str, Any]] = {}
 
 def hash_token(token: str) -> str:
     """Create a hash of the access token for use as cache key"""
     return hashlib.sha256(token.encode()).hexdigest()
 
-def get_user_info_from_spotify(access_token: str) -> Optional[Dict[str, Any]]:
-    """Fetch user info from Spotify API"""
-    headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.get("https://api.spotify.com/v1/me", headers=headers)
-    if resp.status_code == 200:
-        return resp.json()
-    return None
-
-def refresh_access_token(refresh_token: str) -> Optional[Dict[str, Any]]:
-    """Refresh an access token using the refresh token"""
-    import base64
-    
-    request_string = CLIENT_ID + ":" + CLIENT_SECRET
-    encoded_bytes = base64.b64encode(request_string.encode("utf-8"))
-    encoded_string = str(encoded_bytes, "utf-8")
-    header = {"Authorization": "Basic " + encoded_string}
-
-    form_data = {"grant_type": "refresh_token", "refresh_token": refresh_token}
-    url = "https://accounts.spotify.com/api/token"
-
-    response = requests.post(url, data=form_data, headers=header)
-    if response.status_code == 200:
-        return response.json()
-    return None
-
 def get_cached_user_info(access_token: str) -> Optional[Dict[str, Any]]:
     """
-    Get user info from cache, refreshing token if expired.
-    Returns None if token is invalid or refresh fails.
+    Get user info from cache, validating token if needed.
+    Returns None if token is invalid.
     """
     token_hash = hash_token(access_token)
     
-    if token_hash not in token_cache:
-        return None
-    
-    cache_entry = token_cache[token_hash]
-    current_time = time.time()
-    
-    # Check if token is expired
-    if current_time >= cache_entry["expires_at"]:
-        # Try to refresh the token
-        refresh_result = refresh_access_token(cache_entry["refresh_token"])
-        if refresh_result:
-            new_access_token = refresh_result["access_token"]
-            new_expires_in = refresh_result.get("expires_in", 3600)
-            
-            # Get user info with new token
-            user_info = get_user_info_from_spotify(new_access_token)
+    if token_hash not in user_cache:
+        # Try to get user info from Stack Auth
+        try:
+            user_info = get_user_with_access_token(access_token)
             if user_info:
-                # Create new cache entry
-                new_token_hash = hash_token(new_access_token)
-                token_cache[new_token_hash] = {
-                    "access_token": new_access_token,
-                    "refresh_token": cache_entry["refresh_token"],  # Keep same refresh token
-                    "expires_at": current_time + new_expires_in,
-                    "user_info": user_info
+                # Cache the user info
+                user_cache[token_hash] = {
+                    "access_token": access_token,
+                    "user_info": user_info,
+                    "cached_at": time.time()
                 }
-                
-                # Remove old cache entry
-                del token_cache[token_hash]
-                
-                # Return user info with the new access token
-                user_info["access_token"] = new_access_token
                 return user_info
-        
-        # If refresh failed, remove expired entry
-        del token_cache[token_hash]
+        except Exception:
+            return None
+    
+    cache_entry = user_cache[token_hash]
+    
+    # Validate the token is still valid (optional - you can remove this if you want to trust cached data)
+    if not validate_access_token(access_token):
+        # Remove invalid token from cache
+        del user_cache[token_hash]
         return None
     
     # Return user info with the current access token
     user_info = cache_entry["user_info"].copy()
     user_info["access_token"] = cache_entry["access_token"]
-    return user_info 
+    return user_info
+
+def cache_user_info(access_token: str, user_info: Dict[str, Any]):
+    """Cache user information for a given access token"""
+    token_hash = hash_token(access_token)
+    user_cache[token_hash] = {
+        "access_token": access_token,
+        "user_info": user_info,
+        "cached_at": time.time()
+    }
+
+def remove_cached_user(access_token: str):
+    """Remove user from cache (e.g., on logout)"""
+    token_hash = hash_token(access_token)
+    if token_hash in user_cache:
+        del user_cache[token_hash] 

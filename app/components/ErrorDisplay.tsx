@@ -16,7 +16,7 @@ export default function ErrorDisplay({
       <h1 className="text-2xl font-bold mb-4 text-red-600">{title}</h1>
       <p className="text-gray-600 mb-4">{message}</p>
       {showLoginLink && (
-        <a href="/spotify/login" className="underline text-blue-600 hover:text-blue-800">
+        <a href="/auth/login" className="underline text-blue-600 hover:text-blue-800">
           Try logging in again
         </a>
       )}

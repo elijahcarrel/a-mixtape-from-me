@@ -8,6 +8,7 @@ interface UseApiRequestOptions<T = any> {
   headers?: Record<string, string>;
   onSuccess?: (data: T) => void;
   onError?: (error: string) => void;
+  requireAuth?: boolean;
 }
 
 interface UseApiRequestReturn<T = any> {
@@ -23,7 +24,8 @@ export function useApiRequest<T = any>({
   body,
   headers = {},
   onSuccess,
-  onError
+  onError,
+  requireAuth = true
 }: UseApiRequestOptions<T>): UseApiRequestReturn<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,11 +37,28 @@ export function useApiRequest<T = any>({
     setError(null);
     
     try {
+      // Get Stack Auth access token if authentication is required
+      let authHeaders = { ...headers };
+      
+      if (requireAuth) {
+        // Try to get the access token from the Stack Auth user
+        // This will work when the user is authenticated through Stack Auth
+        const user = (window as any).__STACK_USER__;
+        if (user && typeof user.getAuthJson === 'function') {
+          try {
+            const authJson = await user.getAuthJson();
+            authHeaders['x-stack-access-token'] = authJson.accessToken;
+          } catch (err) {
+            console.warn('Failed to get access token:', err);
+          }
+        }
+      }
+
       const requestOptions: RequestInit = {
         method,
         headers: {
           'Content-Type': 'application/json',
-          ...headers,
+          ...authHeaders,
         },
       };
 
@@ -52,7 +71,7 @@ export function useApiRequest<T = any>({
       if (response.status === 401) {
         // Redirect to login with current page as next parameter
         const currentPath = window.location.pathname + window.location.search;
-        const loginUrl = `/spotify/login?next=${encodeURIComponent(currentPath)}`;
+        const loginUrl = `/auth/login?next=${encodeURIComponent(currentPath)}`;
         router.replace(loginUrl);
         return;
       }
