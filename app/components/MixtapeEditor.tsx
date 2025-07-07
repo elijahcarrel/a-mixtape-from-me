@@ -94,7 +94,7 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
       <HeaderContainer>
         <PageTitle>Edit Mixtape</PageTitle>
         {isSaving && (
-          <div className="text-sm text-amber-600 flex items-center">
+          <div className="text-sm text-amber-600 flex items-center" data-testid="saving-indicator">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600 mr-2"></div>
             Saving...
           </div>
