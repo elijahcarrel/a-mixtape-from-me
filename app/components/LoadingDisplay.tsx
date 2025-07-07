@@ -1,4 +1,5 @@
 import React from 'react';
+import CenteredPane from './layout/CenteredPane';
 
 interface LoadingDisplayProps {
   message?: string;
@@ -6,9 +7,9 @@ interface LoadingDisplayProps {
 
 export default function LoadingDisplay({ message = "Loading..." }: LoadingDisplayProps) {
   return (
-    <div className="flex flex-col items-center mt-8">
+    <CenteredPane>
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
       <h1 className="text-2xl font-bold mb-4">{message}</h1>
-    </div>
+    </CenteredPane>
   );
 } 

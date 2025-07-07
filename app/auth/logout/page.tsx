@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import CenteredPane from '../../components/layout/CenteredPane';
 
 export default function AuthLogout() {
   const router = useRouter();
@@ -36,16 +37,16 @@ export default function AuthLogout() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center mt-8">
+      <CenteredPane>
         <h1 className="text-2xl font-bold mb-4">Logging out...</h1>
         <p className="text-gray-600">Please wait while we log you out.</p>
-      </div>
+      </CenteredPane>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center mt-8">
+      <CenteredPane>
         <h1 className="text-2xl font-bold mb-4 text-red-600">Error</h1>
         <p className="text-gray-600 mb-4">{error}</p>
         <button 
@@ -54,7 +55,7 @@ export default function AuthLogout() {
         >
           Go Home
         </button>
-      </div>
+      </CenteredPane>
     );
   }
 

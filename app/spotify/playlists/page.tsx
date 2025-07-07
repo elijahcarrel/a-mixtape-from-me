@@ -3,6 +3,7 @@ import React from "react";
 import { useApiRequest } from "../../hooks/useApiRequest";
 import LoadingDisplay from "../../components/LoadingDisplay";
 import ErrorDisplay from "../../components/ErrorDisplay";
+import CenteredPane from '../../components/layout/CenteredPane';
 
 interface PlaylistItem {
   name: string;
@@ -29,7 +30,7 @@ export default function SpotifyPlaylists() {
   }
 
   return (
-    <div className="flex flex-col items-center mt-8">
+    <CenteredPane>
       <h1 className="text-2xl font-bold mb-4">Your Spotify Playlists</h1>
       {playlists?.items && (
         <ul className="mb-4">
@@ -40,6 +41,6 @@ export default function SpotifyPlaylists() {
           ))}
         </ul>
       )}
-    </div>
+    </CenteredPane>
   );
 } 

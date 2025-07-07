@@ -1,4 +1,5 @@
 import React from 'react';
+import CenteredPane from './layout/CenteredPane';
 
 interface ErrorDisplayProps {
   title?: string;
@@ -12,7 +13,7 @@ export default function ErrorDisplay({
   showLoginLink = false 
 }: ErrorDisplayProps) {
   return (
-    <div className="flex flex-col items-center mt-8">
+    <CenteredPane>
       <h1 className="text-2xl font-bold mb-4 text-red-600">{title}</h1>
       <p className="text-gray-600 mb-4">{message}</p>
       {showLoginLink && (
@@ -20,6 +21,6 @@ export default function ErrorDisplay({
           Try logging in again
         </a>
       )}
-    </div>
+    </CenteredPane>
   );
 } 
