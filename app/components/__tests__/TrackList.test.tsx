@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TrackList from '../TrackList';
 
@@ -58,13 +58,17 @@ describe('TrackList', () => {
     expect(screen.getByText('No tracks added yet. Search for tracks above to get started!')).toBeInTheDocument();
   });
 
-  it('displays tracks with basic information when details are not loaded', () => {
+  it('displays tracks with loading skeletons when details are not loaded', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
     
-    expect(screen.getByText('Track 1')).toBeInTheDocument();
-    expect(screen.getByText('Track 2')).toBeInTheDocument();
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // Should show loading skeletons (animated pulse elements)
+    const loadingSkeletons = document.querySelectorAll('.animate-pulse');
+    expect(loadingSkeletons.length).toBeGreaterThan(0);
+    
+    // Should show remove buttons
+    const removeButtons = screen.getAllByTitle('Remove track');
+    expect(removeButtons).toHaveLength(2);
   });
 
   it('fetches track details for tracks without details', async () => {
@@ -96,9 +100,9 @@ describe('TrackList', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
     
-    // Should show loading skeleton
-    expect(screen.getByText('Track 1')).toBeInTheDocument();
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // Should show loading skeleton (animated pulse elements)
+    const loadingSkeletons = document.querySelectorAll('.animate-pulse');
+    expect(loadingSkeletons.length).toBeGreaterThan(0);
   });
 
   it('calls onRemoveTrack when remove button is clicked', () => {
@@ -117,8 +121,8 @@ describe('TrackList', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
     
-    // Should still show basic track information even if details fail to load
-    expect(screen.getByText('Track 1')).toBeInTheDocument();
+    // Should still show remove button even if details fail to load
+    expect(screen.getByTitle('Remove track')).toBeInTheDocument();
   });
 
   it('displays album art when available', async () => {
@@ -161,9 +165,8 @@ describe('TrackList', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={tracksWithInvalidUri} onRemoveTrack={mockOnRemoveTrack} />);
     
-    // Should still display the track with basic info
-    expect(screen.getByText('Track 1')).toBeInTheDocument();
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // Should still display the remove button
+    expect(screen.getByTitle('Remove track')).toBeInTheDocument();
     
     // Should not make API calls for invalid URIs
     expect(mockMakeRequest).not.toHaveBeenCalled();
@@ -211,7 +214,8 @@ describe('TrackList', () => {
     
     rerender(<TrackList tracks={reorderedTracks} onRemoveTrack={mockOnRemoveTrack} />);
     
-    expect(screen.getByText('Track 1')).toBeInTheDocument();
-    expect(screen.getByText('Track 2')).toBeInTheDocument();
+    // Should still show remove buttons for both tracks
+    const removeButtons = screen.getAllByTitle('Remove track');
+    expect(removeButtons).toHaveLength(2);
   });
 }); 

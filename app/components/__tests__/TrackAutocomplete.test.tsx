@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import TrackAutocomplete from '../TrackAutocomplete';
@@ -65,7 +65,9 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    // Look for the loading spinner div (it doesn't have a role)
+    const loadingSpinner = document.querySelector('.animate-spin');
+    expect(loadingSpinner).toBeInTheDocument();
   });
 
   it('calls search API when user types', async () => {
@@ -80,8 +82,10 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/search?query=test');
+    await act(async () => {
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/search?query=test');
+      });
     });
   });
 
@@ -97,11 +101,13 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      expect(screen.getByText('Test Track 1')).toBeInTheDocument();
-      expect(screen.getByText('Test Track 2')).toBeInTheDocument();
-      expect(screen.getByText('Artist 1')).toBeInTheDocument();
-      expect(screen.getByText('Artist 2')).toBeInTheDocument();
+    await act(async () => {
+      await waitFor(() => {
+        expect(screen.getByText('Test Track 1')).toBeInTheDocument();
+        expect(screen.getByText('Test Track 2')).toBeInTheDocument();
+        expect(screen.getByText('Artist 1')).toBeInTheDocument();
+        expect(screen.getByText('Artist 2')).toBeInTheDocument();
+      });
     });
   });
 
@@ -117,12 +123,15 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      const firstTrack = screen.getByText('Test Track 1');
-      fireEvent.click(firstTrack);
+    await act(async () => {
+      await waitFor(() => {
+        const firstTrack = screen.getByText('Test Track 1');
+        fireEvent.click(firstTrack);
+      });
     });
     
     expect(mockOnTrackSelect).toHaveBeenCalledWith('spotify:track:track1', {
+      id: 'track1',
       name: 'Test Track 1',
       artists: [{ name: 'Artist 1' }],
       album: {
@@ -145,9 +154,11 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      const firstTrack = screen.getByText('Test Track 1');
-      fireEvent.click(firstTrack);
+    await act(async () => {
+      await waitFor(() => {
+        const firstTrack = screen.getByText('Test Track 1');
+        fireEvent.click(firstTrack);
+      });
     });
     
     expect(searchInput).toHaveValue('');
@@ -165,12 +176,14 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      // Press arrow down to select first item
-      fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
-      
-      // Press enter to select the highlighted item
-      fireEvent.keyDown(searchInput, { key: 'Enter' });
+    await act(async () => {
+      await waitFor(() => {
+        // Press arrow down to select first item
+        fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
+        
+        // Press enter to select the highlighted item
+        fireEvent.keyDown(searchInput, { key: 'Enter' });
+      });
     });
     
     expect(mockOnTrackSelect).toHaveBeenCalledWith('spotify:track:track1', expect.any(Object));
@@ -188,11 +201,13 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      expect(screen.getByText('Test Track 1')).toBeInTheDocument();
-      
-      // Press escape to close dropdown
-      fireEvent.keyDown(searchInput, { key: 'Escape' });
+    await act(async () => {
+      await waitFor(() => {
+        expect(screen.getByText('Test Track 1')).toBeInTheDocument();
+        
+        // Press escape to close dropdown
+        fireEvent.keyDown(searchInput, { key: 'Escape' });
+      });
     });
     
     expect(screen.queryByText('Test Track 1')).not.toBeInTheDocument();
@@ -210,8 +225,10 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      expect(screen.queryByText('Test Track 1')).not.toBeInTheDocument();
+    await act(async () => {
+      await waitFor(() => {
+        expect(screen.queryByText('Test Track 1')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -227,8 +244,10 @@ describe('TrackAutocomplete', () => {
     // Fast-forward debounce timer
     jest.advanceTimersByTime(1000);
     
-    await waitFor(() => {
-      expect(screen.queryByText('Test Track 1')).not.toBeInTheDocument();
+    await act(async () => {
+      await waitFor(() => {
+        expect(screen.queryByText('Test Track 1')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -254,9 +273,11 @@ describe('TrackAutocomplete', () => {
     // Complete the debounce time
     jest.advanceTimersByTime(500);
     
-    await waitFor(() => {
-      expect(mockMakeRequest).toHaveBeenCalledTimes(1);
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/search?query=test');
+    await act(async () => {
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledTimes(1);
+        expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/search?query=test');
+      });
     });
   });
 }); 

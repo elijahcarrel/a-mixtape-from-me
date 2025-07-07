@@ -22,9 +22,10 @@ jest.mock('../hooks/useApiRequest', () => ({
 
 // Mock components with more realistic behavior
 jest.mock('../components/MixtapeEditor', () => {
+  const mockReact = require('react');
   return function MockMixtapeEditor({ mixtape }: any) {
-    const [tracks, setTracks] = React.useState(mixtape.tracks);
-    const [name, setName] = React.useState(mixtape.name);
+    const [tracks, setTracks] = mockReact.useState(mixtape.tracks);
+    const [name, setName] = mockReact.useState(mixtape.name);
     
     const addTrack = () => {
       const newTrack = {

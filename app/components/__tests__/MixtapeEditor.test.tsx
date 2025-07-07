@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import MixtapeEditor from '../MixtapeEditor';
@@ -44,6 +44,18 @@ jest.mock('../TrackList', () => {
             </button>
           </div>
         ))}
+      </div>
+    );
+  };
+});
+
+// Mock HeaderContainer to include the saving indicator
+jest.mock('../layout/HeaderContainer', () => {
+  return function MockHeaderContainer({ children, isSaving }: any) {
+    return (
+      <div data-testid="header-container">
+        {children}
+        {isSaving && <div data-testid="saving-indicator">Saving...</div>}
       </div>
     );
   };
@@ -93,8 +105,12 @@ describe('MixtapeEditor', () => {
     fireEvent.change(nameInput, { target: { value: 'Updated Mixtape' } });
     
     // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
     
+    // Look for the saving indicator
+    expect(screen.getByTestId('saving-indicator')).toBeInTheDocument();
     expect(screen.getByText('Saving...')).toBeInTheDocument();
   });
 
@@ -105,7 +121,9 @@ describe('MixtapeEditor', () => {
     fireEvent.change(nameInput, { target: { value: 'Updated Mixtape' } });
     
     // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
     
     await waitFor(() => {
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
@@ -172,7 +190,9 @@ describe('MixtapeEditor', () => {
     fireEvent.click(addTrackButton);
     
     // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
     
     await waitFor(() => {
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
@@ -209,7 +229,9 @@ describe('MixtapeEditor', () => {
     fireEvent.click(removeButton);
     
     // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
     
     await waitFor(() => {
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
@@ -237,7 +259,9 @@ describe('MixtapeEditor', () => {
     fireEvent.click(publicToggle);
     
     // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
     
     await waitFor(() => {
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
