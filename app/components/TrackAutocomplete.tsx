@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useApiRequest } from '../hooks/useApiRequest';
+import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 import { debounce } from 'lodash';
 
 interface TrackSearchResult {
@@ -168,13 +168,11 @@ interface TrackAutocompleteProps {
 }
 
 export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompleteProps) {
+  const { makeRequest } = useAuthenticatedRequest();
+
   const searchTracks = async (query: string): Promise<TrackSearchResult[]> => {
     try {
-      const response = await fetch(`/api/main/spotify/search?query=${encodeURIComponent(query)}`);
-      if (!response.ok) {
-        throw new Error('Failed to search tracks');
-      }
-      const data = await response.json();
+      const data = await makeRequest(`/api/main/spotify/search?query=${encodeURIComponent(query)}`);
       return data.tracks?.items || [];
     } catch (error) {
       console.error('Error searching tracks:', error);

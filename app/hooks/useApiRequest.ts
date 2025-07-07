@@ -20,6 +20,59 @@ interface UseApiRequestReturn<T = any> {
   refetch: () => void;
 }
 
+// Hook for making one-off authenticated API requests
+export function useAuthenticatedRequest() {
+  const user = useUser();
+  const router = useRouter();
+
+  const makeRequest = async <T = any>(
+    url: string,
+    options: {
+      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+      body?: any;
+      headers?: Record<string, string>;
+    } = {}
+  ): Promise<T> => {
+    const { method = 'GET', body, headers = {} } = options;
+    
+    // Get auth headers
+    const authHeaders = await getAuthHeaders(user);
+    const requestHeaders = {
+      'Content-Type': 'application/json',
+      ...authHeaders,
+      ...headers,
+    };
+
+    const requestOptions: RequestInit = {
+      method,
+      headers: requestHeaders,
+    };
+
+    if (body && method !== 'GET') {
+      requestOptions.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, requestOptions);
+
+    if (response.status === 401) {
+      // Redirect to login with current page as next parameter
+      const currentPath = window.location.pathname + window.location.search;
+      const loginUrl = `/handler/signup?next=${encodeURIComponent(currentPath)}`;
+      router.replace(loginUrl);
+      throw new Error('Authentication required');
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  };
+
+  return { makeRequest };
+}
+
 export function useApiRequest<T = any>({
   url,
   method = 'GET',

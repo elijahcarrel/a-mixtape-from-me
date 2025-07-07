@@ -5,6 +5,7 @@ import { Formik, Form, Field } from 'formik';
 import TrackAutocomplete from './TrackAutocomplete';
 import TrackList from './TrackList';
 import { debounce } from 'lodash';
+import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 
 interface Track {
   track_position: number;
@@ -30,26 +31,20 @@ interface MixtapeEditorProps {
 export default function MixtapeEditor({ mixtape, onSave }: MixtapeEditorProps) {
   const [tracks, setTracks] = useState<Track[]>(mixtape.tracks);
   const [isSaving, setIsSaving] = useState(false);
+  const { makeRequest } = useAuthenticatedRequest();
 
   // Debounced save function
   const debouncedSave = useCallback(
     debounce(async (values: any) => {
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/main/mixtape/${mixtape.public_id}`, {
+        await makeRequest(`/api/main/mixtape/${mixtape.public_id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+          body: {
             ...values,
             tracks: tracks
-          })
+          }
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to save mixtape');
-        }
 
         onSave();
       } catch (error) {
@@ -58,7 +53,7 @@ export default function MixtapeEditor({ mixtape, onSave }: MixtapeEditorProps) {
         setIsSaving(false);
       }
     }, 1000),
-    [mixtape.public_id, tracks, onSave]
+    [mixtape.public_id, tracks, onSave, makeRequest]
   );
 
   // Update tracks when mixtape changes

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 
 interface Track {
   track_position: number;
@@ -26,6 +27,7 @@ interface TrackListProps {
 export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
   const [trackDetails, setTrackDetails] = useState<Record<string, TrackDetails>>({});
   const [loadingTracks, setLoadingTracks] = useState<Set<string>>(new Set());
+  const { makeRequest } = useAuthenticatedRequest();
 
   // Extract track IDs from URIs
   const getTrackId = (uri: string) => {
@@ -41,14 +43,11 @@ export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
       setLoadingTracks(prev => new Set(prev).add(trackId));
       
       try {
-        const response = await fetch(`/api/main/spotify/track/${trackId}`);
-        if (response.ok) {
-          const details = await response.json();
-          setTrackDetails(prev => ({
-            ...prev,
-            [trackId]: details
-          }));
-        }
+        const details = await makeRequest(`/api/main/spotify/track/${trackId}`);
+        setTrackDetails(prev => ({
+          ...prev,
+          [trackId]: details
+        }));
       } catch (error) {
         console.error('Error fetching track details:', error);
       } finally {
