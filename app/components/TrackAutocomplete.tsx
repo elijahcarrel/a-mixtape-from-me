@@ -135,8 +135,8 @@ function Autocomplete<T>({
       />
       
       {isSearching && (
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600"></div>
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2" data-testid="loading-spinner">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-600"></div>
         </div>
       )}
 
@@ -152,6 +152,7 @@ function Autocomplete<T>({
                 index === selectedIndex ? 'bg-amber-200' : ''
               }`}
               onClick={() => handleSelect(item)}
+              data-testid={`track-result-${getItemKey(item)}`}
             >
               {renderItem(item, index === selectedIndex)}
             </div>
