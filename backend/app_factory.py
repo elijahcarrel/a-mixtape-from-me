@@ -16,7 +16,9 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
     # Create tables if database URL is provided
     if database_url:
         try:
+            print("Creating tables.")
             create_tables(database_url)
+            print("Created tables.")
         except Exception as e:
             # Log the error but don't fail app creation (useful for tests)
             print(f"Warning: Could not create tables: {e}")

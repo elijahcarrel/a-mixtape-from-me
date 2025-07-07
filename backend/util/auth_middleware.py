@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException, Depends
 from backend.util.cache import get_cached_user_info
-from backend.util.stack_auth import get_stack_auth_backend, StackAuthBackend
+from backend.client.stack_auth import get_stack_auth_backend, StackAuthBackend
 
 async def get_current_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
     """
