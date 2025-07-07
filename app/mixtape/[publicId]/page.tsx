@@ -62,7 +62,7 @@ export default function MixtapePage() {
   return (
     <div className="main-container">
       <div className="content-pane">
-        <MixtapeEditor mixtape={mixtape} onSave={refetch} />
+        <MixtapeEditor mixtape={mixtape} />
       </div>
     </div>
   );

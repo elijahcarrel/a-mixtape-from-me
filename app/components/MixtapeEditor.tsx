@@ -25,35 +25,33 @@ interface MixtapeData {
 
 interface MixtapeEditorProps {
   mixtape: MixtapeData;
-  onSave: () => void;
 }
 
-export default function MixtapeEditor({ mixtape, onSave }: MixtapeEditorProps) {
+export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
   const [tracks, setTracks] = useState<Track[]>(mixtape.tracks);
   const [isSaving, setIsSaving] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
 
-  // Debounced save function
+  // Debounced save function that always uses the latest tracks
   const debouncedSave = useCallback(
-    debounce(async (values: any) => {
+    debounce(async (values: any, tracksOverride: Track[]) => {
       setIsSaving(true);
       try {
         await makeRequest(`/api/main/mixtape/${mixtape.public_id}`, {
           method: 'PUT',
           body: {
             ...values,
-            tracks: tracks
+            tracks: tracksOverride
           }
         });
-
-        onSave();
+        // No onSave call here; UI is already up to date
       } catch (error) {
         console.error('Error saving mixtape:', error);
       } finally {
         setIsSaving(false);
       }
     }, 1000),
-    [mixtape.public_id, tracks, onSave, makeRequest]
+    [mixtape.public_id, makeRequest]
   );
 
   // Update tracks when mixtape changes
@@ -62,7 +60,7 @@ export default function MixtapeEditor({ mixtape, onSave }: MixtapeEditorProps) {
   }, [mixtape.tracks]);
 
   const handleFormChange = (values: any) => {
-    debouncedSave(values);
+    debouncedSave(values, tracks);
   };
 
   const addTrack = (spotifyUri: string, trackData: any) => {
@@ -74,7 +72,7 @@ export default function MixtapeEditor({ mixtape, onSave }: MixtapeEditorProps) {
     const updatedTracks = [...tracks, newTrack];
     setTracks(updatedTracks);
     // Trigger save with updated tracks
-    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public });
+    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
   };
 
   const removeTrack = (position: number) => {
@@ -86,7 +84,7 @@ export default function MixtapeEditor({ mixtape, onSave }: MixtapeEditorProps) {
       }));
     setTracks(updatedTracks);
     // Trigger save with updated tracks
-    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public });
+    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
   };
 
   return (
