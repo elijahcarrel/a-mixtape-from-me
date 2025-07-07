@@ -1,7 +1,8 @@
 import time
 import hashlib
 from typing import Dict, Optional, Any
-from backend.util.stack_auth import get_user_with_access_token, validate_access_token
+import sys
+import os
 
 # In-memory cache - can be easily replaced with Redis later
 user_cache: Dict[str, Dict[str, Any]] = {}
@@ -10,9 +11,9 @@ def hash_token(token: str) -> str:
     """Create a hash of the access token for use as cache key"""
     return hashlib.sha256(token.encode()).hexdigest()
 
-def get_cached_user_info(access_token: str) -> Optional[Dict[str, Any]]:
+def get_cached_user_info(access_token: str, stack_auth) -> Optional[Dict[str, Any]]:
     """
-    Get user info from cache, validating token if needed.
+    Get user info from cache, validating token if needed, using the provided stack_auth backend.
     Returns None if token is invalid.
     """
     token_hash = hash_token(access_token)
@@ -20,7 +21,7 @@ def get_cached_user_info(access_token: str) -> Optional[Dict[str, Any]]:
     if token_hash not in user_cache:
         # Try to get user info from Stack Auth
         try:
-            user_info = get_user_with_access_token(access_token)
+            user_info = stack_auth.get_user_with_access_token(access_token)
             if user_info:
                 # Cache the user info
                 user_cache[token_hash] = {
@@ -35,7 +36,7 @@ def get_cached_user_info(access_token: str) -> Optional[Dict[str, Any]]:
     cache_entry = user_cache[token_hash]
     
     # Validate the token is still valid (optional - you can remove this if you want to trust cached data)
-    if not validate_access_token(access_token):
+    if not stack_auth.validate_access_token(access_token):
         # Remove invalid token from cache
         del user_cache[token_hash]
         return None
