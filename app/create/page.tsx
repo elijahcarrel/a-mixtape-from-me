@@ -23,6 +23,12 @@ export default function CreateMixtapePage() {
   });
 
   useEffect(() => {
+    if (!loading) {
+      setIsCreating(false);
+    }
+  }, [loading]);
+
+  useEffect(() => {
     if (createResponse?.public_id) {
       // Redirect to the edit page for the newly created mixtape
       router.replace(`/mixtape/${createResponse.public_id}`);

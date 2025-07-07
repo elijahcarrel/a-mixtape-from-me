@@ -4,9 +4,9 @@ on:
   pull_request:
     branches:
       - main
-      - master
-      - develop
-      - "release/*"
+  push:
+    branches:
+      - main
 
 jobs:
   frontend-lint-and-typecheck:
@@ -26,7 +26,20 @@ jobs:
       - name: Type Check
         run: npx tsc --noEmit
 
-  backend-tests:
+  frontend-jest-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Run Jest tests
+        run: npm test 
+
+  backend-pytest-tests:
     name: Backend Tests (Python)
     runs-on: ubuntu-latest
     steps:
