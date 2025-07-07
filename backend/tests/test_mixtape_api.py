@@ -1,5 +1,5 @@
 import os
-from typing import Generator
+from typing import Generator, Tuple
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env.local'))
 import sys
@@ -8,6 +8,9 @@ import httpx
 from fastapi.testclient import TestClient
 from sqlmodel import MetaData, Session, SQLModel, create_engine, delete
 from sqlalchemy.engine import Engine
+from backend.util.mock_stack_auth import MockStackAuthBackend
+from backend.routers import auth
+from backend.util import auth_middleware
 
 # Ensure the project root is in sys.path for 'api' imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -84,15 +87,27 @@ def engine(postgresql) -> Generator[Engine, None, None]:
 #         transaction.commit()
 
 @pytest.fixture
-def app(engine: Engine):
-    """Create FastAPI app with the test database"""
-    db_url = str(engine.url)
-    return create_app(db_url)
+def auth_token_and_user():
+    mock_auth = MockStackAuthBackend()
+    fake_user = {"id": "user123", "email": "test@example.com", "name": "Test User"}
+    token = mock_auth.register_user(fake_user)
+    return mock_auth, token, fake_user
 
 @pytest.fixture
-def client(app) -> TestClient:
-    """Create test client for the FastAPI app"""
-    return TestClient(app)
+def app(engine: Engine, auth_token_and_user):
+    """Create FastAPI app with the test database and mock auth backend"""
+    db_url = str(engine.url)
+    app = create_app(db_url)
+    mock_auth, token, fake_user = auth_token_and_user
+    # Override auth backend for all routers
+    app.dependency_overrides[auth.get_stack_auth_backend] = lambda: mock_auth
+    app.dependency_overrides[auth_middleware.get_stack_auth_backend] = lambda: mock_auth
+    return app
+
+@pytest.fixture
+def client(app, auth_token_and_user) -> Tuple[TestClient, str, dict]:
+    """Create test client for the FastAPI app and provide token/user info"""
+    return TestClient(app), auth_token_and_user[1], auth_token_and_user[2]
 
 # --- TESTS ---
 def mixtape_payload(tracks: list) -> dict:
@@ -103,17 +118,18 @@ def mixtape_payload(tracks: list) -> dict:
         "tracks": tracks
     }
 
-def test_create_and_get_mixtape(client: TestClient) -> None:
+def test_create_and_get_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"},
         {"track_position": 2, "track_text": "Second", "spotify_uri": "spotify:track:2"}
     ]
     # Create
-    resp = client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
     assert_response_created(resp)
     public_id = resp.json()["public_id"]
     # Get
-    resp = client.get(f"/api/main/mixtape/{public_id}")
+    resp = test_client.get(f"/api/main/mixtape/{public_id}", headers={"x-stack-access-token": token})
     assert_response_success(resp)
     data = resp.json()
     assert data["name"] == "Test Mixtape"
@@ -122,13 +138,14 @@ def test_create_and_get_mixtape(client: TestClient) -> None:
     assert data["tracks"][0]["track_position"] == 1
     assert data["tracks"][1]["track_position"] == 2
 
-def test_edit_mixtape_add_remove_modify_tracks(client: TestClient) -> None:
+def test_edit_mixtape_add_remove_modify_tracks(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
     # Create
     tracks = [
         {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:1"},
         {"track_position": 2, "track_text": "B", "spotify_uri": "spotify:track:2"}
     ]
-    resp = client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
     assert_response_created(resp)
     public_id = resp.json()["public_id"]
     # Edit: remove track 2, add track 3, modify track 1
@@ -136,12 +153,12 @@ def test_edit_mixtape_add_remove_modify_tracks(client: TestClient) -> None:
         {"track_position": 1, "track_text": "A-modified", "spotify_uri": "spotify:track:1"},
         {"track_position": 3, "track_text": "C", "spotify_uri": "spotify:track:3"}
     ]
-    resp = client.put(f"/api/main/mixtape/{public_id}", json=mixtape_payload(new_tracks))
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json=mixtape_payload(new_tracks), headers={"x-stack-access-token": token})
     assert_response_success(resp)
     version = resp.json()["version"]
     assert version == 2
     # Get and verify
-    resp = client.get(f"/api/main/mixtape/{public_id}")
+    resp = test_client.get(f"/api/main/mixtape/{public_id}", headers={"x-stack-access-token": token})
     assert_response_success(resp)
     data = resp.json()
     assert len(data["tracks"]) == 2
@@ -149,15 +166,17 @@ def test_edit_mixtape_add_remove_modify_tracks(client: TestClient) -> None:
     assert any(t["track_text"] == "A-modified" for t in data["tracks"])
     assert any(t["track_text"] == "C" for t in data["tracks"])
 
-def test_duplicate_track_position_rejected(client: TestClient) -> None:
+def test_duplicate_track_position_rejected(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:1"},
         {"track_position": 1, "track_text": "B", "spotify_uri": "spotify:track:2"}
     ]
-    resp = client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
     # Should not create mixtape with duplicate track positions
     assert resp.status_code in [422, 400], f"Expected 422 or 400, got {resp.status_code}. Response: {resp.text}"
 
-def test_get_nonexistent_mixtape(client: TestClient) -> None:
-    resp = client.get("/api/main/mixtape/00000000-0000-0000-0000-000000000000")
+def test_get_nonexistent_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    resp = test_client.get("/api/main/mixtape/00000000-0000-0000-0000-000000000000", headers={"x-stack-access-token": token})
     assert_response_not_found(resp) 

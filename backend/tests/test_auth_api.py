@@ -22,7 +22,7 @@ def client():
 
 def test_me_endpoint(client):
     test_client, token, fake_user = client
-    response = test_client.get("/auth/me", headers={"x-stack-access-token": token})
+    response = test_client.get("/api/main/auth/me", headers={"x-stack-access-token": token})
     assert response.status_code == 200
     assert response.json()["id"] == fake_user["id"]
     assert response.json()["email"] == fake_user["email"]
@@ -30,7 +30,7 @@ def test_me_endpoint(client):
 
 def test_verify_endpoint(client):
     test_client, token, fake_user = client
-    response = test_client.get("/auth/verify", headers={"x-stack-access-token": token})
+    response = test_client.get("/api/main/auth/verify", headers={"x-stack-access-token": token})
     assert response.status_code == 200
     data = response.json()
     assert data["valid"] is True
@@ -39,6 +39,6 @@ def test_verify_endpoint(client):
 
 def test_me_unauthorized(client):
     test_client, _, _ = client
-    response = test_client.get("/auth/me")
+    response = test_client.get("/api/main/auth/me")
     assert response.status_code == 401
     assert "No access token" in response.text 
