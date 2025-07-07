@@ -8,7 +8,7 @@ import httpx
 from fastapi.testclient import TestClient
 from sqlmodel import MetaData, Session, SQLModel, create_engine, delete
 from sqlalchemy.engine import Engine
-from backend.util.mock_stack_auth import MockStackAuthBackend
+from backend.client.stack_auth import MockStackAuthBackend
 from backend.routers import auth
 from backend.util import auth_middleware
 

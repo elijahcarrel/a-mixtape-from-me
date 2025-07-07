@@ -1,7 +1,3 @@
-# The real and mock StackAuth clients have moved to backend.client.stack_auth
-# Please import from backend.client.stack_auth.real or backend.client.stack_auth.mock as appropriate.
-
-from backend.client.stack_auth import StackAuthBackend, get_stack_auth_backend
 import requests
 import os
 
@@ -12,7 +8,6 @@ class StackAuthBackend:
         self.secret_server_key = os.environ["STACK_SECRET_SERVER_KEY"]
 
     def stack_auth_request(self, method, endpoint, **kwargs):
-        """Make a request to Stack Auth API"""
         res = requests.request(
             method,
             f'https://api.stack-auth.com{endpoint}',
@@ -30,13 +25,11 @@ class StackAuthBackend:
         return res.json()
 
     def get_user_with_access_token(self, access_token):
-        """Get user info using Stack Auth access token"""
         return self.stack_auth_request('GET', '/api/v1/users/me', headers={
             'x-stack-access-token': access_token,
         })
 
     def validate_access_token(self, access_token):
-        """Validate if an access token is valid by attempting to get user info"""
         try:
             user_info = self.get_user_with_access_token(access_token)
             return user_info is not None
@@ -44,4 +37,4 @@ class StackAuthBackend:
             return False
 
 def get_stack_auth_backend():
-    return StackAuthBackend()
+    return StackAuthBackend() 
