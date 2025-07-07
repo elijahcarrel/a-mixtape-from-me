@@ -6,6 +6,8 @@ import { useApiRequest } from '../../hooks/useApiRequest';
 import MixtapeEditor from '../../components/MixtapeEditor';
 import LoadingDisplay from '../../components/LoadingDisplay';
 import ErrorDisplay from '../../components/ErrorDisplay';
+import MainContainer from '../../components/layout/MainContainer';
+import ContentPane from '../../components/layout/ContentPane';
 
 interface Track {
   track_position: number;
@@ -39,8 +41,8 @@ export default function MixtapePage() {
 
   if (error) {
     return (
-      <div className="main-container">
-        <div className="content-pane">
+      <MainContainer>
+        <ContentPane>
           <ErrorDisplay message={error} />
           <div className="text-center mt-4">
             <button 
@@ -50,8 +52,8 @@ export default function MixtapePage() {
               Try Again
             </button>
           </div>
-        </div>
-      </div>
+        </ContentPane>
+      </MainContainer>
     );
   }
 
@@ -60,10 +62,10 @@ export default function MixtapePage() {
   }
 
   return (
-    <div className="main-container">
-      <div className="content-pane">
+    <MainContainer>
+      <ContentPane>
         <MixtapeEditor mixtape={mixtape} />
-      </div>
-    </div>
+      </ContentPane>
+    </MainContainer>
   );
 } 

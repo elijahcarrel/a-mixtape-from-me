@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { UserButton } from '@stackframe/stack';
+import UserButtonContainer from './layout/UserButtonContainer';
 
 export default function UserButtonHeader() {
   // Simple color mode toggle: toggles a value in localStorage and reloads the page
@@ -13,11 +14,11 @@ export default function UserButtonHeader() {
   }, []);
 
   return (
-    <div className="user-button-container">
+    <UserButtonContainer>
       <UserButton
         showUserInfo={true}
         colorModeToggle={handleColorModeToggle}
       />
-    </div>
+    </UserButtonContainer>
   );
 } 

@@ -6,6 +6,8 @@ import TrackAutocomplete from './TrackAutocomplete';
 import TrackList from './TrackList';
 import { debounce } from 'lodash';
 import { useAuthenticatedRequest } from '../hooks/useApiRequest';
+import HeaderContainer from './layout/HeaderContainer';
+import PageTitle from './layout/PageTitle';
 
 interface Track {
   track_position: number;
@@ -89,15 +91,15 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
 
   return (
     <div className="space-y-6">
-      <div className="header-container">
-        <h1 className="page-title">Edit Mixtape</h1>
+      <HeaderContainer>
+        <PageTitle>Edit Mixtape</PageTitle>
         {isSaving && (
           <div className="text-sm text-amber-600 flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600 mr-2"></div>
             Saving...
           </div>
         )}
-      </div>
+      </HeaderContainer>
 
       <Formik
         initialValues={{

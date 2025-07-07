@@ -1,9 +1,13 @@
 import "./globals.css";
-import { StackProvider, StackTheme, UserButton } from "@stackframe/stack";
+import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "../stack";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import UserButtonHeader from "./components/UserButtonHeader";
+import MainContainer from "./components/layout/MainContainer";
+import ContentPane from "./components/layout/ContentPane";
+import HeaderContainer from "./components/layout/HeaderContainer";
+import PageTitle from "./components/layout/PageTitle";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -65,15 +69,15 @@ export default function RootLayout({
       <body className={inter.className}>
         <StackProvider app={stackServerApp}>
           <StackTheme theme={vintageTheme}>
-            <div className="main-container">
-              <div className="content-pane">
-                <div className="header-container">
-                  <Link href="/"><h1 className="page-title">A Mixtape From Me</h1></Link>
+            <MainContainer>
+              <ContentPane>
+                <HeaderContainer>
+                  <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
                   <UserButtonHeader />
-                </div>
+                </HeaderContainer>
                 {children}
-              </div>
-            </div>
+              </ContentPane>
+            </MainContainer>
           </StackTheme>
         </StackProvider>
       </body>
