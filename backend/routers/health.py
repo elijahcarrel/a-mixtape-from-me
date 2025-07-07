@@ -1,24 +1,20 @@
-from fastapi import APIRouter, Depends
-from psycopg2.extensions import connection
-from backend.database import get_db
+from fastapi import APIRouter, Request
+from sqlmodel import select, func
 
 router = APIRouter()
 
 @router.get("/db")
-def db(db_conn: connection = Depends(get_db)):
-    # Create a cursor object
-    cur = db_conn.cursor()
-    # Execute SQL commands to retrieve the current time and version from PostgreSQL
-    cur.execute('SELECT NOW();')
-    time = cur.fetchone()[0]
-    cur.execute('SELECT version();')
-    version = cur.fetchone()[0]
-    # Close the cursor
-    cur.close()
+def db(request_obj: Request):
+    session = next(request_obj.app.state.get_db_dep())
+
+    time = session.exec(select(func.now())).first()
+    version = session.exec(select(func.version())).first()
     
     return {
-        "message": "Hello from FastAPI. Server started at " + str(time) + ". Postgres version: " + version
-    } 
+        "status": "ok",
+        "time": str(time),
+        "version": str(version),
+    }
 
 @router.get("/app")
 def app_health():
