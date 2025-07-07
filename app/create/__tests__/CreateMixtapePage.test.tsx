@@ -4,10 +4,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CreateMixtapePage from '../page';
 
+// Use a Jest-allowed mock variable name
+const mockReplace = jest.fn();
+
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
-    replace: jest.fn(),
+    replace: mockReplace,
   }),
 }));
 
@@ -37,8 +40,6 @@ describe('CreateMixtapePage', () => {
   });
 
   it('redirects when mixtape is created', async () => {
-    const replace = jest.fn();
-    (require('next/navigation').useRouter as jest.Mock).mockReturnValue({ replace });
     mockedUseApiRequest.mockReturnValue({
       data: { public_id: 'abc123' },
       loading: false,
@@ -47,7 +48,7 @@ describe('CreateMixtapePage', () => {
     });
     render(<CreateMixtapePage />);
     await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith('/mixtape/abc123');
+      expect(mockReplace).toHaveBeenCalledWith('/mixtape/abc123');
     });
   });
 
