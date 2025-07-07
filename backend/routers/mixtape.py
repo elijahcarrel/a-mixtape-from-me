@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from sqlmodel import Session
 from backend.entity import MixtapeEntity
+from backend.util.auth_middleware import get_current_user
 
 router = APIRouter()
 
@@ -43,15 +44,11 @@ class MixtapeResponse(BaseModel):
     last_modified_time: str
     tracks: List[TrackResponse]
 
-# Placeholder for user extraction (to be replaced with real auth)
-def get_current_user_id():
-    return None  # Return None for anonymous, or user_id for authenticated
-
 @router.post("/", response_model=dict, status_code=201)
-def create_mixtape(request: MixtapeRequest, request_obj: Request):
+def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_current_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
-    user_id = get_current_user_id()  # Replace with real user extraction
+    user_id = user_info.get('user_id')  # Extract user_id from auth info
     try:
         public_id = MixtapeEntity.create_in_db(session, user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except Exception as e:
@@ -59,7 +56,7 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request):
     return {"public_id": public_id}
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
-def get_mixtape(public_id: str, request_obj: Request):
+def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_current_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     try:
@@ -69,7 +66,7 @@ def get_mixtape(public_id: str, request_obj: Request):
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
-def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request):
+def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_current_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     try:

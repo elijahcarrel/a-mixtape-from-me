@@ -20,6 +20,7 @@
     "concurrently": "^9.0.1",
     "eslint": "8.41.0",
     "eslint-config-next": "13.4.4",
+    "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
     "next": "^14.2.13",
     "postcss": "^8.4.47",
@@ -28,5 +29,8 @@
     "tailwindcss": "3.4.12",
     "typescript": "5.6.2",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.20"
   }
 }

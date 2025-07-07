@@ -61,7 +61,7 @@ def get_playlists(user_info: dict = Depends(get_current_user)):
 def search_tracks(query: str, user_info: dict = Depends(get_current_user)):
     """Search for tracks using service account credentials"""
     try:
-        results = spotify_api_request(f"/search?q={query}&type=track&limit=20")
+        results = spotify_api_request(f"/search?q={query}&type=track&limit=5")
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to search tracks: {str(e)}")
