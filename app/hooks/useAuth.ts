@@ -31,11 +31,9 @@ export function useAuth({ requireAuth = false, redirectTo }: UseAuthOptions = {}
 export async function getAuthHeaders(user: any): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
   
-  console.log("user is", JSON.stringify(user));
   if (user) {
     try {
       const authJson = await user.getAuthJson();
-      console.log("authJson is", JSON.stringify(authJson))
       if (authJson.accessToken) {
         headers['x-stack-access-token'] = authJson.accessToken;
       }
