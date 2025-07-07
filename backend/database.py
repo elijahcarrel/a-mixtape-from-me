@@ -18,7 +18,10 @@ def get_engine(db_url: str):
         raise RuntimeError('database URL must be set or provided to get_engine')
     if db_url not in _engines:
         # Convert psycopg URL to SQLAlchemy format if needed
-        if db_url.startswith('postgresql://'):
+        if db_url.startswith('postgres://'):
+            # Convert to SQLAlchemy format
+            engine_url = db_url.replace('postgres://', 'postgresql://')
+        elif db_url.startswith('postgresql://'):
             # Already in SQLAlchemy format
             engine_url = db_url
         elif db_url.startswith('postgresql+psycopg://'):
