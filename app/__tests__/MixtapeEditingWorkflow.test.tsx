@@ -12,13 +12,17 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock useApiRequest for the page
-const mockUseApiRequest = jest.fn();
-jest.mock('../hooks/useApiRequest', () => ({
-  useApiRequest: mockUseApiRequest,
-  useAuthenticatedRequest: () => ({
-    makeRequest: jest.fn(),
-  }),
-}));
+jest.mock('../hooks/useApiRequest', () => {
+  const mockUseApiRequest = jest.fn();
+  return {
+    useApiRequest: mockUseApiRequest,
+    useAuthenticatedRequest: () => ({
+      makeRequest: jest.fn(),
+    }),
+  };
+});
+
+const mockUseApiRequest = jest.requireMock('../hooks/useApiRequest').useApiRequest;
 
 // Mock components with more realistic behavior
 jest.mock('../components/MixtapeEditor', () => {

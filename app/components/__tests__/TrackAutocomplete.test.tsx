@@ -39,37 +39,20 @@ const mockSearchResults = [
 describe('TrackAutocomplete', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('renders search input', () => {
     const mockOnTrackSelect = jest.fn();
+    render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
     
-    // Add error boundary to catch any rendering errors
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
-    try {
-      render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
-      
-      // Debug: log what's actually rendered
-      console.log('Rendered HTML:', document.body.innerHTML);
-      
-      expect(screen.getByPlaceholderText('Search for tracks...')).toBeInTheDocument();
-    } catch (error) {
-      console.error('Component failed to render:', error);
-      throw error;
-    } finally {
-      consoleSpy.mockRestore();
-    }
+    expect(screen.getByPlaceholderText('Search for tracks...')).toBeInTheDocument();
   });
 
   it('shows loading spinner when searching', async () => {
-    // Mock a delayed response
-    mockMakeRequest.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ tracks: { items: [] } }), 100)));
+    // Mock a delayed response that takes longer to complete
+    mockMakeRequest.mockImplementation(() => new Promise(resolve => {
+      setTimeout(() => resolve({ tracks: { items: [] } }), 200);
+    }));
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
@@ -77,16 +60,15 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
-    // Wait for the search to start
+    // Wait for the debounce delay to trigger the search
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
-    // Look for the loading spinner by data-testid
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+    // Wait for the loading spinner to appear
+    await waitFor(() => {
+      expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+    });
   });
 
   it('calls search API when user types', async () => {
@@ -98,11 +80,9 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/search?query=test');
@@ -117,11 +97,9 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     expect(screen.getByTestId('track-result-track1')).toBeInTheDocument();
@@ -139,11 +117,9 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     const firstTrack = screen.getByTestId('track-result-track1');
@@ -170,11 +146,9 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     const firstTrack = screen.getByTestId('track-result-track1');
@@ -192,11 +166,9 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     // Press arrow down to select first item
@@ -216,11 +188,9 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     expect(screen.getByTestId('track-result-track1')).toBeInTheDocument();
@@ -239,11 +209,9 @@ describe('TrackAutocomplete', () => {
     const searchInput = screen.getByPlaceholderText('Search for tracks...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Fast-forward debounce timer
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     // Should not crash and should not show any results
@@ -260,18 +228,22 @@ describe('TrackAutocomplete', () => {
     
     // Type multiple characters quickly
     fireEvent.change(searchInput, { target: { value: 't' } });
-    jest.advanceTimersByTime(500);
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    });
     fireEvent.change(searchInput, { target: { value: 'te' } });
-    jest.advanceTimersByTime(500);
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    });
     fireEvent.change(searchInput, { target: { value: 'tes' } });
-    jest.advanceTimersByTime(500);
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    });
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    // Only advance to trigger the final search
-    jest.advanceTimersByTime(1000);
-    
+    // Wait for the final debounce delay
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
     // Should only call the API once with the final query
