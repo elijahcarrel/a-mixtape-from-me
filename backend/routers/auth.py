@@ -1,12 +1,12 @@
 import os
-from fastapi import APIRouter, Request, HTTPException
-from backend.util.stack_auth import get_user_with_access_token
-from backend.util.cache import cache_user_info, remove_cached_user
+from fastapi import APIRouter, Request, HTTPException, Depends
+from backend.client.stack_auth import get_stack_auth_backend, StackAuthBackend
+from backend.util.cache import cache_user_info, remove_cached_user, get_cached_user_info
 
 router = APIRouter()
 
 @router.get("/me")
-def get_current_user(request: Request):
+def get_current_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
     """Get current user information from Stack Auth token"""
     # Get access token from headers
     access_token = request.headers.get("x-stack-access-token")
@@ -16,7 +16,7 @@ def get_current_user(request: Request):
     
     try:
         # Verify token with Stack Auth and get user info
-        user_info = get_user_with_access_token(access_token)
+        user_info = stack_auth.get_user_with_access_token(access_token)
         if not user_info:
             raise HTTPException(status_code=401, detail="Invalid access token")
         
@@ -40,7 +40,7 @@ def logout(request: Request):
     return {"message": "Logged out successfully"}
 
 @router.get("/verify")
-def verify_token(request: Request):
+def verify_token(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
     """Verify if the provided token is valid"""
     access_token = request.headers.get("x-stack-access-token")
     
@@ -48,7 +48,7 @@ def verify_token(request: Request):
         raise HTTPException(status_code=401, detail="No access token provided")
     
     try:
-        user_info = get_user_with_access_token(access_token)
+        user_info = stack_auth.get_user_with_access_token(access_token)
         if not user_info:
             raise HTTPException(status_code=401, detail="Invalid access token")
         

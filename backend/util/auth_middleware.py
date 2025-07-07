@@ -1,7 +1,8 @@
 from fastapi import Request, HTTPException, Depends
 from backend.util.cache import get_cached_user_info
+from backend.client.stack_auth import get_stack_auth_backend, StackAuthBackend
 
-async def get_current_user(request: Request):
+async def get_current_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
     """
     Middleware function that extracts the access token from headers and returns the current user.
     Can be used as a dependency in FastAPI endpoints.
@@ -13,7 +14,7 @@ async def get_current_user(request: Request):
         raise HTTPException(status_code=401, detail="No access token provided")
     
     # Get user info from cache (with automatic validation if needed)
-    user_info = get_cached_user_info(access_token)
+    user_info = get_cached_user_info(access_token, stack_auth)
     
     if not user_info:
         raise HTTPException(status_code=401, detail="Invalid or expired access token")
