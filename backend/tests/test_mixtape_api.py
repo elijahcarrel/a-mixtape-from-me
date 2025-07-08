@@ -1,7 +1,5 @@
 import os
 from typing import Generator, Tuple
-from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env.local'))
 import sys
 import pytest
 import httpx
