@@ -3,6 +3,7 @@ from typing import Optional, List
 from datetime import datetime, UTC
 import uuid
 from sqlmodel import Session, select
+from sqlalchemy import desc
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack, User
 
 class MixtapeEntity:
@@ -34,6 +35,8 @@ class MixtapeEntity:
         )
         session.add(mixtape)
         session.flush()  # Get the ID
+        if mixtape.id is None:
+            raise ValueError("mixtape.id is None after flush; cannot create tracks")
         
         # Create audit record
         audit = MixtapeAudit(
@@ -50,6 +53,8 @@ class MixtapeEntity:
         session.flush()  # Get the audit ID
         
         # Create tracks
+        if audit.id is None:
+            raise ValueError("audit.id is None after flush; cannot create audit tracks")
         for track_data in tracks:
             track = MixtapeTrack(
                 mixtape_id=mixtape.id,
@@ -58,7 +63,7 @@ class MixtapeEntity:
                 spotify_uri=track_data['spotify_uri']
             )
             session.add(track)
-            
+        for track_data in tracks:
             audit_track = MixtapeAuditTrack(
                 mixtape_audit_id=audit.id,
                 track_position=track_data['track_position'],
@@ -136,11 +141,11 @@ class MixtapeEntity:
         # Delete existing tracks (cascade will handle audit tracks)
         for track in mixtape.tracks:
             session.delete(track)
-        
         # Flush to ensure deletions are processed before adding new tracks
         session.flush()
-        
         # Create new tracks
+        if mixtape.id is None:
+            raise ValueError("mixtape.id is None after flush; cannot create tracks")
         for track_data in tracks:
             track = MixtapeTrack(
                 mixtape_id=mixtape.id,
@@ -149,7 +154,9 @@ class MixtapeEntity:
                 spotify_uri=track_data['spotify_uri']
             )
             session.add(track)
-            
+        if audit.id is None:
+            raise ValueError("audit.id is None after flush; cannot create audit tracks")
+        for track_data in tracks:
             audit_track = MixtapeAuditTrack(
                 mixtape_audit_id=audit.id,
                 track_position=track_data['track_position'],
@@ -160,6 +167,29 @@ class MixtapeEntity:
         
         session.commit()
         return mixtape.version
+
+    @staticmethod
+    def list_mixtapes_for_user(session: Session, user_id: int, q: Optional[str] = None, limit: int = 20, offset: int = 0) -> list:
+        """
+        List all mixtapes for a user, ordered by last_modified_time descending, with optional search and pagination.
+        q: partial match on name (case-insensitive)
+        limit: max results
+        offset: pagination offset
+        Returns a list of dicts with public_id, name, last_modified_time.
+        """
+        statement = select(Mixtape).where(Mixtape.user_id == user_id)
+        if q:
+            statement = statement.where(getattr(Mixtape, 'name').ilike(f"%{q}%"))
+        statement = statement.order_by(desc(getattr(Mixtape, 'last_modified_time'))).limit(limit).offset(offset)
+        mixtapes = session.exec(statement).all()
+        return [
+            {
+                "public_id": m.public_id,
+                "name": m.name,
+                "last_modified_time": m.last_modified_time.isoformat(),
+            }
+            for m in mixtapes
+        ]
 
     @staticmethod
     def get_user_by_stack_auth_id(session: Session, stack_auth_user_id: str) -> Optional[User]:

@@ -2,7 +2,7 @@
 from typing import Optional, List
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship, select
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 
 class User(SQLModel, table=True):
@@ -16,7 +16,6 @@ class User(SQLModel, table=True):
 
 class Mixtape(SQLModel, table=True):
     __tablename__ = "Mixtape"
-    
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: Optional[int] = Field(default=None, foreign_key="User.id")
     public_id: str = Field(unique=True, index=True)
@@ -26,11 +25,14 @@ class Mixtape(SQLModel, table=True):
     create_time: datetime = Field(default_factory=datetime.utcnow)
     last_modified_time: datetime = Field(default_factory=datetime.utcnow)
     version: int = Field(default=1)
-    
     # Relationships
-    user: Optional[User] = Relationship(back_populates="mixtapes")
+    user: Optional["User"] = Relationship(back_populates="mixtapes")
     tracks: List["MixtapeTrack"] = Relationship(back_populates="mixtape", cascade_delete=True)
     audits: List["MixtapeAudit"] = Relationship(back_populates="mixtape")
+    
+    __table_args__ = (
+        Index('ix_mixtape_user_id_last_modified_time', 'user_id', 'last_modified_time'),
+    )
 
 class MixtapeAudit(SQLModel, table=True):
     __tablename__ = "MixtapeAudit"
@@ -46,7 +48,7 @@ class MixtapeAudit(SQLModel, table=True):
     version: int
     
     # Relationships
-    mixtape: Mixtape = Relationship(back_populates="audits")
+    mixtape: "Mixtape" = Relationship(back_populates="audits")
     tracks: List["MixtapeAuditTrack"] = Relationship(back_populates="mixtape_audit", cascade_delete=True)
 
 class MixtapeTrack(SQLModel, table=True):
@@ -59,7 +61,7 @@ class MixtapeTrack(SQLModel, table=True):
     spotify_uri: str = Field(max_length=255)
     
     # Relationships
-    mixtape: Mixtape = Relationship(back_populates="tracks")
+    mixtape: "Mixtape" = Relationship(back_populates="tracks")
     
     # Constraints
     __table_args__ = (
@@ -76,6 +78,6 @@ class MixtapeAuditTrack(SQLModel, table=True):
     spotify_uri: str = Field(max_length=255)
     
     # Relationships
-    mixtape_audit: MixtapeAudit = Relationship(back_populates="tracks")
+    mixtape_audit: "MixtapeAudit" = Relationship(back_populates="tracks")
 
 # Methods for insert/select/update will be added here for each class. 

@@ -12,7 +12,6 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center gap-4">
       <Link href="/create" className="text-lg hover:underline">Create a new mixtape</Link>
-      <Link href="/account" className="text-lg hover:underline">View existing mixtapes</Link>
     </div>
   );
 }
