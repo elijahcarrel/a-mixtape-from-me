@@ -19,7 +19,7 @@ class Track(BaseModel):
     spotify_uri: str = Field(..., min_length=1, max_length=255, description="Spotify URI of the track")
 
 class MixtapeRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the playlist")
+    name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the mixtape")
     intro_text: Optional[str] = Field(None, description="Optional intro text")
     is_public: bool = Field(False, description="Whether the mixtape is public")
     tracks: List[Track] = Field(..., description="List of tracks in the mixtape")

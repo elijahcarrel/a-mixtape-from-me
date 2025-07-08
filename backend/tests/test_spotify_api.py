@@ -21,14 +21,6 @@ def client():
     app.dependency_overrides[spotify.get_spotify_client] = lambda: mock_spotify
     return TestClient(app), token, mock_spotify
 
-def test_get_playlists(client):
-    test_client, token, mock_spotify = client
-    resp = test_client.get("/api/main/spotify/playlists", headers={"x-stack-access-token": token})
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "items" in data
-    assert len(data["items"]) == len(mock_spotify.playlists)
-
 def test_search_tracks(client):
     test_client, token, mock_spotify = client
     resp = test_client.get("/api/main/spotify/search?query=Mock", headers={"x-stack-access-token": token})

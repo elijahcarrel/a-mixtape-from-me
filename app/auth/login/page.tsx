@@ -7,8 +7,8 @@ export default function AuthLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Get the "next" parameter from the URL, defaulting to playlists page
-  const nextParam = searchParams.get("next") || "/spotify/playlists";
+  // Get the "next" parameter from the URL, defaulting to create page
+  const nextParam = searchParams.get("next") || "/create";
 
   useEffect(() => {
     // Redirect to the Stack Auth handler which will handle the login flow

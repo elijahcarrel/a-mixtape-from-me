@@ -34,9 +34,6 @@ class SpotifyClient:
             raise Exception(f"Spotify API error: {response.text}")
         return response.json()
 
-    def get_playlists(self):
-        return self.spotify_api_request("/users/spotify/playlists?limit=20")
-
     def search_tracks(self, query: str):
         return self.spotify_api_request(f"/search?q={query}&type=track&limit=5")
 
