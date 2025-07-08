@@ -10,9 +10,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 # Import models to ensure they're registered with SQLModel metadata
 from backend.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
-# Load environment variables from .env.local file in development.
-if os.getenv('VERCEL_ENV') is None:
-    load_dotenv('.env.local')
+# Load environment variables from .env.local file.
+load_dotenv('.env.local')
 
 # Create app with production database
 database_url = os.getenv('DATABASE_URL')
