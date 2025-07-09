@@ -48,9 +48,11 @@ class MixtapeResponse(BaseModel):
 def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_current_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
-    user_id = user_info.get('user_id')  # Extract user_id from auth info
+    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
+    if not stack_auth_user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
-        public_id = MixtapeEntity.create_in_db(session, user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
+        public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
@@ -64,10 +66,10 @@ def list_my_mixtapes(
     offset: int = Query(0, ge=0, description="Results offset for pagination"),
 ):
     session = next(request_obj.app.state.get_db_dep())
-    user_id = user_info.get('user_id') or user_info.get('id')
-    if not user_id:
+    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
+    if not stack_auth_user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    mixtapes = MixtapeEntity.list_mixtapes_for_user(session, user_id, q=q, limit=limit, offset=offset)
+    mixtapes = MixtapeEntity.list_mixtapes_for_user(session, stack_auth_user_id, q=q, limit=limit, offset=offset)
     return mixtapes
 
 @router.get("/{public_id}", response_model=MixtapeResponse)

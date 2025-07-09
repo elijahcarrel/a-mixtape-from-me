@@ -14,7 +14,7 @@ from backend.util import auth_middleware
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from backend.app_factory import create_app
 # Import models to ensure they're registered with SQLModel metadata
-from backend.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 # Utility functions for better test assertions
 def assert_response_success(response: httpx.Response, expected_status: int = 200) -> None:

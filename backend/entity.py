@@ -4,7 +4,7 @@ from datetime import datetime, UTC
 import uuid
 from sqlmodel import Session, select
 from sqlalchemy import desc
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack, User
+from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 class MixtapeEntity:
     def __init__(self, name: str, intro_text: Optional[str], is_public: bool, tracks: List[dict]):
@@ -14,7 +14,7 @@ class MixtapeEntity:
         self.tracks = tracks  # List of dicts with track_position, track_text, spotify_uri
 
     @staticmethod
-    def create_in_db(session: Session, user_id: Optional[int], name: str, intro_text: Optional[str], is_public: bool, tracks: List[dict]) -> str:
+    def create_in_db(session: Session, stack_auth_user_id: str, name: str, intro_text: Optional[str], is_public: bool, tracks: List[dict]) -> str:
         """
         Create a new mixtape, its tracks, and audit records in a transaction. Returns the public_id.
         """
@@ -24,7 +24,7 @@ class MixtapeEntity:
         
         # Create mixtape
         mixtape = Mixtape(
-            user_id=user_id,
+            stack_auth_user_id=stack_auth_user_id,
             public_id=public_id,
             name=name,
             intro_text=intro_text,
@@ -169,7 +169,7 @@ class MixtapeEntity:
         return mixtape.version
 
     @staticmethod
-    def list_mixtapes_for_user(session: Session, user_id: int, q: Optional[str] = None, limit: int = 20, offset: int = 0) -> list:
+    def list_mixtapes_for_user(session: Session, stack_auth_user_id: str, q: Optional[str] = None, limit: int = 20, offset: int = 0) -> list:
         """
         List all mixtapes for a user, ordered by last_modified_time descending, with optional search and pagination.
         q: partial match on name (case-insensitive)
@@ -177,7 +177,7 @@ class MixtapeEntity:
         offset: pagination offset
         Returns a list of dicts with public_id, name, last_modified_time.
         """
-        statement = select(Mixtape).where(Mixtape.user_id == user_id)
+        statement = select(Mixtape).where(Mixtape.stack_auth_user_id == stack_auth_user_id)
         if q:
             statement = statement.where(getattr(Mixtape, 'name').ilike(f"%{q}%"))
         statement = statement.order_by(desc(getattr(Mixtape, 'last_modified_time'))).limit(limit).offset(offset)
@@ -190,20 +190,5 @@ class MixtapeEntity:
             }
             for m in mixtapes
         ]
-
-    @staticmethod
-    def get_user_by_stack_auth_id(session: Session, stack_auth_user_id: str) -> Optional[User]:
-        """Get user by StackAuth user ID"""
-        statement = select(User).where(User.stack_auth_user_id == stack_auth_user_id)
-        return session.exec(statement).first()
-
-    @staticmethod
-    def create_user(session: Session, stack_auth_user_id: str) -> User:
-        """Create a new user"""
-        user = User(stack_auth_user_id=stack_auth_user_id)
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        return user
 
 # Additional helpers for DAG management and field propagation will be added here. 

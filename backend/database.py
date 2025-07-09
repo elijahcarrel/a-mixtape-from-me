@@ -3,7 +3,7 @@ from typing import Optional
 from sqlmodel import SQLModel, create_engine, Session
 from sqlalchemy.pool import StaticPool
 # Import models to ensure they're registered with SQLModel metadata
-from backend.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 _engines = {}
 _current_db_url: Optional[str] = None
