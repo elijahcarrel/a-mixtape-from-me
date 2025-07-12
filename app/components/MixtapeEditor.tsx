@@ -7,7 +7,6 @@ import TrackList from './TrackList';
 import { debounce } from 'lodash';
 import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 import HeaderContainer from './layout/HeaderContainer';
-import PageTitle from './layout/PageTitle';
 import { useTheme } from './ThemeProvider';
 
 interface Track {
@@ -94,7 +93,6 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
   return (
     <div className="space-y-6 relative">
       <HeaderContainer>
-        <PageTitle>Edit Mixtape</PageTitle>
         {isSaving && (
           <div 
             className={`absolute top-4 right-4 text-sm flex items-center px-3 py-2 rounded-lg shadow-sm border z-10 ${
