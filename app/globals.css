@@ -35,3 +35,23 @@ html.dark body {
 html.dark .main-container, html.dark .content-pane {
   background: #23201c;
 }
+
+/* Light mode only: fix Stack popover dropdown background and menu item hover/focus */
+html:not(.dark) .stack-scope.bg-popover,
+html:not(.dark) .stack-scope .bg-popover {
+  background: #F4EDE4;
+  backdrop-filter: none;
+}
+
+html:not(.dark) .stack-scope .focus\:bg-accent:focus,
+html:not(.dark) .stack-scope .focus\:bg-accent[data-state="open"],
+html:not(.dark) .stack-scope .focus\:bg-accent[data-highlighted] {
+  background: #D4C4B0;
+  color: #2D2D2D;
+}
+
+html:not(.dark) .stack-scope .focus\:text-accent-foreground:focus,
+html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-state="open"],
+html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-highlighted] {
+  color: #2D2D2D;
+}
