@@ -17,9 +17,9 @@ function formatRelativeTime(dateStr: string) {
 
 export default function MyMixtapesPage() {
   const searchParams = useSearchParams();
-  const q = searchParams.get('q') || undefined;
-  const limit = searchParams.get('limit') || undefined;
-  const offset = searchParams.get('offset') || undefined;
+  const q = searchParams?.get('q') || undefined;
+  const limit = searchParams?.get('limit') || undefined;
+  const offset = searchParams?.get('offset') || undefined;
 
   const query: Record<string, string> = {};
   if (q) query.q = q;
