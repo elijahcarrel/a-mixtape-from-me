@@ -7,12 +7,13 @@ This script creates all tables defined in the SQLModel models.
 import os
 import sys
 from dotenv import load_dotenv
+from sqlmodel import SQLModel
 
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from backend.database import create_tables
-from backend.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+from backend.database import create_tables, get_engine
+from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 def main():
     """Initialize the database with all tables"""
@@ -26,9 +27,12 @@ def main():
         print("Error: DATABASE_URL environment variable not set")
         sys.exit(1)
     
-    print(f"Creating tables in database: {database_url}")
-    
+
     try:
+        engine = get_engine(database_url)
+        print(f"Dropping tables in database: {database_url}")
+        SQLModel.metadata.drop_all(engine) 
+        print(f"Creating tables in database: {database_url}")
         create_tables(database_url)
         print("✅ Database tables created successfully!")
 

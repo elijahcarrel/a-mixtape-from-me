@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from sqlmodel import Session
@@ -48,12 +48,29 @@ class MixtapeResponse(BaseModel):
 def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_current_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
-    user_id = user_info.get('user_id')  # Extract user_id from auth info
+    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
+    if not stack_auth_user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
-        public_id = MixtapeEntity.create_in_db(session, user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
+        public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
+
+@router.get("/", response_model=List[dict])
+def list_my_mixtapes(
+    request_obj: Request,
+    user_info: dict = Depends(get_current_user),
+    q: Optional[str] = Query(None, description="Search mixtape titles (partial match)"),
+    limit: int = Query(20, ge=1, le=100, description="Max results to return"),
+    offset: int = Query(0, ge=0, description="Results offset for pagination"),
+):
+    session = next(request_obj.app.state.get_db_dep())
+    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
+    if not stack_auth_user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    mixtapes = MixtapeEntity.list_mixtapes_for_user(session, stack_auth_user_id, q=q, limit=limit, offset=offset)
+    return mixtapes
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
 def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_current_user)):

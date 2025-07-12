@@ -14,7 +14,7 @@ from backend.util import auth_middleware
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from backend.app_factory import create_app
 # Import models to ensure they're registered with SQLModel metadata
-from backend.db_models import User, Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 # Utility functions for better test assertions
 def assert_response_success(response: httpx.Response, expected_status: int = 200) -> None:
@@ -178,3 +178,40 @@ def test_get_nonexistent_mixtape(client: Tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     resp = test_client.get("/api/main/mixtape/00000000-0000-0000-0000-000000000000", headers={"x-stack-access-token": token})
     assert_response_not_found(resp) 
+
+def test_list_my_mixtapes_pagination_and_search(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    # Create 5 mixtapes with varying names
+    names = ["Alpha", "Beta", "Gamma", "Delta", "Alphabet"]
+    public_ids = []
+    for name in names:
+        resp = test_client.post(
+            "/api/main/mixtape/",
+            json={"name": name, "intro_text": "", "is_public": True, "tracks": [{"track_position": 1, "track_text": name, "spotify_uri": f"spotify:track:{name}"}]},
+            headers={"x-stack-access-token": token},
+        )
+        assert_response_created(resp)
+        public_ids.append(resp.json()["public_id"])
+    # Test limit
+    resp = test_client.get("/api/main/mixtape/?limit=2", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert len(data) == 2
+    # Test offset
+    resp2 = test_client.get("/api/main/mixtape/?limit=2&offset=2", headers={"x-stack-access-token": token})
+    assert_response_success(resp2)
+    data2 = resp2.json()
+    assert len(data2) == 2
+    # Test q (partial match, case-insensitive)
+    resp3 = test_client.get("/api/main/mixtape/?q=alpha", headers={"x-stack-access-token": token})
+    assert_response_success(resp3)
+    data3 = resp3.json()
+    # Should match both 'Alpha' and 'Alphabet'
+    found_names = {d["name"].lower() for d in data3}
+    assert "alpha" in found_names
+    assert "alphabet" in found_names
+    # Test q with no matches
+    resp4 = test_client.get("/api/main/mixtape/?q=nomatch", headers={"x-stack-access-token": token})
+    assert_response_success(resp4)
+    data4 = resp4.json()
+    assert data4 == [] 
