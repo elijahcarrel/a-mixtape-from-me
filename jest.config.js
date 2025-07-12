@@ -11,7 +11,7 @@ module.exports = {
     '^@stackframe/stack-shared$': '<rootDir>/app/__mocks__/stack-shared.js',
     '^next/navigation$': '<rootDir>/app/__mocks__/next-navigation.js',
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', 'test-utils.tsx'],
   transformIgnorePatterns: [
     '/node_modules/(?!@stackframe/stack-shared)/',
   ],

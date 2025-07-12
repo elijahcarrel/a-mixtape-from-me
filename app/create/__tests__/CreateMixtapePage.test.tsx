@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '../../components/__tests__/test-utils';
 import '@testing-library/jest-dom';
 import CreateMixtapePage from '../page';
 
@@ -47,9 +47,7 @@ describe('CreateMixtapePage', () => {
       refetch: jest.fn(),
     });
     render(<CreateMixtapePage />);
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('/mixtape/abc123');
-    });
+    await expect(mockReplace).toHaveBeenCalledWith('/mixtape/abc123');
   });
 
   it('shows error and retry button if creation fails', () => {

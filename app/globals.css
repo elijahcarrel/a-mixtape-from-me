@@ -3,18 +3,55 @@
 @tailwind utilities;
 
 :root {
-  --sepia-dark: #D4C4B0;
   --sepia-light: #F4EDE4;
+  --sepia-dark: #2D2D2D;
   --text-color: #2D2D2D;
-  --cassette-brown: #8B4513;
-  --vintage-gold: #DAA520;
-  --faded-amber: #F4A460;
+  --card-bg: #F4EDE4;
+}
+
+html.dark {
+  --sepia-light: #181716;
+  --sepia-dark: #F4EDE4;
+  --text-color: #F4EDE4;
+  --card-bg: #23201c;
+  background: #181716;
 }
 
 body {
+  background: var(--sepia-light);
   color: var(--text-color);
-  background-color: var(--sepia-dark);
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
+}
+
+html.dark body {
+  background: #181716;
+  color: #F4EDE4;
+}
+
+/* Make sure all containers use the card background */
+.main-container, .content-pane {
+  background: var(--card-bg);
+}
+
+html.dark .main-container, html.dark .content-pane {
+  background: #23201c;
+}
+
+/* Light mode only: fix Stack popover dropdown background and menu item hover/focus */
+html:not(.dark) .stack-scope.bg-popover,
+html:not(.dark) .stack-scope .bg-popover {
+  background: #F4EDE4;
+  backdrop-filter: none;
+}
+
+html:not(.dark) .stack-scope .focus\:bg-accent:focus,
+html:not(.dark) .stack-scope .focus\:bg-accent[data-state="open"],
+html:not(.dark) .stack-scope .focus\:bg-accent[data-highlighted] {
+  background: #D4C4B0;
+  color: #2D2D2D;
+}
+
+html:not(.dark) .stack-scope .focus\:text-accent-foreground:focus,
+html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-state="open"],
+html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-highlighted] {
+  color: #2D2D2D;
 }

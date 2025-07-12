@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '../../components/__tests__/test-utils';
 import '@testing-library/jest-dom';
 import MixtapePage from '../[publicId]/page';
 

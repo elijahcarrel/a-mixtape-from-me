@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from './test-utils';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import TrackAutocomplete from '../TrackAutocomplete';
