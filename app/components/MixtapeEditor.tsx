@@ -8,6 +8,7 @@ import { debounce } from 'lodash';
 import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 import HeaderContainer from './layout/HeaderContainer';
 import PageTitle from './layout/PageTitle';
+import { useTheme } from './ThemeProvider';
 
 interface Track {
   track_position: number;
@@ -33,6 +34,7 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
   const [tracks, setTracks] = useState<Track[]>(mixtape.tracks);
   const [isSaving, setIsSaving] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
+  const { theme } = useTheme();
 
   // Debounced save function that always uses the latest tracks
   const debouncedSave = useCallback(
@@ -90,12 +92,21 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <HeaderContainer>
         <PageTitle>Edit Mixtape</PageTitle>
         {isSaving && (
-          <div className="text-sm text-amber-600 flex items-center" data-testid="saving-indicator">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600 mr-2"></div>
+          <div 
+            className={`absolute top-4 right-4 text-sm flex items-center px-3 py-2 rounded-lg shadow-sm border z-10 ${
+              theme === 'dark' 
+                ? 'text-amber-300 bg-amber-900/20 border-amber-700' 
+                : 'text-amber-600 bg-amber-50 border-amber-200'
+            }`} 
+            data-testid="saving-indicator"
+          >
+            <div className={`animate-spin rounded-full h-4 w-4 border-b-2 mr-2 ${
+              theme === 'dark' ? 'border-amber-300' : 'border-amber-600'
+            }`}></div>
             Saving...
           </div>
         )}
@@ -117,7 +128,11 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
                 name="name"
                 type="text"
                 placeholder="Enter mixtape title..."
-                className="w-full text-3xl font-bold bg-transparent border-b-2 border-amber-300 focus:border-amber-600 outline-none transition-colors duration-200 text-amber-900 placeholder-amber-500"
+                className={`w-full text-3xl font-bold bg-transparent border-b-2 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${
+                  theme === 'dark'
+                    ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
+                    : 'border-amber-300 text-neutral-900 focus:border-amber-600'
+                }`}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFieldValue('name', e.target.value);
                   handleFormChange({ ...values, name: e.target.value });
@@ -132,7 +147,11 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
                 as="textarea"
                 placeholder="Add some intro text for your mixtape..."
                 rows={3}
-                className="w-full bg-transparent border border-amber-300 rounded-lg p-3 focus:border-amber-600 outline-none transition-colors duration-200 text-amber-900 placeholder-amber-500 resize-none"
+                className={`w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none ${
+                  theme === 'dark'
+                    ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
+                    : 'border-amber-300 text-neutral-900 focus:border-amber-600'
+                }`}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                   setFieldValue('intro_text', e.target.value);
                   handleFormChange({ ...values, intro_text: e.target.value });
@@ -146,13 +165,17 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
                 name="is_public"
                 type="checkbox"
                 id="is_public"
-                className="w-4 h-4 text-amber-600 bg-transparent border-amber-300 rounded focus:ring-amber-500"
+                className={`w-4 h-4 bg-transparent border rounded focus:ring-2 focus:ring-offset-0 ${
+                  theme === 'dark'
+                    ? 'text-amber-400 border-amber-600 focus:ring-amber-500'
+                    : 'text-amber-600 border-amber-300 focus:ring-amber-500'
+                }`}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFieldValue('is_public', e.target.checked);
                   handleFormChange({ ...values, is_public: e.target.checked });
                 }}
               />
-              <label htmlFor="is_public" className="text-amber-900">
+              <label htmlFor="is_public" className={theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}>
                 Make this mixtape public
               </label>
             </div>
@@ -162,13 +185,13 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
 
       {/* Track Autocomplete */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-amber-900">Add Tracks</h2>
+        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>Add Tracks</h2>
         <TrackAutocomplete onTrackSelect={addTrack} />
       </div>
 
       {/* Track List */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-amber-900">
+        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
           Tracks ({tracks.length})
         </h2>
         <TrackList tracks={tracks} onRemoveTrack={removeTrack} />

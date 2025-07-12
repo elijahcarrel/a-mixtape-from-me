@@ -4,16 +4,17 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserButton } from '@stackframe/stack';
 import UserButtonContainer from './layout/UserButtonContainer';
+import { useTheme } from './ThemeProvider';
 
 export default function UserButtonHeader() {
   const router = useRouter();
-  // Simple color mode toggle: toggles a value in localStorage and reloads the page
+  const { theme, setTheme } = useTheme();
+  
+  // Proper theme toggle that updates the theme context
   const handleColorModeToggle = useCallback(() => {
-    const current = localStorage.getItem('theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
-    window.location.reload();
-  }, []);
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+  }, [theme, setTheme]);
 
   const extraItems = [
     {

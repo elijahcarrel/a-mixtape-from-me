@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 import { debounce } from 'lodash';
+import { useTheme } from './ThemeProvider';
 
 interface TrackSearchResult {
   id: string;
@@ -37,6 +38,7 @@ function Autocomplete<T>({
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   const debouncedSearch = debounce(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -131,25 +133,37 @@ function Autocomplete<T>({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="w-full bg-transparent border border-amber-300 rounded-lg p-3 focus:border-amber-600 outline-none transition-colors duration-200 text-amber-900 placeholder-amber-500"
+        className={`w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${
+          theme === 'dark'
+            ? 'border-amber-600 text-neutral-100 focus:border-amber-400 placeholder-neutral-400'
+            : 'border-amber-300 text-amber-900 focus:border-amber-600 placeholder-amber-500'
+        }`}
       />
       
       {isSearching && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2" data-testid="loading-spinner">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-600"></div>
+          <div className={`animate-spin rounded-full h-5 w-5 border-b-2 ${
+            theme === 'dark' ? 'border-amber-400' : 'border-amber-600'
+          }`}></div>
         </div>
       )}
 
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute z-10 w-full mt-1 bg-amber-50 border border-amber-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          className={`absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
+            theme === 'dark'
+              ? 'bg-neutral-900 border-amber-700'
+              : 'bg-amber-50 border-amber-300'
+          }`}
         >
           {results.map((item, index) => (
             <div
               key={getItemKey(item)}
-              className={`cursor-pointer p-3 hover:bg-amber-100 transition-colors duration-150 ${
-                index === selectedIndex ? 'bg-amber-200' : ''
+              className={`cursor-pointer p-3 transition-colors duration-150 ${
+                theme === 'dark'
+                  ? `hover:bg-neutral-800 ${index === selectedIndex ? 'bg-neutral-700' : ''} text-neutral-100`
+                  : `hover:bg-amber-100 ${index === selectedIndex ? 'bg-amber-200' : ''} text-amber-900`
               }`}
               onClick={() => handleSelect(item)}
               data-testid={`track-result-${getItemKey(item)}`}
@@ -170,6 +184,7 @@ interface TrackAutocompleteProps {
 
 export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompleteProps) {
   const { makeRequest } = useAuthenticatedRequest();
+  const { theme } = useTheme();
 
   const searchTracks = async (query: string): Promise<TrackSearchResult[]> => {
     try {
@@ -189,13 +204,19 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
         className="w-12 h-12 rounded object-cover"
       />
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-amber-900 truncate">
+        <div className={`text-sm font-medium truncate ${
+          theme === 'dark' ? 'text-neutral-100' : 'text-amber-900'
+        }`}>
           {track.name}
         </div>
-        <div className="text-xs text-amber-600 truncate">
+        <div className={`text-xs truncate ${
+          theme === 'dark' ? 'text-neutral-300' : 'text-amber-600'
+        }`}>
           {track.artists.map(a => a.name).join(', ')}
         </div>
-        <div className="text-xs text-amber-500 truncate">
+        <div className={`text-xs truncate ${
+          theme === 'dark' ? 'text-neutral-400' : 'text-amber-500'
+        }`}>
           {track.album.name}
         </div>
       </div>
