@@ -370,3 +370,23 @@ def test_claim_then_edit_restricted(client: Tuple[TestClient, str, dict], app) -
     # Try to edit as unauthenticated (should fail)
     resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks})
     assert resp.status_code == 401 
+
+def test_anonymous_mixtape_must_be_public(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Try to create anonymous private mixtape (should fail)
+    payload = {
+        "name": "Test Mixtape",
+        "intro_text": "Intro!",
+        "is_public": False,  # This should cause the error
+        "tracks": tracks
+    }
+    resp = test_client.post("/api/main/mixtape/", json=payload)
+    assert resp.status_code == 400
+    assert "Anonymous mixtapes must be public" in resp.json()["detail"]
+    # Verify anonymous public mixtape still works
+    payload["is_public"] = True
+    resp = test_client.post("/api/main/mixtape/", json=payload)
+    assert_response_created(resp) 

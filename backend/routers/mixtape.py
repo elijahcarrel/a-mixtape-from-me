@@ -47,6 +47,11 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dic
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
+    
+    # Anonymous mixtapes must be public
+    if user_info is None and not request.is_public:
+        raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
+    
     # For anonymous mixtapes, stack_auth_user_id will be None
     try:
         public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
