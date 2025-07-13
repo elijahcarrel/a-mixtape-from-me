@@ -121,6 +121,10 @@ def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
     
+    # Anonymous mixtapes cannot be made private
+    if mixtape["stack_auth_user_id"] is None and not request.is_public:
+        raise HTTPException(status_code=400, detail="Anonymous mixtapes must remain public")
+    
     # For anonymous mixtapes (stack_auth_user_id is None), anyone can edit
     if mixtape["stack_auth_user_id"] is not None:
         # For owned mixtapes, require authentication and ownership

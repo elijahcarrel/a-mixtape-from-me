@@ -29,7 +29,6 @@ export default function MyMixtapesPage() {
 
   const { data: mixtapes, loading, error } = useApiRequest<any[]>({
     url: `/api/main/mixtape/${queryString}`,
-    requireAuth: true,
   });
 
   return (

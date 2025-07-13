@@ -390,3 +390,27 @@ def test_anonymous_mixtape_must_be_public(client: Tuple[TestClient, str, dict]) 
     payload["is_public"] = True
     resp = test_client.post("/api/main/mixtape/", json=payload)
     assert_response_created(resp) 
+
+def test_anonymous_mixtape_cannot_be_made_private_via_put(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Try to make it private via PUT (should fail)
+    payload = {
+        "name": "Test Mixtape",
+        "intro_text": "Intro!",
+        "is_public": False,  # This should cause the error
+        "tracks": tracks
+    }
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json=payload)
+    assert resp.status_code == 400
+    assert "Anonymous mixtapes must remain public" in resp.json()["detail"]
+    # Verify making it public still works
+    payload["is_public"] = True
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json=payload)
+    assert_response_success(resp) 

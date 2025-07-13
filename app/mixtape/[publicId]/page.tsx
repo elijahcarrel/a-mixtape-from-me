@@ -32,7 +32,6 @@ export default function MixtapePage() {
   const { data: mixtape, loading, error, refetch } = useApiRequest<MixtapeData>({
     url: `/api/main/mixtape/${publicId}`,
     method: 'GET',
-    requireAuth: true
   });
 
   if (loading) {
