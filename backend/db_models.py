@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 class Mixtape(SQLModel, table=True):
     __tablename__ = "Mixtape"
     id: Optional[int] = Field(default=None, primary_key=True)
-    stack_auth_user_id: str = Field(index=True, description="Stack Auth User ID of the owner")
+    stack_auth_user_id: Optional[str] = Field(default=None, index=True, description="Stack Auth User ID of the owner (None for anonymous)")
     public_id: str = Field(unique=True, index=True)
     name: str = Field(max_length=255)
     intro_text: Optional[str] = Field(default=None)
@@ -37,6 +37,7 @@ class MixtapeAudit(SQLModel, table=True):
     create_time: datetime
     last_modified_time: datetime
     version: int
+    stack_auth_user_id: Optional[str] = Field(default=None, description="Stack Auth User ID of the owner (None for anonymous)")
     # Relationships
     mixtape: "Mixtape" = Relationship(back_populates="audits")
     tracks: List["MixtapeAuditTrack"] = Relationship(back_populates="mixtape_audit", cascade_delete=True)

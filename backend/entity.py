@@ -14,9 +14,10 @@ class MixtapeEntity:
         self.tracks = tracks  # List of dicts with track_position, track_text, spotify_uri
 
     @staticmethod
-    def create_in_db(session: Session, stack_auth_user_id: str, name: str, intro_text: Optional[str], is_public: bool, tracks: List[dict]) -> str:
+    def create_in_db(session: Session, stack_auth_user_id: Optional[str], name: str, intro_text: Optional[str], is_public: bool, tracks: List[dict]) -> str:
         """
         Create a new mixtape, its tracks, and audit records in a transaction. Returns the public_id.
+        stack_auth_user_id can be None for anonymous mixtapes.
         """
         public_id = str(uuid.uuid4())
         now = datetime.now(UTC)
@@ -47,7 +48,8 @@ class MixtapeEntity:
             is_public=is_public,
             create_time=now,
             last_modified_time=now,
-            version=version
+            version=version,
+            stack_auth_user_id=stack_auth_user_id
         )
         session.add(audit)
         session.flush()  # Get the audit ID
@@ -165,6 +167,58 @@ class MixtapeEntity:
                 track_position=track_data['track_position'],
                 track_text=track_data.get('track_text'),
                 spotify_uri=track_data['spotify_uri']
+            )
+            session.add(audit_track)
+        
+        session.commit()
+        return mixtape.version
+
+    @staticmethod
+    def claim_mixtape(session: Session, public_id: str, stack_auth_user_id: str) -> int:
+        """
+        Claim an anonymous mixtape by assigning it to a user. Returns new version.
+        """
+        now = datetime.now(UTC)
+        
+        # Get existing mixtape
+        statement = select(Mixtape).where(Mixtape.public_id == public_id)
+        mixtape = session.exec(statement).first()
+        
+        if not mixtape:
+            raise ValueError("Mixtape not found")
+        
+        if mixtape.stack_auth_user_id is not None:
+            raise ValueError("Mixtape is already claimed")
+        
+        # Update mixtape ownership
+        mixtape.stack_auth_user_id = stack_auth_user_id
+        mixtape.last_modified_time = now
+        mixtape.version += 1
+        
+        # Create audit record for the claim
+        audit = MixtapeAudit(
+            mixtape_id=mixtape.id,
+            public_id=public_id,
+            name=mixtape.name,
+            intro_text=mixtape.intro_text,
+            is_public=mixtape.is_public,
+            create_time=mixtape.create_time,
+            last_modified_time=now,
+            version=mixtape.version,
+            stack_auth_user_id=stack_auth_user_id
+        )
+        session.add(audit)
+        session.flush()  # Get the audit ID
+        
+        # Create audit tracks for the claim
+        if audit.id is None:
+            raise ValueError("audit.id is None after flush; cannot create audit tracks")
+        for track in mixtape.tracks:
+            audit_track = MixtapeAuditTrack(
+                mixtape_audit_id=audit.id,
+                track_position=track.track_position,
+                track_text=track.track_text,
+                spotify_uri=track.spotify_uri
             )
             session.add(audit_track)
         
