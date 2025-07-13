@@ -23,6 +23,7 @@ interface MixtapeData {
   create_time: string;
   last_modified_time: string;
   tracks: Track[];
+  stack_auth_user_id?: string;
 }
 
 export default function MixtapePage() {
@@ -63,7 +64,7 @@ export default function MixtapePage() {
   return (
     <MainContainer>
       <ContentPane>
-        <MixtapeEditor mixtape={mixtape} />
+        <MixtapeEditor mixtape={mixtape} onMixtapeClaimed={refetch} />
       </ContentPane>
     </MainContainer>
   );

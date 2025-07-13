@@ -40,6 +40,7 @@ class MixtapeResponse(BaseModel):
     is_public: bool
     create_time: str
     last_modified_time: str
+    stack_auth_user_id: Optional[str]
     tracks: List[TrackResponse]
 
 @router.post("/", response_model=dict, status_code=201)
@@ -107,8 +108,6 @@ def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(
         stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
         if not stack_auth_user_id or stack_auth_user_id != mixtape["stack_auth_user_id"]:
             raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
-    # Remove owner info from response
-    mixtape.pop("stack_auth_user_id", None)
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
