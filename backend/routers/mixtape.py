@@ -3,15 +3,13 @@ from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from sqlmodel import Session
 from backend.entity import MixtapeEntity
-from backend.util.auth_middleware import get_current_user
+from backend.util.auth_middleware import get_current_user, get_optional_user
 
 router = APIRouter()
 
 # POST /mixtape: Create a new mixtape (with tracks)
 # GET /mixtape/{public_id}: Retrieve a mixtape (with tracks)
 # PUT /mixtape/{public_id}: Update a mixtape (with tracks)
-
-# Endpoints will be implemented after db_models and entity layers are in place.
 
 class Track(BaseModel):
     track_position: int = Field(..., gt=0, description="Unique position of the track within the mixtape (1-based index)")
@@ -73,19 +71,37 @@ def list_my_mixtapes(
     return mixtapes
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
-def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_current_user)):
+def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_optional_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     try:
-        mixtape = MixtapeEntity.load_by_public_id(session, public_id)
+        mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
+    # If not public, require authentication and ownership
+    if not mixtape["is_public"]:
+        stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
+        if not stack_auth_user_id or stack_auth_user_id != mixtape["stack_auth_user_id"]:
+            raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
+    # Remove owner info from response
+    mixtape.pop("stack_auth_user_id", None)
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
 def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_current_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
+    # Require authentication
+    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
+    if not stack_auth_user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    # Check ownership
+    try:
+        mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Mixtape not found")
+    if stack_auth_user_id != mixtape["stack_auth_user_id"]:
+        raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
     try:
         new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except ValueError:

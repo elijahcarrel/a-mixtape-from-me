@@ -215,3 +215,42 @@ def test_list_my_mixtapes_pagination_and_search(client: Tuple[TestClient, str, d
     assert_response_success(resp4)
     data4 = resp4.json()
     assert data4 == [] 
+
+def test_public_mixtape_viewable_by_unauthenticated_user(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create public mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Unauthenticated GET should succeed
+    resp = test_client.get(f"/api/main/mixtape/{public_id}")
+    assert_response_success(resp)
+    # Make mixtape private
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Test Mixtape", "intro_text": "Intro!", "is_public": False, "tracks": tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    # Unauthenticated GET should now fail (401)
+    resp = test_client.get(f"/api/main/mixtape/{public_id}")
+    assert resp.status_code == 401
+
+def test_only_owner_can_edit_mixtape(client: Tuple[TestClient, str, dict], app) -> None:
+    test_client, token, user = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create mixtape as user1
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Register a second user
+    mock_auth = app.dependency_overrides[auth.get_stack_auth_backend]()
+    user2 = {"id": "user456", "email": "other@example.com", "name": "Other User"}
+    token2 = mock_auth.register_user(user2)
+    # Try to edit as user2
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks}, headers={"x-stack-access-token": token2})
+    assert resp.status_code == 401
+    # Try to edit as unauthenticated
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks})
+    assert resp.status_code == 401 

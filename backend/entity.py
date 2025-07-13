@@ -76,7 +76,7 @@ class MixtapeEntity:
         return public_id
 
     @staticmethod
-    def load_by_public_id(session: Session, public_id: str) -> dict:
+    def load_by_public_id(session: Session, public_id: str, include_owner: bool = False) -> dict:
         # Get mixtape with tracks
         statement = select(Mixtape).where(Mixtape.public_id == public_id)
         mixtape = session.exec(statement).first()
@@ -87,7 +87,7 @@ class MixtapeEntity:
         # Get tracks (they should be loaded via relationship)
         tracks = mixtape.tracks
         
-        return {
+        result = {
             "public_id": mixtape.public_id,
             "name": mixtape.name,
             "intro_text": mixtape.intro_text,
@@ -102,6 +102,9 @@ class MixtapeEntity:
                 } for t in tracks
             ]
         }
+        if include_owner:
+            result["stack_auth_user_id"] = mixtape.stack_auth_user_id
+        return result
 
     @staticmethod
     def update_in_db(session: Session, public_id: str, name: str, intro_text: Optional[str], is_public: bool, tracks: List[dict]) -> int:
