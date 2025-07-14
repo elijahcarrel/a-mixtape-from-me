@@ -25,6 +25,7 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  usePathname: () => "/mixtape/test-mixtape-123"
 }));
 
 // Mock components
@@ -362,7 +363,7 @@ describe('MixtapeEditor', () => {
       });
       
       render(<MixtapeEditor mixtape={mockAnonymousMixtapeData} />);
-      
+
       const signInButton = screen.getByText('Sign In');
       fireEvent.click(signInButton);
       

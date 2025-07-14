@@ -9,7 +9,7 @@ import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface Track {
   track_position: number;
@@ -39,7 +39,8 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
   const { theme } = useTheme();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const currentPath = usePathname()
   const router = useRouter();
 
   const isAnonymousMixtape = !mixtape.stack_auth_user_id;
@@ -47,7 +48,6 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   const handleClaimMixtape = async () => {
     if (!isAuthenticated) {
       // Redirect to sign in with current page as next parameter
-      const currentPath = window.location.pathname;
       router.push(`/handler/signup?next=${encodeURIComponent(currentPath)}`);
       return;
     }
