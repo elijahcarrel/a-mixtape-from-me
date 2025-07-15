@@ -23,6 +23,7 @@ interface MixtapeData {
   create_time: string;
   last_modified_time: string;
   tracks: Track[];
+  stack_auth_user_id?: string;
 }
 
 export default function MixtapePage() {
@@ -32,7 +33,6 @@ export default function MixtapePage() {
   const { data: mixtape, loading, error, refetch } = useApiRequest<MixtapeData>({
     url: `/api/main/mixtape/${publicId}`,
     method: 'GET',
-    requireAuth: true
   });
 
   if (loading) {
@@ -64,7 +64,7 @@ export default function MixtapePage() {
   return (
     <MainContainer>
       <ContentPane>
-        <MixtapeEditor mixtape={mixtape} />
+        <MixtapeEditor mixtape={mixtape} onMixtapeClaimed={refetch} />
       </ContentPane>
     </MainContainer>
   );

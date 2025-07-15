@@ -215,3 +215,202 @@ def test_list_my_mixtapes_pagination_and_search(client: Tuple[TestClient, str, d
     assert_response_success(resp4)
     data4 = resp4.json()
     assert data4 == [] 
+
+def test_public_mixtape_viewable_by_unauthenticated_user(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create public mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Unauthenticated GET should succeed
+    resp = test_client.get(f"/api/main/mixtape/{public_id}")
+    assert_response_success(resp)
+    # Make mixtape private
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Test Mixtape", "intro_text": "Intro!", "is_public": False, "tracks": tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    # Unauthenticated GET should now fail (401)
+    resp = test_client.get(f"/api/main/mixtape/{public_id}")
+    assert resp.status_code == 401
+
+def test_only_owner_can_edit_mixtape(client: Tuple[TestClient, str, dict], app) -> None:
+    test_client, token, user = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create mixtape as user1
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Register a second user
+    mock_auth = app.dependency_overrides[auth.get_stack_auth_backend]()
+    user2 = {"id": "user456", "email": "other@example.com", "name": "Other User"}
+    token2 = mock_auth.register_user(user2)
+    # Try to edit as user2
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks}, headers={"x-stack-access-token": token2})
+    assert resp.status_code == 401
+    # Try to edit as unauthenticated
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks})
+    assert resp.status_code == 401 
+
+def test_create_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape (no auth header)
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Verify it's viewable by anyone
+    resp = test_client.get(f"/api/main/mixtape/{public_id}")
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Test Mixtape"
+    assert data["is_public"] is True
+
+def test_claim_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Claim it
+    resp = test_client.post(f"/api/main/mixtape/{public_id}/claim", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    version = resp.json()["version"]
+    assert version == 2
+    # Verify it now appears in user's list
+    resp = test_client.get("/api/main/mixtape/", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert len(data) == 1
+    assert data[0]["public_id"] == public_id
+
+def test_cannot_claim_already_claimed_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Claim it
+    resp = test_client.post(f"/api/main/mixtape/{public_id}/claim", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    # Try to claim it again
+    resp = test_client.post(f"/api/main/mixtape/{public_id}/claim", headers={"x-stack-access-token": token})
+    assert resp.status_code == 400
+    assert "already claimed" in resp.json()["detail"]
+
+def test_edit_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Edit it without authentication (should work for anonymous mixtapes)
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:1"},
+        {"track_position": 2, "track_text": "New", "spotify_uri": "spotify:track:2"}
+    ]
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Modified Mixtape", "intro_text": "Modified!", "is_public": True, "tracks": new_tracks})
+    assert_response_success(resp)
+    version = resp.json()["version"]
+    assert version == 2
+    # Verify changes
+    resp = test_client.get(f"/api/main/mixtape/{public_id}")
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Modified Mixtape"
+    assert len(data["tracks"]) == 2
+
+def test_anonymous_mixtapes_not_in_user_list(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    # Verify it doesn't appear in user's list
+    resp = test_client.get("/api/main/mixtape/", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert len(data) == 0
+
+def test_claim_then_edit_restricted(client: Tuple[TestClient, str, dict], app) -> None:
+    test_client, token, user = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Claim it
+    resp = test_client.post(f"/api/main/mixtape/{public_id}/claim", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    # Register a second user
+    mock_auth = app.dependency_overrides[auth.get_stack_auth_backend]()
+    user2 = {"id": "user456", "email": "other@example.com", "name": "Other User"}
+    token2 = mock_auth.register_user(user2)
+    # Try to edit as user2 (should fail)
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks}, headers={"x-stack-access-token": token2})
+    assert resp.status_code == 401
+    # Try to edit as unauthenticated (should fail)
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks})
+    assert resp.status_code == 401 
+
+def test_anonymous_mixtape_must_be_public(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Try to create anonymous private mixtape (should fail)
+    payload = {
+        "name": "Test Mixtape",
+        "intro_text": "Intro!",
+        "is_public": False,  # This should cause the error
+        "tracks": tracks
+    }
+    resp = test_client.post("/api/main/mixtape/", json=payload)
+    assert resp.status_code == 400
+    assert "Anonymous mixtapes must be public" in resp.json()["detail"]
+    # Verify anonymous public mixtape still works
+    payload["is_public"] = True
+    resp = test_client.post("/api/main/mixtape/", json=payload)
+    assert_response_created(resp) 
+
+def test_anonymous_mixtape_cannot_be_made_private_via_put(client: Tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:1"}
+    ]
+    # Create anonymous mixtape
+    resp = test_client.post("/api/main/mixtape/", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    # Try to make it private via PUT (should fail)
+    payload = {
+        "name": "Test Mixtape",
+        "intro_text": "Intro!",
+        "is_public": False,  # This should cause the error
+        "tracks": tracks
+    }
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json=payload)
+    assert resp.status_code == 400
+    assert "Anonymous mixtapes must remain public" in resp.json()["detail"]
+    # Verify making it public still works
+    payload["is_public"] = True
+    resp = test_client.put(f"/api/main/mixtape/{public_id}", json=payload)
+    assert_response_success(resp) 

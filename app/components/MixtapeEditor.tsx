@@ -8,6 +8,8 @@ import { debounce } from 'lodash';
 import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
+import { useAuth } from '../hooks/useAuth';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface Track {
   track_position: number;
@@ -23,17 +25,47 @@ interface MixtapeData {
   create_time: string;
   last_modified_time: string;
   tracks: Track[];
+  stack_auth_user_id?: string;
 }
 
 interface MixtapeEditorProps {
   mixtape: MixtapeData;
+  onMixtapeClaimed?: () => void;
 }
 
-export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
+export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEditorProps) {
   const [tracks, setTracks] = useState<Track[]>(mixtape.tracks);
   const [isSaving, setIsSaving] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
+  const currentPath = usePathname()
+  const router = useRouter();
+
+  const isAnonymousMixtape = !mixtape.stack_auth_user_id;
+
+  const handleClaimMixtape = async () => {
+    if (!isAuthenticated) {
+      // Redirect to sign in with current page as next parameter
+      router.push(`/handler/signup?next=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+
+    setIsClaiming(true);
+    try {
+      await makeRequest(`/api/main/mixtape/${mixtape.public_id}/claim`, {
+        method: 'POST',
+        body: {}
+      });
+      // Call the parent's callback to refresh data
+      onMixtapeClaimed?.();
+    } catch (error) {
+      console.error('Error claiming mixtape:', error);
+    } finally {
+      setIsClaiming(false);
+    }
+  };
 
   // Debounced save function that always uses the latest tracks
   const debouncedSave = useCallback(
@@ -92,6 +124,44 @@ export default function MixtapeEditor({ mixtape }: MixtapeEditorProps) {
 
   return (
     <div className="space-y-6 relative">
+      {/* Anonymous Mixtape Warning */}
+      {isAnonymousMixtape && (
+        <div className={`p-4 rounded-lg border-2 ${
+          theme === 'dark' 
+            ? 'bg-amber-900/20 border-amber-600 text-amber-200' 
+            : 'bg-amber-50 border-amber-300 text-amber-800'
+        }`}>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="font-semibold mb-2">
+                {isAuthenticated ? 'Claim this mixtape' : 'Sign in to save this mixtape'}
+              </h3>
+              <p className="text-sm mb-3">
+                {isAuthenticated 
+                  ? 'This mixtape was created anonymously. Click below to attach it to your account so you can find it later and control who can edit it.'
+                  : 'This mixtape was created anonymously. Sign in to attach it to your account so you can find it later and control who can edit it.'
+                }
+              </p>
+              <button
+                onClick={handleClaimMixtape}
+                disabled={isClaiming}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  isClaiming 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:opacity-80'
+                } ${
+                  theme === 'dark'
+                    ? 'bg-amber-600 text-white hover:bg-amber-500'
+                    : 'bg-amber-600 text-white hover:bg-amber-700'
+                }`}
+              >
+                {isClaiming ? 'Claiming...' : (isAuthenticated ? 'Claim Mixtape' : 'Sign In')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <HeaderContainer>
         {isSaving && (
           <div 

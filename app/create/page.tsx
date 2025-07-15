@@ -5,21 +5,28 @@ import { useRouter } from 'next/navigation';
 import { useApiRequest } from '../hooks/useApiRequest';
 import MainContainer from '../components/layout/MainContainer';
 import ContentPane from '../components/layout/ContentPane';
+import { useAuth } from '../hooks/useAuth';
 
 export default function CreateMixtapePage() {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(true);
+  const { isAuthenticated } = useAuth({ requireAuth: false });
 
+  // Default mixtapes to private if the user is authenticated;
+  // everyone prefers private-by-default.
+  // However, if the user is unauthenticated, we have no choice
+  // but to make it public. Otherwise, the user will be unable
+  // to access their own mixtape.
+  const isPublic = !isAuthenticated;
   const { data: createResponse, loading, error } = useApiRequest<{ public_id: string }>({
     url: '/api/main/mixtape/',
     method: 'POST',
     body: {
       name: 'Untitled Mixtape',
       intro_text: null,
-      is_public: false,
+      is_public: isPublic,
       tracks: []
     },
-    requireAuth: true
   });
 
   useEffect(() => {

@@ -3,15 +3,13 @@ from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from sqlmodel import Session
 from backend.entity import MixtapeEntity
-from backend.util.auth_middleware import get_current_user
+from backend.util.auth_middleware import get_current_user, get_optional_user
 
 router = APIRouter()
 
 # POST /mixtape: Create a new mixtape (with tracks)
 # GET /mixtape/{public_id}: Retrieve a mixtape (with tracks)
 # PUT /mixtape/{public_id}: Update a mixtape (with tracks)
-
-# Endpoints will be implemented after db_models and entity layers are in place.
 
 class Track(BaseModel):
     track_position: int = Field(..., gt=0, description="Unique position of the track within the mixtape (1-based index)")
@@ -42,20 +40,45 @@ class MixtapeResponse(BaseModel):
     is_public: bool
     create_time: str
     last_modified_time: str
+    stack_auth_user_id: Optional[str]
     tracks: List[TrackResponse]
 
 @router.post("/", response_model=dict, status_code=201)
-def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_current_user)):
+def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
-    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
-    if not stack_auth_user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
+    
+    # Anonymous mixtapes must be public
+    if user_info is None and not request.is_public:
+        raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
+    
+    # For anonymous mixtapes, stack_auth_user_id will be None
     try:
         public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
+
+@router.post("/{public_id}/claim", response_model=dict)
+def claim_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_current_user)):
+    """Claim an anonymous mixtape, making the authenticated user the owner."""
+    session = next(request_obj.app.state.get_db_dep())
+    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
+    if not stack_auth_user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        new_version = MixtapeEntity.claim_mixtape(session, public_id, stack_auth_user_id)
+    except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=404, detail="Mixtape not found")
+        elif "already claimed" in str(e).lower():
+            raise HTTPException(status_code=400, detail="Mixtape is already claimed")
+        else:
+            raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"version": new_version}
 
 @router.get("/", response_model=List[dict])
 def list_my_mixtapes(
@@ -73,19 +96,43 @@ def list_my_mixtapes(
     return mixtapes
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
-def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_current_user)):
+def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_optional_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     try:
-        mixtape = MixtapeEntity.load_by_public_id(session, public_id)
+        mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
+    # If not public, require authentication and ownership
+    if not mixtape["is_public"]:
+        stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
+        if not stack_auth_user_id or stack_auth_user_id != mixtape["stack_auth_user_id"]:
+            raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
-def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_current_user)):
+def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
+    # Check ownership
+    try:
+        mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Mixtape not found")
+    
+    # Anonymous mixtapes cannot be made private
+    if mixtape["stack_auth_user_id"] is None and not request.is_public:
+        raise HTTPException(status_code=400, detail="Anonymous mixtapes must remain public")
+    
+    # For anonymous mixtapes (stack_auth_user_id is None), anyone can edit
+    if mixtape["stack_auth_user_id"] is not None:
+        # For owned mixtapes, require authentication and ownership
+        stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
+        if not stack_auth_user_id:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        if stack_auth_user_id != mixtape["stack_auth_user_id"]:
+            raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
+    
     try:
         new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.is_public, [track.model_dump() for track in request.tracks])
     except ValueError:

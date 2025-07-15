@@ -10,7 +10,6 @@ interface UseApiRequestOptions<T = any> {
   headers?: Record<string, string>;
   onSuccess?: (data: T) => void;
   onError?: (error: string) => void;
-  requireAuth?: boolean;
 }
 
 interface UseApiRequestReturn<T = any> {
@@ -80,7 +79,6 @@ export function useApiRequest<T = any>({
   headers = {},
   onSuccess,
   onError,
-  requireAuth = true
 }: UseApiRequestOptions<T>): UseApiRequestReturn<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);

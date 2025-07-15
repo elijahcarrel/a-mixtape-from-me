@@ -13,6 +13,21 @@ jest.mock('../../hooks/useApiRequest', () => ({
   }),
 }));
 
+// Mock useAuth hook
+const mockUseAuth = jest.fn();
+jest.mock('../../hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+// Mock useRouter
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+  usePathname: () => "/mixtape/test-mixtape-123"
+}));
+
 // Mock components
 jest.mock('../TrackAutocomplete', () => {
   return function MockTrackAutocomplete({ onTrackSelect }: any) {
@@ -68,6 +83,24 @@ const mockMixtapeData = {
   is_public: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
+  stack_auth_user_id: 'user123', // Owned mixtape
+  tracks: [
+    {
+      track_position: 1,
+      track_text: 'Test Track 1',
+      spotify_uri: 'spotify:track:123',
+    },
+  ],
+};
+
+const mockAnonymousMixtapeData = {
+  public_id: 'test-mixtape-123',
+  name: 'Test Mixtape',
+  intro_text: 'A test mixtape',
+  is_public: true,
+  create_time: '2023-01-01T00:00:00Z',
+  last_modified_time: '2023-01-01T00:00:00Z',
+  stack_auth_user_id: null, // Anonymous mixtape
   tracks: [
     {
       track_position: 1,
@@ -81,6 +114,11 @@ describe('MixtapeEditor', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    // Default to authenticated user
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user123' },
+      isAuthenticated: true,
+    });
   });
 
   afterEach(() => {
@@ -287,5 +325,81 @@ describe('MixtapeEditor', () => {
     
     render(<MixtapeEditor mixtape={mixtapeWithMultipleTracks} />);
     expect(screen.getByText('Tracks (2)')).toBeInTheDocument();
+  });
+
+  describe('Anonymous Mixtape Warning', () => {
+    it('shows warning banner for anonymous mixtapes when user is authenticated', () => {
+      render(<MixtapeEditor mixtape={mockAnonymousMixtapeData} />);
+      
+      expect(screen.getByText('Claim this mixtape')).toBeInTheDocument();
+      expect(screen.getByText(/This mixtape was created anonymously/)).toBeInTheDocument();
+      expect(screen.getByText('Claim Mixtape')).toBeInTheDocument();
+    });
+
+    it('shows sign in prompt for anonymous mixtapes when user is not authenticated', () => {
+      mockUseAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+      });
+      
+      render(<MixtapeEditor mixtape={mockAnonymousMixtapeData} />);
+      
+      expect(screen.getByText('Sign in to save this mixtape')).toBeInTheDocument();
+      expect(screen.getByText(/This mixtape was created anonymously/)).toBeInTheDocument();
+      expect(screen.getByText('Sign In')).toBeInTheDocument();
+    });
+
+    it('does not show warning banner for owned mixtapes', () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      expect(screen.queryByText('Claim this mixtape')).not.toBeInTheDocument();
+      expect(screen.queryByText('Sign in to save this mixtape')).not.toBeInTheDocument();
+    });
+
+    it('redirects to sign in when unauthenticated user clicks sign in', () => {
+      mockUseAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+      });
+      
+      render(<MixtapeEditor mixtape={mockAnonymousMixtapeData} />);
+
+      const signInButton = screen.getByText('Sign In');
+      fireEvent.click(signInButton);
+      
+      expect(mockPush).toHaveBeenCalledWith('/handler/signup?next=%2Fmixtape%2Ftest-mixtape-123');
+    });
+
+    it('calls claim endpoint when authenticated user clicks claim', async () => {
+      const mockOnMixtapeClaimed = jest.fn();
+      render(<MixtapeEditor mixtape={mockAnonymousMixtapeData} onMixtapeClaimed={mockOnMixtapeClaimed} />);
+      
+      const claimButton = screen.getByText('Claim Mixtape');
+      fireEvent.click(claimButton);
+      
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123/claim', {
+          method: 'POST',
+          body: {},
+        });
+      });
+      
+      // Simulate successful API response
+      await waitFor(() => {
+        expect(mockOnMixtapeClaimed).toHaveBeenCalled();
+      });
+    });
+
+    it('shows claiming state when claim is in progress', async () => {
+      mockMakeRequest.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+      
+      render(<MixtapeEditor mixtape={mockAnonymousMixtapeData} />);
+      
+      const claimButton = screen.getByText('Claim Mixtape');
+      fireEvent.click(claimButton);
+      
+      expect(screen.getByText('Claiming...')).toBeInTheDocument();
+      expect(screen.getByText('Claiming...')).toBeDisabled();
+    });
   });
 }); 
