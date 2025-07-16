@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '../../components/__tests__/test-utils';
 import '@testing-library/jest-dom';
-import MixtapePage from '../[publicId]/page';
+import ViewMixtapePage from '../[publicId]/page';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -21,9 +21,9 @@ jest.mock('../../hooks/useApiRequest', () => ({
 }));
 
 // Mock components
-jest.mock('../../components/MixtapeEditor', () => {
-  return function MockMixtapeEditor({ mixtape }: any) {
-    return <div data-testid="mixtape-editor">Mixtape Editor: {mixtape.name}</div>;
+jest.mock('../../components/MixtapeViewer', () => {
+  return function MockMixtapeViewer({ mixtape }: any) {
+    return <div data-testid="mixtape-viewer">Mixtape Viewer: {mixtape.name}</div>;
   };
 });
 
@@ -73,7 +73,7 @@ describe('MixtapePage', () => {
       refetch: jest.fn(),
     });
 
-    render(<MixtapePage />);
+    render(<ViewMixtapePage />);
     expect(screen.getByTestId('loading-display')).toBeInTheDocument();
     expect(screen.getByText('Loading mixtape...')).toBeInTheDocument();
   });
@@ -87,7 +87,7 @@ describe('MixtapePage', () => {
       refetch: mockRefetch,
     });
 
-    render(<MixtapePage />);
+    render(<ViewMixtapePage />);
     expect(screen.getByTestId('error-display')).toBeInTheDocument();
     expect(screen.getByText('Failed to load mixtape')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
@@ -101,12 +101,12 @@ describe('MixtapePage', () => {
       refetch: jest.fn(),
     });
 
-    render(<MixtapePage />);
+    render(<ViewMixtapePage />);
     expect(screen.getByTestId('error-display')).toBeInTheDocument();
     expect(screen.getByText('Mixtape not found')).toBeInTheDocument();
   });
 
-  it('renders MixtapeEditor with mixtape data when loaded successfully', () => {
+  it('renders MixtapeViewer with mixtape data when loaded successfully', () => {
     mockedUseApiRequest.mockReturnValue({
       data: mockMixtapeData,
       loading: false,
@@ -114,9 +114,9 @@ describe('MixtapePage', () => {
       refetch: jest.fn(),
     });
 
-    render(<MixtapePage />);
-    expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
-    expect(screen.getByText('Mixtape Editor: Test Mixtape')).toBeInTheDocument();
+    render(<ViewMixtapePage />);
+    expect(screen.getByTestId('mixtape-viewer')).toBeInTheDocument();
+    expect(screen.getByText('Mixtape Viewer: Test Mixtape')).toBeInTheDocument();
   });
 
   it('calls refetch when try again button is clicked', async () => {
@@ -128,7 +128,7 @@ describe('MixtapePage', () => {
       refetch: mockRefetch,
     });
 
-    render(<MixtapePage />);
+    render(<ViewMixtapePage />);
     const tryAgainButton = screen.getByRole('button', { name: /try again/i });
     tryAgainButton.click();
 

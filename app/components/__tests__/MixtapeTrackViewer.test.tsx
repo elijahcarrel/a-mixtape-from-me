@@ -93,7 +93,7 @@ describe('MixtapeTrackViewer', () => {
         trackNumber={2}
       />
     );
-    const iframe = screen.getByTitle('Spotify Embed') || screen.getByRole('iframe');
+    const iframe = screen.getByTestId('spotify-embed');
     expect(iframe).toHaveAttribute(
       'src',
       expect.stringContaining('spotify.com/embed/track/222')

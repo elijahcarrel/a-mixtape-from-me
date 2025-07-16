@@ -141,6 +141,7 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
       {/* Spotify embed at the bottom */}
       <div className="fixed bottom-0 left-0 w-full z-20 flex justify-center bg-gradient-to-t from-amber-100/90 dark:from-amber-950/90 to-transparent pb-2">
         <iframe
+          data-testid="spotify-embed"
           style={{ borderRadius: 12 }}
           src={`https://open.spotify.com/embed/track/${track.spotify_uri.replace('spotify:track:', '')}?utm_source=generator`}
           width="100%"
