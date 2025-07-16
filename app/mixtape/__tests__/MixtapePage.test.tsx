@@ -5,9 +5,13 @@ import '@testing-library/jest-dom';
 import MixtapePage from '../[publicId]/page';
 
 // Mock next/navigation
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useParams: () => ({
     publicId: 'test-mixtape-123',
+  }),
+  useRouter: () => ({
+    push: mockPush,
   }),
 }));
 

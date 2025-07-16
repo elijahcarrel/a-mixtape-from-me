@@ -43,7 +43,7 @@ export default function MyMixtapesPage() {
           )}
           {mixtapes && mixtapes.map((m) => (
             <li key={m.public_id} className="flex items-center justify-between bg-white rounded-lg shadow p-4 hover:bg-gray-50 transition">
-              <Link href={`/mixtape/${m.public_id}`} className="text-lg font-semibold text-blue-600 hover:underline">
+              <Link href={`/mixtape/${m.public_id}/edit`} className="text-lg font-semibold text-blue-600 hover:underline">
                 {m.name}
               </Link>
               <span
