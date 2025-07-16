@@ -90,7 +90,7 @@ jobs:
         env:
           PATH: $PATH:$(go env GOPATH)/bin
         run: |
-          pg-schema-diff plan --from-dir . --to-dir tmp/new_schema > diff.txt
+          pg-schema-diff plan --schema-dir . --to-dir tmp/new_schema > diff.txt
           if ! grep -q 'No changes required' diff.txt; then
             echo 'schema.sql is not up to date with the models. Please run scripts/generate_schema.py and commit the result.'
             cat diff.txt
