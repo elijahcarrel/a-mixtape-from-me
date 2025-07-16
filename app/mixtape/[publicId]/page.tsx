@@ -6,6 +6,7 @@ import LoadingDisplay from '../../components/LoadingDisplay';
 import ErrorDisplay from '../../components/ErrorDisplay';
 import MainContainer from '../../components/layout/MainContainer';
 import ContentPane from '../../components/layout/ContentPane';
+import MixtapeViewer from '../../components/MixtapeViewer';
 
 interface Track {
   track_position: number;
@@ -62,7 +63,7 @@ export default function ViewMixtapePage() {
   return (
     <MainContainer>
       <ContentPane>
-        {/* TODO: add MixtapeViewer component here. Use mixtape as the only prop. */}
+        <MixtapeViewer mixtape={mixtape} />
       </ContentPane>
     </MainContainer>
   );
