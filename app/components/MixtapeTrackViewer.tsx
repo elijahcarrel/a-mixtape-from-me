@@ -114,7 +114,7 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
         <div className="w-full text-center mb-4">
           <h2 className="text-2xl font-bold text-amber-900 dark:text-amber-100 mb-1 truncate">{mixtape.name}</h2>
           <div className="text-sm text-amber-700 dark:text-amber-200 mb-2">Track {trackNumber} of {mixtape.tracks.length}</div>
-          <div className="text-xl font-semibold text-amber-800 dark:text-amber-100 mb-2 truncate">{track.track_text}</div>
+          <div className="text-xl font-semibold text-amber-800 dark:text-amber-100 mb-2 truncate">{track.spotify_uri}</div>
         </div>
         {track.track_text && (
           <div className="w-full bg-amber-100/70 dark:bg-amber-900/40 rounded-lg p-4 mb-6 text-amber-900 dark:text-amber-100 text-base shadow-inner whitespace-pre-line" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
