@@ -47,7 +47,7 @@ describe('CreateMixtapePage', () => {
       refetch: jest.fn(),
     });
     render(<CreateMixtapePage />);
-    await expect(mockReplace).toHaveBeenCalledWith('/mixtape/abc123');
+    await expect(mockReplace).toHaveBeenCalledWith('/mixtape/abc123/edit');
   });
 
   it('shows error and retry button if creation fails', () => {

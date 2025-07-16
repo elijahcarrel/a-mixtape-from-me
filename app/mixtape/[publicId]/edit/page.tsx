@@ -1,11 +1,12 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useApiRequest } from '../../hooks/useApiRequest';
-import LoadingDisplay from '../../components/LoadingDisplay';
-import ErrorDisplay from '../../components/ErrorDisplay';
-import MainContainer from '../../components/layout/MainContainer';
-import ContentPane from '../../components/layout/ContentPane';
+import { useApiRequest } from '../../../hooks/useApiRequest';
+import MixtapeEditor from '../../../components/MixtapeEditor';
+import LoadingDisplay from '../../../components/LoadingDisplay';
+import ErrorDisplay from '../../../components/ErrorDisplay';
+import MainContainer from '../../../components/layout/MainContainer';
+import ContentPane from '../../../components/layout/ContentPane';
 
 interface Track {
   track_position: number;
@@ -24,7 +25,7 @@ interface MixtapeData {
   stack_auth_user_id?: string;
 }
 
-export default function ViewMixtapePage() {
+export default function EditMixtapePage() {
   const params = useParams();
   const publicId = params.publicId as string;
 
@@ -62,7 +63,7 @@ export default function ViewMixtapePage() {
   return (
     <MainContainer>
       <ContentPane>
-        {/* TODO: add MixtapeViewer component here. Use mixtape as the only prop. */}
+        <MixtapeEditor mixtape={mixtape} onMixtapeClaimed={refetch} />
       </ContentPane>
     </MainContainer>
   );

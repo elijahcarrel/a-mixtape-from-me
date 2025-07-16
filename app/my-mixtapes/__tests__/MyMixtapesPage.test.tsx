@@ -45,7 +45,7 @@ describe('MyMixtapesPage', () => {
     // Relative time checks
     expect(screen.getAllByText(/ago|just now/i).length).toBeGreaterThan(0);
     // Link check
-    expect(screen.getByText('Test Mixtape').closest('a')).toHaveAttribute('href', '/mixtape/abc');
+    expect(screen.getByText('Test Mixtape').closest('a')).toHaveAttribute('href', '/mixtape/abc/edit');
   });
 
   it('shows error on fetch failure', async () => {

@@ -25,7 +25,7 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
-  usePathname: () => "/mixtape/test-mixtape-123"
+  usePathname: () => "/mixtape/test-mixtape-123/edit"
 }));
 
 // Mock components
