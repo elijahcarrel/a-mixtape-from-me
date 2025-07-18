@@ -2,12 +2,16 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import MixtapePage from '../mixtape/[publicId]/page';
+import EditMixtapePage from '../mixtape/[publicId]/edit/page';
 
 // Mock next/navigation
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useParams: () => ({
     publicId: 'test-mixtape-123',
+  }),
+  useRouter: () => ({
+    push: mockPush,
   }),
 }));
 
@@ -118,7 +122,7 @@ describe('Mixtape Editing Workflow', () => {
       refetch: jest.fn(),
     });
 
-    render(<MixtapePage />);
+    render(<EditMixtapePage />);
     
     // Verify mixtape is loaded
     expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
@@ -159,7 +163,7 @@ describe('Mixtape Editing Workflow', () => {
       refetch: jest.fn(),
     });
 
-    render(<MixtapePage />);
+    render(<EditMixtapePage />);
     
     expect(screen.getByTestId('loading-display')).toBeInTheDocument();
     expect(screen.getByText('Loading mixtape...')).toBeInTheDocument();
@@ -174,7 +178,7 @@ describe('Mixtape Editing Workflow', () => {
       refetch: mockRefetch,
     });
 
-    render(<MixtapePage />);
+    render(<EditMixtapePage />);
     
     expect(screen.getByTestId('error-display')).toBeInTheDocument();
     expect(screen.getByText('Failed to load mixtape')).toBeInTheDocument();
@@ -196,7 +200,7 @@ describe('Mixtape Editing Workflow', () => {
       refetch: jest.fn(),
     });
 
-    const { rerender } = render(<MixtapePage />);
+    const { rerender } = render(<EditMixtapePage />);
     
     expect(screen.getByTestId('loading-display')).toBeInTheDocument();
 
@@ -208,7 +212,7 @@ describe('Mixtape Editing Workflow', () => {
       refetch: jest.fn(),
     });
 
-    rerender(<MixtapePage />);
+    rerender(<EditMixtapePage />);
     
     expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
     expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
@@ -227,7 +231,7 @@ describe('Mixtape Editing Workflow', () => {
       refetch: jest.fn(),
     });
 
-    render(<MixtapePage />);
+    render(<EditMixtapePage />);
     
     expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
     expect(screen.getByText('Tracks: 0')).toBeInTheDocument();
@@ -251,7 +255,7 @@ describe('Mixtape Editing Workflow', () => {
       refetch: jest.fn(),
     });
 
-    render(<MixtapePage />);
+    render(<EditMixtapePage />);
     
     expect(screen.getByText('Tracks: 3')).toBeInTheDocument();
     expect(screen.getByTestId('track-1')).toBeInTheDocument();
