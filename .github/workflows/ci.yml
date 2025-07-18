@@ -60,3 +60,38 @@ jobs:
       #   run: ruff backend/
       # - name: Run Flake8 (optional Python linter)
       #   run: flake8 backend/ 
+
+  validate-schema:
+    name: Validate schema.sql is up to date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install sqlmodel sqlalchemy
+      - name: Install Atlas
+        run: |
+          curl -sSf https://atlasgo.sh | sh
+          echo "export PATH=\"$HOME/.atlas/bin:$PATH\"" >> $GITHUB_ENV
+      - name: Generate new schema.sql
+        run: |
+          mkdir -p tmp
+          python scripts/generate_schema.py --output tmp/generated_schema.sql
+      - name: Compare checked-in schema.sql to generated schema.sql
+        run: |
+          output=$(atlas schema diff \
+            --from file://$(pwd)/schema.sql \
+            --to file://$(pwd)/tmp/generated_schema.sql \
+            --dev-url "docker://postgres/15/dev")
+          if [ "$output" != "Schemas are synced, no changes to be made." ]; then
+            echo 'schema.sql is not up to date with the models. Please run scripts/generate_schema.py and commit the result.'
+            echo "$output"
+            exit 1
+          fi 
