@@ -89,15 +89,13 @@ jobs:
           echo 'original schema:'
           cat schema.sql
       - name: Compare checked-in schema.sql to generated schema.sql
-        env:
-          ATLAS_DEV_URL: "docker://postgres/15/dev"
         run: |
-          atlas schema diff \
+          output=$(atlas schema diff \
             --from file://$(pwd)/schema.sql \
             --to file://$(pwd)/tmp/generated_schema.sql \
-            --dev-url "$ATLAS_DEV_URL" > schema.diff
-          if [ -s schema.diff ]; then
+            --dev-url "docker://postgres/15/dev")
+          if [ "$output" != "Schemas are synced, no changes to be made." ]; then
             echo 'schema.sql is not up to date with the models. Please run scripts/generate_schema.py and commit the result.'
-            cat schema.diff
+            echo "$output"
             exit 1
           fi 
