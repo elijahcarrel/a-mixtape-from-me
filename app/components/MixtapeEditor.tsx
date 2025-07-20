@@ -111,7 +111,8 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   const addTrack = (spotifyUri: string, trackData: TrackDetails) => {
     const newTrack: Track = {
       track_position: tracks.length + 1,
-      track_text: trackData.name,
+      // TODO: Add UI for editing track_text (personal message) in the future
+      track_text: undefined,
       track: trackData
     };
     const updatedTracks = [...tracks, newTrack];

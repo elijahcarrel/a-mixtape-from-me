@@ -34,7 +34,18 @@ jest.mock('../TrackAutocomplete', () => {
     return (
       <div data-testid="track-autocomplete">
         <button
-          onClick={() => onTrackSelect('spotify:track:456', { name: 'Test Track 2' })}
+          onClick={() => onTrackSelect('spotify:track:456', {
+            id: 'track456',
+            name: 'Test Track 2',
+            artists: [{ name: 'Artist 2' }],
+            album: {
+              name: 'Album 2',
+              images: [{ url: 'https://example.com/image2.jpg', width: 300, height: 300 }],
+            },
+            uri: 'spotify:track:456',
+            // Simulate a user-supplied message (track_text) if the UI ever supports it
+            // track_text: 'You played this for me on our first date. <3',
+          })}
           data-testid="add-track-button"
         >
           Add Test Track
@@ -290,15 +301,15 @@ describe('MixtapeEditor', () => {
           intro_text: 'A test mixtape',
           is_public: false,
           tracks: [
-            ...mockMixtapeData.tracks.map(track => ({
-              track_position: track.track_position,
-              track_text: track.track_text,
-              spotify_uri: track.track.uri,
-            })),
+            {
+              track_position: 1,
+              track_text: 'This song always reminds me of our road trip to Big Sur!',
+              spotify_uri: 'spotify:track:123',
+            },
             {
               track_position: 2,
-              track_text: 'You played this for me on our first date. <3',
-              spotify_uri: newTrackDetails.uri,
+              track_text: undefined,
+              spotify_uri: 'spotify:track:456',
             },
           ],
         },
