@@ -167,7 +167,9 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrackSearchResponse"
+                                }
                             }
                         }
                     },
@@ -208,7 +210,9 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrackDetails"
+                                }
                             }
                         }
                     },
@@ -679,6 +683,98 @@
                 ],
                 "title": "Track"
             },
+            "TrackAlbum": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "images": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrackAlbumImage"
+                        },
+                        "type": "array",
+                        "title": "Images"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "images"
+                ],
+                "title": "TrackAlbum"
+            },
+            "TrackAlbumImage": {
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "title": "Url"
+                    },
+                    "width": {
+                        "type": "integer",
+                        "title": "Width"
+                    },
+                    "height": {
+                        "type": "integer",
+                        "title": "Height"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "url",
+                    "width",
+                    "height"
+                ],
+                "title": "TrackAlbumImage"
+            },
+            "TrackArtist": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "TrackArtist"
+            },
+            "TrackDetails": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "artists": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrackArtist"
+                        },
+                        "type": "array",
+                        "title": "Artists"
+                    },
+                    "album": {
+                        "$ref": "#/components/schemas/TrackAlbum"
+                    },
+                    "uri": {
+                        "type": "string",
+                        "title": "Uri"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "artists",
+                    "album",
+                    "uri"
+                ],
+                "title": "TrackDetails"
+            },
             "TrackResponse": {
                 "properties": {
                     "track_position": {
@@ -713,6 +809,34 @@
                     "spotify_uri"
                 ],
                 "title": "TrackResponse"
+            },
+            "TrackSearchResponse": {
+                "properties": {
+                    "tracks": {
+                        "$ref": "#/components/schemas/TrackSearchResult"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "tracks"
+                ],
+                "title": "TrackSearchResponse"
+            },
+            "TrackSearchResult": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrackDetails"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items"
+                ],
+                "title": "TrackSearchResult"
             },
             "ValidationError": {
                 "properties": {
