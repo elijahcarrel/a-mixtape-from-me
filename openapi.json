@@ -1,0 +1,752 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "FastAPI",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/api/main/auth/me": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get Current User",
+                "description": "Get current user information from Stack Auth token",
+                "operationId": "get_current_user_api_main_auth_me_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/auth/logout": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "description": "Logout the current user (clear cache)",
+                "operationId": "logout_api_main_auth_logout_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/auth/verify": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify Token",
+                "description": "Verify if the provided token is valid",
+                "operationId": "verify_token_api_main_auth_verify_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/account/me": {
+            "get": {
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get Account",
+                "description": "Get current user account information",
+                "operationId": "get_account_api_main_account_me_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/account/profile": {
+            "get": {
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get Profile",
+                "description": "Get user profile information",
+                "operationId": "get_profile_api_main_account_profile_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/health/db": {
+            "get": {
+                "tags": [
+                    "health"
+                ],
+                "summary": "Db",
+                "operationId": "db_api_main_health_db_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/health/app": {
+            "get": {
+                "tags": [
+                    "health"
+                ],
+                "summary": "App Health",
+                "operationId": "app_health_api_main_health_app_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/spotify/search": {
+            "get": {
+                "tags": [
+                    "spotify"
+                ],
+                "summary": "Search Tracks",
+                "description": "Search for tracks using service account credentials",
+                "operationId": "search_tracks_api_main_spotify_search_get",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Query"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/spotify/track/{track_id}": {
+            "get": {
+                "tags": [
+                    "spotify"
+                ],
+                "summary": "Get Track",
+                "description": "Get track details using service account credentials",
+                "operationId": "get_track_api_main_spotify_track__track_id__get",
+                "parameters": [
+                    {
+                        "name": "track_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Track Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/mixtape/": {
+            "post": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Create Mixtape",
+                "operationId": "create_mixtape_api_main_mixtape__post",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MixtapeRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true,
+                                    "title": "Response Create Mixtape Api Main Mixtape  Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "List My Mixtapes",
+                "operationId": "list_my_mixtapes_api_main_mixtape__get",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Search mixtape titles (partial match)",
+                            "title": "Q"
+                        },
+                        "description": "Search mixtape titles (partial match)"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Max results to return",
+                            "default": 20,
+                            "title": "Limit"
+                        },
+                        "description": "Max results to return"
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Results offset for pagination",
+                            "default": 0,
+                            "title": "Offset"
+                        },
+                        "description": "Results offset for pagination"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    },
+                                    "title": "Response List My Mixtapes Api Main Mixtape  Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/mixtape/{public_id}/claim": {
+            "post": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Claim Mixtape",
+                "description": "Claim an anonymous mixtape, making the authenticated user the owner.",
+                "operationId": "claim_mixtape_api_main_mixtape__public_id__claim_post",
+                "parameters": [
+                    {
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Public Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true,
+                                    "title": "Response Claim Mixtape Api Main Mixtape  Public Id  Claim Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/mixtape/{public_id}": {
+            "get": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Get Mixtape",
+                "operationId": "get_mixtape_api_main_mixtape__public_id__get",
+                "parameters": [
+                    {
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Public Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MixtapeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Update Mixtape",
+                "operationId": "update_mixtape_api_main_mixtape__public_id__put",
+                "parameters": [
+                    {
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Public Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MixtapeRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true,
+                                    "title": "Response Update Mixtape Api Main Mixtape  Public Id  Put"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/": {
+            "get": {
+                "summary": "Root",
+                "operationId": "root_api_main__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/main/debug": {
+            "get": {
+                "summary": "Debug",
+                "operationId": "debug_api_main_debug_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "MixtapeRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "Human-readable name of the mixtape"
+                    },
+                    "intro_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Intro Text",
+                        "description": "Optional intro text"
+                    },
+                    "is_public": {
+                        "type": "boolean",
+                        "title": "Is Public",
+                        "description": "Whether the mixtape is public",
+                        "default": false
+                    },
+                    "tracks": {
+                        "items": {
+                            "$ref": "#/components/schemas/Track"
+                        },
+                        "type": "array",
+                        "title": "Tracks",
+                        "description": "List of tracks in the mixtape"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "tracks"
+                ],
+                "title": "MixtapeRequest"
+            },
+            "MixtapeResponse": {
+                "properties": {
+                    "public_id": {
+                        "type": "string",
+                        "title": "Public Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "intro_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Intro Text"
+                    },
+                    "is_public": {
+                        "type": "boolean",
+                        "title": "Is Public"
+                    },
+                    "create_time": {
+                        "type": "string",
+                        "title": "Create Time"
+                    },
+                    "last_modified_time": {
+                        "type": "string",
+                        "title": "Last Modified Time"
+                    },
+                    "stack_auth_user_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stack Auth User Id"
+                    },
+                    "tracks": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrackResponse"
+                        },
+                        "type": "array",
+                        "title": "Tracks"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "public_id",
+                    "name",
+                    "intro_text",
+                    "is_public",
+                    "create_time",
+                    "last_modified_time",
+                    "stack_auth_user_id",
+                    "tracks"
+                ],
+                "title": "MixtapeResponse"
+            },
+            "Track": {
+                "properties": {
+                    "track_position": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Track Position",
+                        "description": "Unique position of the track within the mixtape (1-based index)"
+                    },
+                    "track_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Track Text",
+                        "description": "Optional text to display next to the track"
+                    },
+                    "spotify_uri": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Spotify Uri",
+                        "description": "Spotify URI of the track"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "track_position",
+                    "spotify_uri"
+                ],
+                "title": "Track"
+            },
+            "TrackResponse": {
+                "properties": {
+                    "track_position": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Track Position",
+                        "description": "Unique position of the track within the mixtape (1-based index)"
+                    },
+                    "track_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Track Text",
+                        "description": "Optional text to display next to the track"
+                    },
+                    "spotify_uri": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Spotify Uri",
+                        "description": "Spotify URI of the track"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "track_position",
+                    "spotify_uri"
+                ],
+                "title": "TrackResponse"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}
