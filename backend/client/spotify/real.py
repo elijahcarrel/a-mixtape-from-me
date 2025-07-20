@@ -1,12 +1,17 @@
 import os
 import requests
 import base64
+from collections import OrderedDict
+import threading
 from .client import AbstractSpotifyClient, SpotifyTrack, SpotifyArtist, SpotifyAlbum, SpotifyAlbumImage, SpotifySearchResult
 
 class SpotifyClient(AbstractSpotifyClient):
     def __init__(self):
         self.client_id = os.environ["SPOTIFY_CLIENT_ID"]
         self.client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
+        self.track_cache_size = int(os.environ.get("SPOTIFY_TRACK_CACHE_SIZE", 500))
+        self.track_cache = OrderedDict()  # track_id -> SpotifyTrack
+        self._cache_lock = threading.Lock()
 
     def get_spotify_access_token(self):
         auth_string = f"{self.client_id}:{self.client_secret}"
@@ -53,6 +58,12 @@ class SpotifyClient(AbstractSpotifyClient):
         return {"tracks": SpotifySearchResult(items)}
 
     def get_track(self, track_id: str):
+        with self._cache_lock:
+            if track_id in self.track_cache:
+                track = self.track_cache.pop(track_id)
+                self.track_cache[track_id] = track  # Mark as most recently used
+                return track
+        # Not in cache, fetch from API (do not hold lock during network call)
         item = self.spotify_api_request(f"/tracks/{track_id}")
         track = SpotifyTrack(
             id=item["id"],
@@ -64,6 +75,10 @@ class SpotifyClient(AbstractSpotifyClient):
             ),
             uri=item["uri"]
         )
+        with self._cache_lock:
+            self.track_cache[track_id] = track
+            if len(self.track_cache) > self.track_cache_size:
+                self.track_cache.popitem(last=False)  # Remove least recently used
         return track
 
 def get_spotify_client():
