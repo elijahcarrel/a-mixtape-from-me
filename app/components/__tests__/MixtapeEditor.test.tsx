@@ -61,7 +61,10 @@ jest.mock('../TrackList', () => {
       <div data-testid="track-list">
         {tracks.map((track: any) => (
           <div key={track.track_position} data-testid={`track-${track.track_position}`}>
-            {track.track_text}
+            {/* Render the track title */}
+            {track.track && track.track.name}
+            {/* Render the track_text if present */}
+            {track.track_text && <div>{track.track_text}</div>}
             <button
               onClick={() => onRemoveTrack(track.track_position)}
               data-testid={`remove-track-${track.track_position}`}
