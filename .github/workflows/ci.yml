@@ -116,23 +116,23 @@ jobs:
         run: |
           mkdir -p tmp
           python scripts/generate_openapi_spec.py --output tmp/openapi.yaml
-      - name: Compare checked-in openapi.yaml to generated openapi.yaml
-        id: diff_state
-        uses: swimmwatch/openapi-diff-action@v2.0.0
-        with:
-          old-spec: "openapi.yaml"
-          new-spec: "tmp/openapi.yaml"
-          json: "out.json"
-          markdown: "out.md"
-      - name: "Print difference state"
-        run: |
-          echo "Current state: ${{steps.diff_state.outputs.state}}."
-      # - name: Run OpenAPI spec diff action
-      #   uses: oasdiff/oasdiff-action/diff@main
+      # - name: Compare checked-in openapi.yaml to generated openapi.yaml
+      #   id: diff_state
+      #   uses: swimmwatch/openapi-diff-action@v2.0.0
       #   with:
-      #     base: 'openapi.yaml'
-      #     revision: 'tmp/openapi.yaml'
-      #     fail-on-diff: true
+      #     old-spec: "openapi.yaml"
+      #     new-spec: "tmp/openapi.yaml"
+      #     json: "out.json"
+      #     markdown: "out.md"
+      # - name: "Print difference state"
+      #   run: |
+      #     echo "Current state: ${{steps.diff_state.outputs.state}}."
+      - name: Run OpenAPI spec diff action
+        uses: oasdiff/oasdiff-action/diff@main
+        with:
+          base: 'openapi.yaml'
+          revision: 'tmp/openapi.yaml'
+          fail-on-diff: true
       # - name: Test diff action output to file
       #   run: |
       #     if [ ! -s diff.txt ]; then
