@@ -98,7 +98,7 @@ jobs:
           fi 
 
   validate-openapi-schema:
-    name: Validate openapi.json Up-To-Date
+    name: Validate openapi.yaml Up-To-Date
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -112,16 +112,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install fastapi
-      - name: Generate new openapi.json
+      - name: Generate new openapi.yaml
         run: |
           mkdir -p tmp
-          python scripts/generate_openapi_spec.py --output tmp/openapi.json
-      - name: Compare checked-in openapi.json to generated openapi.json
+          python scripts/generate_openapi_spec.py --output tmp/openapi.yaml
+      - name: Compare checked-in openapi.yaml to generated openapi.yaml
         id: diff_state
         uses: swimmwatch/openapi-diff-action@v2.0.0
         with:
-          old-spec: "openapi.json"
-          new-spec: "tmp/openapi.json"
+          old-spec: "openapi.yaml"
+          new-spec: "tmp/openapi.yaml"
           json: "out.json"
           markdown: "out.md"
       - name: "Print difference state"
@@ -130,8 +130,8 @@ jobs:
       # - name: Run OpenAPI spec diff action
       #   uses: oasdiff/oasdiff-action/diff@main
       #   with:
-      #     base: 'openapi.json'
-      #     revision: 'tmp/openapi.json'
+      #     base: 'openapi.yaml'
+      #     revision: 'tmp/openapi.yaml'
       #     fail-on-diff: true
       # - name: Test diff action output to file
       #   run: |

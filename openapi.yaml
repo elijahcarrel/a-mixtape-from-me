@@ -1,0 +1,488 @@
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    MixtapeRequest:
+      properties:
+        intro_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Optional intro text
+          title: Intro Text
+        is_public:
+          default: false
+          description: Whether the mixtape is public
+          title: Is Public
+          type: boolean
+        name:
+          description: Human-readable name of the mixtape
+          maxLength: 255
+          minLength: 1
+          title: Name
+          type: string
+        tracks:
+          description: List of tracks in the mixtape
+          items:
+            $ref: '#/components/schemas/Track'
+          title: Tracks
+          type: array
+      required:
+      - name
+      - tracks
+      title: MixtapeRequest
+      type: object
+    MixtapeResponse:
+      properties:
+        create_time:
+          title: Create Time
+          type: string
+        intro_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Intro Text
+        is_public:
+          title: Is Public
+          type: boolean
+        last_modified_time:
+          title: Last Modified Time
+          type: string
+        name:
+          title: Name
+          type: string
+        public_id:
+          title: Public Id
+          type: string
+        stack_auth_user_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Stack Auth User Id
+        tracks:
+          items:
+            $ref: '#/components/schemas/TrackResponse'
+          title: Tracks
+          type: array
+      required:
+      - public_id
+      - name
+      - intro_text
+      - is_public
+      - create_time
+      - last_modified_time
+      - stack_auth_user_id
+      - tracks
+      title: MixtapeResponse
+      type: object
+    Track:
+      properties:
+        spotify_uri:
+          description: Spotify URI of the track
+          maxLength: 255
+          minLength: 1
+          title: Spotify Uri
+          type: string
+        track_position:
+          description: Unique position of the track within the mixtape (1-based index)
+          exclusiveMinimum: 0.0
+          title: Track Position
+          type: integer
+        track_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Optional text to display next to the track
+          title: Track Text
+      required:
+      - track_position
+      - spotify_uri
+      title: Track
+      type: object
+    TrackResponse:
+      properties:
+        spotify_uri:
+          description: Spotify URI of the track
+          maxLength: 255
+          minLength: 1
+          title: Spotify Uri
+          type: string
+        track_position:
+          description: Unique position of the track within the mixtape (1-based index)
+          exclusiveMinimum: 0.0
+          title: Track Position
+          type: integer
+        track_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Optional text to display next to the track
+          title: Track Text
+      required:
+      - track_position
+      - spotify_uri
+      title: TrackResponse
+      type: object
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
+info:
+  title: FastAPI
+  version: 0.1.0
+openapi: 3.1.0
+paths:
+  /api/main/:
+    get:
+      operationId: root_api_main__get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Root
+  /api/main/account/me:
+    get:
+      description: Get current user account information
+      operationId: get_account_api_main_account_me_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Get Account
+      tags:
+      - account
+  /api/main/account/profile:
+    get:
+      description: Get user profile information
+      operationId: get_profile_api_main_account_profile_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Get Profile
+      tags:
+      - account
+  /api/main/auth/logout:
+    post:
+      description: Logout the current user (clear cache)
+      operationId: logout_api_main_auth_logout_post
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Logout
+      tags:
+      - auth
+  /api/main/auth/me:
+    get:
+      description: Get current user information from Stack Auth token
+      operationId: get_current_user_api_main_auth_me_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Get Current User
+      tags:
+      - auth
+  /api/main/auth/verify:
+    get:
+      description: Verify if the provided token is valid
+      operationId: verify_token_api_main_auth_verify_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Verify Token
+      tags:
+      - auth
+  /api/main/debug:
+    get:
+      operationId: debug_api_main_debug_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Debug
+  /api/main/health/app:
+    get:
+      operationId: app_health_api_main_health_app_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: App Health
+      tags:
+      - health
+  /api/main/health/db:
+    get:
+      operationId: db_api_main_health_db_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Db
+      tags:
+      - health
+  /api/main/mixtape/:
+    get:
+      operationId: list_my_mixtapes_api_main_mixtape__get
+      parameters:
+      - description: Search mixtape titles (partial match)
+        in: query
+        name: q
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Search mixtape titles (partial match)
+          title: Q
+      - description: Max results to return
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          description: Max results to return
+          maximum: 100
+          minimum: 1
+          title: Limit
+          type: integer
+      - description: Results offset for pagination
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          description: Results offset for pagination
+          minimum: 0
+          title: Offset
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  additionalProperties: true
+                  type: object
+                title: Response List My Mixtapes Api Main Mixtape  Get
+                type: array
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: List My Mixtapes
+      tags:
+      - mixtape
+    post:
+      operationId: create_mixtape_api_main_mixtape__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MixtapeRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                title: Response Create Mixtape Api Main Mixtape  Post
+                type: object
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Create Mixtape
+      tags:
+      - mixtape
+  /api/main/mixtape/{public_id}:
+    get:
+      operationId: get_mixtape_api_main_mixtape__public_id__get
+      parameters:
+      - in: path
+        name: public_id
+        required: true
+        schema:
+          title: Public Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MixtapeResponse'
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get Mixtape
+      tags:
+      - mixtape
+    put:
+      operationId: update_mixtape_api_main_mixtape__public_id__put
+      parameters:
+      - in: path
+        name: public_id
+        required: true
+        schema:
+          title: Public Id
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MixtapeRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                title: Response Update Mixtape Api Main Mixtape  Public Id  Put
+                type: object
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Update Mixtape
+      tags:
+      - mixtape
+  /api/main/mixtape/{public_id}/claim:
+    post:
+      description: Claim an anonymous mixtape, making the authenticated user the owner.
+      operationId: claim_mixtape_api_main_mixtape__public_id__claim_post
+      parameters:
+      - in: path
+        name: public_id
+        required: true
+        schema:
+          title: Public Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                title: Response Claim Mixtape Api Main Mixtape  Public Id  Claim Post
+                type: object
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Claim Mixtape
+      tags:
+      - mixtape
+  /api/main/spotify/search:
+    get:
+      description: Search for tracks using service account credentials
+      operationId: search_tracks_api_main_spotify_search_get
+      parameters:
+      - in: query
+        name: query
+        required: true
+        schema:
+          title: Query
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Search Tracks
+      tags:
+      - spotify
+  /api/main/spotify/track/{track_id}:
+    get:
+      description: Get track details using service account credentials
+      operationId: get_track_api_main_spotify_track__track_id__get
+      parameters:
+      - in: path
+        name: track_id
+        required: true
+        schema:
+          title: Track Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get Track
+      tags:
+      - spotify
