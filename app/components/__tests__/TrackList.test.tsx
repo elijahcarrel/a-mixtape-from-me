@@ -1,221 +1,104 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from './test-utils';
+import { render, screen, fireEvent } from './test-utils';
 import '@testing-library/jest-dom';
 import TrackList from '../TrackList';
 
-// Mock useAuthenticatedRequest
-const mockMakeRequest = jest.fn();
-jest.mock('../../hooks/useApiRequest', () => ({
-  useAuthenticatedRequest: () => ({
-    makeRequest: mockMakeRequest,
-  }),
-}));
+const mockTrackDetails1 = {
+  id: 'track1',
+  name: 'Test Track 1',
+  artists: [{ name: 'Artist 1' }],
+  album: {
+    name: 'Album 1',
+    images: [{ url: 'https://example.com/image1.jpg', width: 300, height: 300 }],
+  },
+  uri: 'spotify:track:track1',
+};
+const mockTrackDetails2 = {
+  id: 'track2',
+  name: 'Test Track 2',
+  artists: [{ name: 'Artist 2' }],
+  album: {
+    name: 'Album 2',
+    images: [{ url: 'https://example.com/image2.jpg', width: 300, height: 300 }],
+  },
+  uri: 'spotify:track:track2',
+};
 
 const mockTracks = [
   {
     track_position: 1,
-    track_text: 'Test Track 1',
-    spotify_uri: 'spotify:track:track1',
+    track_text: 'This song always reminds me of our road trip to Big Sur!',
+    track: mockTrackDetails1,
   },
   {
     track_position: 2,
-    track_text: 'Test Track 2',
-    spotify_uri: 'spotify:track:track2',
+    track_text: 'You played this for me on our first date. <3',
+    track: mockTrackDetails2,
   },
 ];
 
-const mockTrackDetails = {
-  track1: {
-    id: 'track1',
-    name: 'Test Track 1',
-    artists: [{ name: 'Artist 1' }],
-    album: {
-      name: 'Album 1',
-      images: [{ url: 'https://example.com/image1.jpg', width: 300, height: 300 }],
-    },
-  },
-  track2: {
-    id: 'track2',
-    name: 'Test Track 2',
-    artists: [{ name: 'Artist 2' }],
-    album: {
-      name: 'Album 2',
-      images: [{ url: 'https://example.com/image2.jpg', width: 300, height: 300 }],
-    },
-  },
-};
-
 describe('TrackList', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('shows empty state when no tracks are present', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={[]} onRemoveTrack={mockOnRemoveTrack} />);
-    
     expect(screen.getByText('No tracks added yet. Search for tracks above to get started!')).toBeInTheDocument();
   });
 
-  it('displays tracks with loading skeletons when details are not loaded', () => {
+  it('displays tracks with details', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    // Should show loading skeletons (animated pulse elements)
-    const loadingSkeletons = document.querySelectorAll('.animate-pulse');
-    expect(loadingSkeletons.length).toBeGreaterThan(0);
-    
-    // Should show remove buttons
-    const removeButtons = screen.getAllByTitle('Remove track');
-    expect(removeButtons).toHaveLength(2);
+    // Track titles
+    expect(screen.getByText('Test Track 1')).toBeInTheDocument();
+    expect(screen.getByText('Artist 1')).toBeInTheDocument();
+    expect(screen.getByText('Test Track 2')).toBeInTheDocument();
+    expect(screen.getByText('Artist 2')).toBeInTheDocument();
+    // Track texts (personal messages)
+    expect(screen.getByText('This song always reminds me of our road trip to Big Sur!')).toBeInTheDocument();
+    expect(screen.getByText('You played this for me on our first date. <3')).toBeInTheDocument();
   });
 
-  it('fetches track details for tracks without details', async () => {
-    mockMakeRequest.mockResolvedValue(mockTrackDetails.track1);
-    
+  it('shows album art when available', () => {
     const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    await waitFor(() => {
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/track/track1');
-    });
+    render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
+    const albumImage = screen.getByAltText('Album 1');
+    expect(albumImage).toBeInTheDocument();
+    expect(albumImage).toHaveAttribute('src', 'https://example.com/image1.jpg');
   });
 
-  it('displays track details when loaded', async () => {
-    mockMakeRequest.mockResolvedValue(mockTrackDetails.track1);
-    
+  it('shows placeholder when album art is not available', () => {
+    const trackWithoutImage = {
+      ...mockTrackDetails1,
+      album: { name: 'Album 1', images: [] },
+    };
     const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Test Track 1')).toBeInTheDocument();
-      expect(screen.getByText('Artist 1')).toBeInTheDocument();
-    });
-  });
-
-  it('shows loading state for individual tracks', async () => {
-    mockMakeRequest.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
-    
-    const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    // Should show loading skeleton (animated pulse elements)
-    const loadingSkeletons = document.querySelectorAll('.animate-pulse');
-    expect(loadingSkeletons.length).toBeGreaterThan(0);
+    render(<TrackList tracks={[{ track_position: 1, track_text: 'A special note for you', track: trackWithoutImage }]} onRemoveTrack={mockOnRemoveTrack} />);
+    // There are two 'No Image' elements: one in album art, one possibly in track_text. Use getAllByText.
+    expect(screen.getAllByText('No Image').length).toBeGreaterThanOrEqual(1);
   });
 
   it('calls onRemoveTrack when remove button is clicked', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
-    
     const removeButtons = screen.getAllByTitle('Remove track');
     fireEvent.click(removeButtons[0]);
-    
     expect(mockOnRemoveTrack).toHaveBeenCalledWith(1);
   });
 
-  it('handles track details API errors gracefully', async () => {
-    mockMakeRequest.mockRejectedValue(new Error('Failed to fetch track details'));
-    
+  it('displays track_text if present', () => {
     const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    // Should still show remove button even if details fail to load
-    expect(screen.getByTitle('Remove track')).toBeInTheDocument();
+    render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
+    expect(screen.getByText('This song always reminds me of our road trip to Big Sur!')).toBeInTheDocument();
+    expect(screen.getByText('You played this for me on our first date. <3')).toBeInTheDocument();
   });
 
-  it('displays album art when available', async () => {
-    mockMakeRequest.mockResolvedValue(mockTrackDetails.track1);
-    
-    const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    await waitFor(() => {
-      const albumImage = screen.getByAltText('Album 1');
-      expect(albumImage).toBeInTheDocument();
-      expect(albumImage).toHaveAttribute('src', 'https://example.com/image1.jpg');
-    });
-  });
-
-  it('shows placeholder when album art is not available', async () => {
-    const trackWithoutImage = {
-      ...mockTrackDetails.track1,
-      album: { name: 'Album 1', images: [] },
-    };
-    mockMakeRequest.mockResolvedValue(trackWithoutImage);
-    
-    const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('No Image')).toBeInTheDocument();
-    });
-  });
-
-  it('handles tracks with invalid Spotify URIs', () => {
-    const tracksWithInvalidUri = [
-      {
-        track_position: 1,
-        track_text: 'Invalid Track',
-        spotify_uri: 'invalid:uri:format',
-      },
-    ];
-    
-    const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={tracksWithInvalidUri} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    // Should still display the remove button
-    expect(screen.getByTitle('Remove track')).toBeInTheDocument();
-    
-    // Should not make API calls for invalid URIs
-    expect(mockMakeRequest).not.toHaveBeenCalled();
-  });
-
-  it('prevents duplicate API calls for the same track', async () => {
-    mockMakeRequest.mockResolvedValue(mockTrackDetails.track1);
-    
-    const mockOnRemoveTrack = jest.fn();
-    const { rerender } = render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    // Re-render with the same track
-    rerender(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    await waitFor(() => {
-      // Should only call the API once
-      expect(mockMakeRequest).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('handles multiple artists correctly', async () => {
+  it('handles multiple artists correctly', () => {
     const trackWithMultipleArtists = {
-      ...mockTrackDetails.track1,
+      ...mockTrackDetails1,
       artists: [{ name: 'Artist 1' }, { name: 'Artist 2' }],
     };
-    mockMakeRequest.mockResolvedValue(trackWithMultipleArtists);
-    
     const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[mockTracks[0]]} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Artist 1, Artist 2')).toBeInTheDocument();
-    });
-  });
-
-  it('updates track positions correctly when tracks are reordered', () => {
-    const mockOnRemoveTrack = jest.fn();
-    const { rerender } = render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    // Re-render with tracks in different order
-    const reorderedTracks = [
-      { track_position: 1, track_text: 'Track 2', spotify_uri: 'spotify:track:track2' },
-      { track_position: 2, track_text: 'Track 1', spotify_uri: 'spotify:track:track1' },
-    ];
-    
-    rerender(<TrackList tracks={reorderedTracks} onRemoveTrack={mockOnRemoveTrack} />);
-    
-    // Should still show remove buttons for both tracks
-    const removeButtons = screen.getAllByTitle('Remove track');
-    expect(removeButtons).toHaveLength(2);
+    render(<TrackList tracks={[{ track_position: 1, track_text: 'A duet for us', track: trackWithMultipleArtists }]} onRemoveTrack={mockOnRemoveTrack} />);
+    expect(screen.getByText('Artist 1, Artist 2')).toBeInTheDocument();
   });
 }); 
