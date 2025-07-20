@@ -120,8 +120,8 @@ jobs:
         id: diff_state
         uses: swimmwatch/openapi-diff-action@v2.0.0
         with:
-          old-spec: "/openapi.json"
-          new-spec: "/tmp/openapi.json"
+          old-spec: "../openapi.json"
+          new-spec: "../tmp/openapi.json"
           json: "out.json"
           markdown: "out.md"
       - name: "Print difference state"
