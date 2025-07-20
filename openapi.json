@@ -168,7 +168,11 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/TrackSearchResponse"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TrackDetails"
+                                    },
+                                    "title": "Response Search Tracks Api Main Spotify Search Get"
                                 }
                             }
                         }
@@ -809,34 +813,6 @@
                     "spotify_uri"
                 ],
                 "title": "TrackResponse"
-            },
-            "TrackSearchResponse": {
-                "properties": {
-                    "tracks": {
-                        "$ref": "#/components/schemas/TrackSearchResult"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "tracks"
-                ],
-                "title": "TrackSearchResponse"
-            },
-            "TrackSearchResult": {
-                "properties": {
-                    "items": {
-                        "items": {
-                            "$ref": "#/components/schemas/TrackDetails"
-                        },
-                        "type": "array",
-                        "title": "Items"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "items"
-                ],
-                "title": "TrackSearchResult"
             },
             "ValidationError": {
                 "properties": {

@@ -25,19 +25,13 @@ class TrackDetails(BaseModel):
     album: TrackAlbum
     uri: str
 
-class TrackSearchResult(BaseModel):
-    items: List[TrackDetails]
-
-class TrackSearchResponse(BaseModel):
-    tracks: TrackSearchResult
-
-@router.get("/search", response_model=TrackSearchResponse)
+@router.get("/search", response_model=List[TrackDetails])
 def search_tracks(query: str, user_info: dict = Depends(get_current_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     """Search for tracks using service account credentials"""
     try:
         results = spotify_client.search_tracks(query)
-        # Convert class objects to dicts for API response
-        return {"tracks": {"items": [t.to_dict() for t in results["tracks"].items]}}
+        # results is now {"tracks": SpotifySearchResult}, so flatten to a list of dicts
+        return [t.to_dict() for t in results["tracks"].items]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to search tracks: {str(e)}")
 

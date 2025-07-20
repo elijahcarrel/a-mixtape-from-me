@@ -39,11 +39,10 @@ def test_search_tracks(client):
     resp = test_client.get("/api/main/spotify/search?query=Mock", headers={"x-stack-access-token": token})
     assert resp.status_code == 200
     data = resp.json()
-    assert "tracks" in data
-    assert "items" in data["tracks"]
+    assert isinstance(data, list)
     # Should match at least one track with 'Mock' in the name
     found = False
-    for t in data["tracks"]["items"]:
+    for t in data:
         if "Mock" in t["name"]:
             found = True
         assert_track_details(t)
