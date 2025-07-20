@@ -115,7 +115,7 @@ jobs:
       - name: Generate new openapi.json
         run: |
           mkdir -p tmp
-          python scripts/generate_schema.py --output tmp/openapi.json
+          python scripts/generate_openapi_spec.py --output tmp/openapi.json
       - name: Compare checked-in openapi.json to generated openapi.json
         id: diff_state
         uses: swimmwatch/openapi-diff-action@v2.0.0
