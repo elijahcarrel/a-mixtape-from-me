@@ -561,7 +561,7 @@
                         "type": "boolean",
                         "title": "Is Public",
                         "description": "Whether the mixtape is public",
-                        "default": false
+                        "default": true
                     },
                     "tracks": {
                         "items": {
