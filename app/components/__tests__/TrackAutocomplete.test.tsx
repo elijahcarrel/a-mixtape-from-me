@@ -51,7 +51,7 @@ describe('TrackAutocomplete', () => {
   it('shows loading spinner when searching', async () => {
     // Mock a delayed response that takes longer to complete
     mockMakeRequest.mockImplementation(() => new Promise(resolve => {
-      setTimeout(() => resolve({ tracks: { items: [] } }), 200);
+      setTimeout(() => resolve([]), 200);
     }));
     
     const mockOnTrackSelect = jest.fn();
@@ -72,7 +72,7 @@ describe('TrackAutocomplete', () => {
   });
 
   it('calls search API when user types', async () => {
-    mockMakeRequest.mockResolvedValue({ tracks: { items: mockSearchResults } });
+    mockMakeRequest.mockResolvedValue(mockSearchResults);
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
@@ -89,7 +89,7 @@ describe('TrackAutocomplete', () => {
   });
 
   it('displays search results', async () => {
-    mockMakeRequest.mockResolvedValue({ tracks: { items: mockSearchResults } });
+    mockMakeRequest.mockResolvedValue(mockSearchResults);
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
@@ -109,7 +109,7 @@ describe('TrackAutocomplete', () => {
   });
 
   it('calls onTrackSelect when a track is clicked', async () => {
-    mockMakeRequest.mockResolvedValue({ tracks: { items: mockSearchResults } });
+    mockMakeRequest.mockResolvedValue(mockSearchResults);
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
@@ -138,7 +138,7 @@ describe('TrackAutocomplete', () => {
   });
 
   it('clears search input after track selection', async () => {
-    mockMakeRequest.mockResolvedValue({ tracks: { items: mockSearchResults } });
+    mockMakeRequest.mockResolvedValue(mockSearchResults);
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
@@ -158,7 +158,7 @@ describe('TrackAutocomplete', () => {
   });
 
   it('handles keyboard navigation with arrow keys', async () => {
-    mockMakeRequest.mockResolvedValue({ tracks: { items: mockSearchResults } });
+    mockMakeRequest.mockResolvedValue(mockSearchResults);
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
@@ -180,7 +180,7 @@ describe('TrackAutocomplete', () => {
   });
 
   it('closes dropdown when escape key is pressed', async () => {
-    mockMakeRequest.mockResolvedValue({ tracks: { items: mockSearchResults } });
+    mockMakeRequest.mockResolvedValue(mockSearchResults);
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
@@ -219,7 +219,7 @@ describe('TrackAutocomplete', () => {
   });
 
   it('debounces search requests', async () => {
-    mockMakeRequest.mockResolvedValue({ tracks: { items: mockSearchResults } });
+    mockMakeRequest.mockResolvedValue(mockSearchResults);
     
     const mockOnTrackSelect = jest.fn();
     render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);

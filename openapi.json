@@ -167,7 +167,13 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TrackDetails"
+                                    },
+                                    "title": "Response Search Tracks Api Main Spotify Search Get"
+                                }
                             }
                         }
                     },
@@ -208,7 +214,9 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/TrackDetails"
+                                }
                             }
                         }
                     },
@@ -678,6 +686,98 @@
                     "spotify_uri"
                 ],
                 "title": "Track"
+            },
+            "TrackAlbum": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "images": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrackAlbumImage"
+                        },
+                        "type": "array",
+                        "title": "Images"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "images"
+                ],
+                "title": "TrackAlbum"
+            },
+            "TrackAlbumImage": {
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "title": "Url"
+                    },
+                    "width": {
+                        "type": "integer",
+                        "title": "Width"
+                    },
+                    "height": {
+                        "type": "integer",
+                        "title": "Height"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "url",
+                    "width",
+                    "height"
+                ],
+                "title": "TrackAlbumImage"
+            },
+            "TrackArtist": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "TrackArtist"
+            },
+            "TrackDetails": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "artists": {
+                        "items": {
+                            "$ref": "#/components/schemas/TrackArtist"
+                        },
+                        "type": "array",
+                        "title": "Artists"
+                    },
+                    "album": {
+                        "$ref": "#/components/schemas/TrackAlbum"
+                    },
+                    "uri": {
+                        "type": "string",
+                        "title": "Uri"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "artists",
+                    "album",
+                    "uri"
+                ],
+                "title": "TrackDetails"
             },
             "TrackResponse": {
                 "properties": {
