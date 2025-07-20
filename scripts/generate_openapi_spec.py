@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import json
 import yaml
 from fastapi.openapi.utils import get_openapi
 
@@ -13,6 +14,7 @@ app = create_app()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output', default='openapi.yaml', help='Output file for generated OpenAPI schema')
+parser.add_argument('--format', default='yaml', help='Output format for generated OpenAPI schema', choices=['yaml', 'json'])
 args = parser.parse_args()
 
 openapi_spec = get_openapi(
@@ -24,4 +26,9 @@ openapi_spec = get_openapi(
 )
 
 with open(args.output, 'w') as f:
-    yaml.dump(openapi_spec, f)
+    if args.format == "yaml":
+        yaml.dump(openapi_spec, f)
+    elif args.format == "json":
+        json.dump(openapi_spec, f, indent=4)
+    else:
+        raise Exception(f"Invalid format {args.format}")
