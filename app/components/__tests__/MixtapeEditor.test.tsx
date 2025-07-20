@@ -25,7 +25,7 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
-  usePathname: () => "/mixtape/test-mixtape-123"
+  usePathname: () => "/mixtape/test-mixtape-123/edit"
 }));
 
 // Mock components
@@ -367,7 +367,7 @@ describe('MixtapeEditor', () => {
       const signInButton = screen.getByText('Sign In');
       fireEvent.click(signInButton);
       
-      expect(mockPush).toHaveBeenCalledWith('/handler/signup?next=%2Fmixtape%2Ftest-mixtape-123');
+      expect(mockPush).toHaveBeenCalledWith('/handler/signup?next=%2Fmixtape%2Ftest-mixtape-123%2Fedit');
     });
 
     it('calls claim endpoint when authenticated user clicks claim', async () => {

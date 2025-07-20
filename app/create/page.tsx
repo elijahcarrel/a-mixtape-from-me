@@ -38,7 +38,7 @@ export default function CreateMixtapePage() {
   useEffect(() => {
     if (createResponse?.public_id) {
       // Redirect to the edit page for the newly created mixtape
-      router.replace(`/mixtape/${createResponse.public_id}`);
+      router.replace(`/mixtape/${createResponse.public_id}/edit`);
     }
   }, [createResponse, router]);
 

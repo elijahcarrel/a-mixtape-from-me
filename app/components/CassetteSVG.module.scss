@@ -1,0 +1,9 @@
+.cassetteSpoolSpin {
+  animation: cassette-spin 3s linear infinite;
+}
+
+@keyframes cassette-spin {
+  100% { 
+    transform: rotate(360deg); 
+  }
+} 
