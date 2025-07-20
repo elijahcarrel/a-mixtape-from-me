@@ -121,3 +121,10 @@ jobs:
         with:
           base: 'openapi.json'
           revision: 'tmp/openapi.json'
+          fail-on-diff: true
+      # - name: Test diff action output to file
+      #   run: |
+      #     if [ ! -s diff.txt ]; then
+      #       echo "Diff file doesn't exist or is empty"
+      #       exit 1
+      #     fi

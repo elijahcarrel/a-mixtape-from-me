@@ -23,5 +23,5 @@ openapi_spec = get_openapi(
     routes=app.routes,
 )
 
-with open('openapi.json', 'w') as f:
+with open(args.output, 'w') as f:
     json.dump(openapi_spec, f, indent=4)
