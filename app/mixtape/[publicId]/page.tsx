@@ -8,10 +8,21 @@ import MainContainer from '../../components/layout/MainContainer';
 import ContentPane from '../../components/layout/ContentPane';
 import MixtapeViewer from '../../components/MixtapeViewer';
 
+interface TrackDetails {
+  id: string;
+  name: string;
+  artists: Array<{ name: string }>;
+  album: {
+    name: string;
+    images: Array<{ url: string; width: number; height: number }>;
+  };
+  uri: string;
+}
+
 interface Track {
   track_position: number;
   track_text?: string;
-  spotify_uri: string;
+  track: TrackDetails;
 }
 
 interface MixtapeData {
