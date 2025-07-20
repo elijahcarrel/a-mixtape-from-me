@@ -126,4 +126,11 @@ jobs:
           base: 'tmp/openapi_clean.json'
           revision: 'tmp/openapi_generated_clean.json'
           format: 'json'
-          fail-on-diff: true
+          output-to-file: 'diff.txt'
+      - name: Check if diff has contents
+        run: |
+          if [ -s diff.txt ]; then
+            echo 'openapi.json is not up to date with the OpenAPI specification. Please run scripts/generate_openapi_spec.py and commit the result.'
+            cat diff.txt
+            exit 1
+          fi
