@@ -6,7 +6,8 @@ Shared utilities for OpenAPI schema processing
 def strip_openapi_31_incompatibilities(spec):
     """
     Strip OpenAPI 3.1.0 specific fields that are incompatible with OpenAPI 3.0.x
-    This is needed for tools like oasdiff that only support OpenAPI 3.0.x
+    This is needed for tools like oasdiff that only support OpenAPI 3.0.x.
+    See https://github.com/oasdiff/oasdiff/issues/714.
     """
     if isinstance(spec, dict):
         # Remove exclusiveMinimum and exclusiveMaximum fields
