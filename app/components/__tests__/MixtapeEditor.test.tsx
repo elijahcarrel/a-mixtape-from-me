@@ -239,13 +239,12 @@ describe('MixtapeEditor', () => {
 
   it('adds a new track when TrackAutocomplete calls onTrackSelect', () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
-    
     const addTrackButton = screen.getByTestId('add-track-button');
     fireEvent.click(addTrackButton);
-    
     // Check that the new track appears in the track list
     expect(screen.getByTestId('track-2')).toBeInTheDocument();
-    expect(screen.getByText('You played this for me on our first date. <3')).toBeInTheDocument();
+    // track_text is undefined for new tracks, so only the title is rendered
+    expect(screen.getByText('Test Track 2')).toBeInTheDocument();
   });
 
   it('removes a track when TrackList calls onRemoveTrack', () => {
