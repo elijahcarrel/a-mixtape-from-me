@@ -116,10 +116,14 @@ jobs:
         run: |
           mkdir -p tmp
           python scripts/generate_openapi_spec.py --output tmp/openapi.json --format json
+      - name: Strip OpenAPI 3.1.0 incompatibilities from both files
+        run: |
+          python scripts/strip_openapi_incompatibilities.py openapi.json tmp/openapi_clean.json
+          python scripts/strip_openapi_incompatibilities.py tmp/openapi.json tmp/openapi_generated_clean.json
       - name: Run OpenAPI spec diff action
         uses: oasdiff/oasdiff-action/diff@main
         with:
-          base: 'openapi.json'
-          revision: 'tmp/openapi.json'
+          base: 'tmp/openapi_clean.json'
+          revision: 'tmp/openapi_generated_clean.json'
           format: 'json'
           fail-on-diff: true
