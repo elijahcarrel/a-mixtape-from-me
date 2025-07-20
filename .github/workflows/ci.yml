@@ -129,7 +129,7 @@ jobs:
           output-to-file: 'diff.txt'
       - name: Check if diff has contents
         run: |
-          if [ -s diff.txt ]; then
+          if [ -s diff.txt ] && [ "$(cat diff.txt)" != "No changes" ]; then
             echo 'openapi.json is not up to date with the OpenAPI specification. Please run scripts/generate_openapi_spec.py and commit the result.'
             cat diff.txt
             exit 1
