@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './CassetteSVG.module.scss';
 
 interface CassetteSVGProps {
   isAnimated?: boolean;
@@ -27,7 +28,7 @@ export default function CassetteSVG({ isAnimated }: CassetteSVGProps) {
       <rect x="32" y="112" width="336" height="14" fill="#f7d358" />
       {/* Spools (animated if isAnimated) */}
       <g>
-        <g className={isAnimated ? 'cassette-spool-spin' : ''} style={{ transformOrigin: '120px 140px' }}>
+        <g className={isAnimated ? styles.cassetteSpoolSpin : ''} style={{ transformOrigin: '120px 140px' }}>
           <circle cx="120" cy="140" r="32" fill="#fff" stroke="#bfa76a" strokeWidth="4" />
           {[...Array(8)].map((_, i) => {
             const angle = (i * Math.PI) / 4;
@@ -39,7 +40,7 @@ export default function CassetteSVG({ isAnimated }: CassetteSVGProps) {
           })}
           <circle cx="120" cy="140" r="10" fill="#bfa76a" />
         </g>
-        <g className={isAnimated ? 'cassette-spool-spin' : ''} style={{ transformOrigin: '280px 140px' }}>
+        <g className={isAnimated ? styles.cassetteSpoolSpin : ''} style={{ transformOrigin: '280px 140px' }}>
           <circle cx="280" cy="140" r="32" fill="#fff" stroke="#bfa76a" strokeWidth="4" />
           {[...Array(8)].map((_, i) => {
             const angle = (i * Math.PI) / 4;

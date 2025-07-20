@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import CassetteSVG from './CassetteSVG';
 
 interface Track {
@@ -27,24 +27,6 @@ interface MixtapeTrackViewerProps {
 }
 
 export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrevTrack, onNextTrack }: MixtapeTrackViewerProps) {
-  // Add spinning animation class to spools
-  useEffect(() => {
-    // Add CSS for spinning animation if not present
-    if (!document.getElementById('cassette-spool-spin-style')) {
-      const style = document.createElement('style');
-      style.id = 'cassette-spool-spin-style';
-      style.innerHTML = `
-        .cassette-spool-spin {
-          animation: cassette-spin 3s linear infinite;
-        }
-        @keyframes cassette-spin {
-          100% { transform: rotate(360deg); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }, []);
-
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-between bg-amber-50 dark:bg-amber-950 overflow-hidden pb-40">
       {/* Grain overlay */}
