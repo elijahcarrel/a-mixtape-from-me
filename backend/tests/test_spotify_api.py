@@ -6,6 +6,19 @@ from backend.routers import spotify
 from backend.routers import auth
 from backend.util import auth_middleware
 
+def assert_track_details(track):
+    assert "id" in track
+    assert "name" in track
+    assert "artists" in track and isinstance(track["artists"], list)
+    for artist in track["artists"]:
+        assert "name" in artist
+    assert "album" in track
+    assert "name" in track["album"]
+    assert "images" in track["album"] and isinstance(track["album"]["images"], list)
+    for img in track["album"]["images"]:
+        assert "url" in img and "width" in img and "height" in img
+    assert "uri" in track
+
 @pytest.fixture
 def client():
     app = create_app()
@@ -29,16 +42,21 @@ def test_search_tracks(client):
     assert "tracks" in data
     assert "items" in data["tracks"]
     # Should match at least one track with 'Mock' in the name
-    assert any("Mock" in t["name"] for t in data["tracks"]["items"])
+    found = False
+    for t in data["tracks"]["items"]:
+        if "Mock" in t["name"]:
+            found = True
+        assert_track_details(t)
+    assert found
 
 def test_get_track(client):
     test_client, token, mock_spotify = client
-    track_id = mock_spotify.tracks[0]["id"]
+    track_id = mock_spotify.tracks[0].id
     resp = test_client.get(f"/api/main/spotify/track/{track_id}", headers={"x-stack-access-token": token})
     assert resp.status_code == 200
     data = resp.json()
     assert data["id"] == track_id
-    assert "name" in data
+    assert_track_details(data)
 
 def test_get_track_not_found(client):
     test_client, token, _ = client
