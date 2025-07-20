@@ -84,6 +84,10 @@ jobs:
         run: |
           mkdir -p tmp
           python scripts/generate_schema.py --output tmp/generated_schema.sql
+          echo 'generated schema'
+          cat tmp/generated_schema.sql
+          echo 'original schema'
+          cat schema.sql
       - name: Compare checked-in schema.sql to generated schema.sql
         run: |
           output=$(atlas schema diff \
