@@ -10,7 +10,7 @@ on:
 
 jobs:
   frontend-lint-and-typecheck:
-    name: Lint & Type Check (Node.js)
+    name: Front-End Lint & Type Check (Node.js)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,6 +27,7 @@ jobs:
         run: npx tsc --noEmit
 
   frontend-jest-tests:
+    name: Front-End Jest Tests (Node.js)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,8 +62,8 @@ jobs:
       # - name: Run Flake8 (optional Python linter)
       #   run: flake8 backend/ 
 
-  validate-schema:
-    name: Validate schema.sql is up to date
+  validate-db-schema:
+    name: Validate schema.sql Up-To-Date
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -95,3 +96,41 @@ jobs:
             echo "$output"
             exit 1
           fi 
+
+  validate-openapi-schema:
+    name: Validate openapi.json Up-To-Date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install fastapi
+      - name: Generate new openapi.json
+        run: |
+          mkdir -p tmp
+          python scripts/generate_openapi_spec.py --output tmp/openapi.json --format json --strip-modern-openapi-incompatibilities
+      - name: Strip OpenAPI 3.1.0 incompatibilities from both files
+        run: |
+          python scripts/strip_openapi_incompatibilities.py openapi.json tmp/openapi_clean.json
+          python scripts/strip_openapi_incompatibilities.py tmp/openapi.json tmp/openapi_generated_clean.json
+      - name: Run OpenAPI spec diff action
+        uses: oasdiff/oasdiff-action/diff@main
+        with:
+          base: 'tmp/openapi_clean.json'
+          revision: 'tmp/openapi_generated_clean.json'
+          format: 'json'
+          output-to-file: 'diff.txt'
+      - name: Check if diff has contents
+        run: |
+          if [ -s diff.txt ] && [ "$(cat diff.txt)" != "No changes" ]; then
+            echo 'openapi.json is not up to date with the OpenAPI specification. Please run scripts/generate_openapi_spec.py and commit the result.'
+            cat diff.txt
+            exit 1
+          fi
