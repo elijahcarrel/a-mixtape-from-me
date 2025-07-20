@@ -573,7 +573,7 @@
                     },
                     "tracks": {
                         "items": {
-                            "$ref": "#/components/schemas/Track"
+                            "$ref": "#/components/schemas/MixtapeTrackRequest"
                         },
                         "type": "array",
                         "title": "Tracks",
@@ -633,7 +633,7 @@
                     },
                     "tracks": {
                         "items": {
-                            "$ref": "#/components/schemas/TrackResponse"
+                            "$ref": "#/components/schemas/MixtapeTrackResponse"
                         },
                         "type": "array",
                         "title": "Tracks"
@@ -652,7 +652,7 @@
                 ],
                 "title": "MixtapeResponse"
             },
-            "Track": {
+            "MixtapeTrackRequest": {
                 "properties": {
                     "track_position": {
                         "type": "integer",
@@ -685,7 +685,36 @@
                     "track_position",
                     "spotify_uri"
                 ],
-                "title": "Track"
+                "title": "MixtapeTrackRequest"
+            },
+            "MixtapeTrackResponse": {
+                "properties": {
+                    "track_position": {
+                        "type": "integer",
+                        "title": "Track Position"
+                    },
+                    "track_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Track Text"
+                    },
+                    "track": {
+                        "$ref": "#/components/schemas/TrackDetails"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "track_position",
+                    "track_text",
+                    "track"
+                ],
+                "title": "MixtapeTrackResponse"
             },
             "TrackAlbum": {
                 "properties": {
@@ -778,41 +807,6 @@
                     "uri"
                 ],
                 "title": "TrackDetails"
-            },
-            "TrackResponse": {
-                "properties": {
-                    "track_position": {
-                        "type": "integer",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Track Position",
-                        "description": "Unique position of the track within the mixtape (1-based index)"
-                    },
-                    "track_text": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Track Text",
-                        "description": "Optional text to display next to the track"
-                    },
-                    "spotify_uri": {
-                        "type": "string",
-                        "maxLength": 255,
-                        "minLength": 1,
-                        "title": "Spotify Uri",
-                        "description": "Spotify URI of the track"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "track_position",
-                    "spotify_uri"
-                ],
-                "title": "TrackResponse"
             },
             "ValidationError": {
                 "properties": {
