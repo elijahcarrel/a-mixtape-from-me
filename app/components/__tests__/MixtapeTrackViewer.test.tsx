@@ -3,6 +3,27 @@ import { render, screen, fireEvent } from './test-utils';
 import '@testing-library/jest-dom';
 import MixtapeTrackViewer from '../MixtapeTrackViewer';
 
+const mockTrackDetails1 = {
+  id: 'track111',
+  name: 'Mock Song One',
+  artists: [{ name: 'Mock Artist' }],
+  album: {
+    name: 'Mock Album',
+    images: [{ url: 'https://example.com/mock1.jpg', width: 300, height: 300 }],
+  },
+  uri: 'spotify:track:111',
+};
+const mockTrackDetails2 = {
+  id: 'track222',
+  name: 'Another Track',
+  artists: [{ name: 'Another Artist' }],
+  album: {
+    name: 'Another Album',
+    images: [{ url: 'https://example.com/mock2.jpg', width: 300, height: 300 }],
+  },
+  uri: 'spotify:track:222',
+};
+
 const mockMixtape = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
@@ -14,13 +35,13 @@ const mockMixtape = {
   tracks: [
     {
       track_position: 1,
-      track_text: 'Track 1 notes',
-      spotify_uri: 'spotify:track:111',
+      track_text: 'This song always reminds me of our road trip to Big Sur!',
+      track: mockTrackDetails1,
     },
     {
       track_position: 2,
-      track_text: 'Track 2 notes',
-      spotify_uri: 'spotify:track:222',
+      track_text: 'You played this for me on our first date. <3',
+      track: mockTrackDetails2,
     },
   ],
 };
@@ -36,7 +57,9 @@ describe('MixtapeTrackViewer', () => {
     );
     expect(screen.getByText('Test Mixtape')).toBeInTheDocument();
     expect(screen.getByText('Track 1 of 2')).toBeInTheDocument();
-    expect(screen.getByText('Track 1 notes')).toBeInTheDocument();
+    expect(screen.getByText('Mock Song One')).toBeInTheDocument();
+    expect(screen.getByText('Mock Artist')).toBeInTheDocument();
+    expect(screen.getByText('This song always reminds me of our road trip to Big Sur!')).toBeInTheDocument();
   });
 
   it('shows Prev and Next buttons and calls handlers', () => {
