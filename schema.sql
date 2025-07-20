@@ -2,7 +2,7 @@
 
 CREATE TABLE "Mixtape" (
 	id SERIAL NOT NULL, 
-	stack_auth_user_id VARCHAR NOT NULL, 
+	stack_auth_user_id VARCHAR, 
 	public_id VARCHAR NOT NULL, 
 	name VARCHAR(255) NOT NULL, 
 	intro_text VARCHAR, 
@@ -12,8 +12,6 @@ CREATE TABLE "Mixtape" (
 	version INTEGER NOT NULL, 
 	PRIMARY KEY (id)
 );
-
-CREATE UNIQUE INDEX "ix_Mixtape_public_id" ON "Mixtape" (public_id);
 
 CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON "Mixtape" (stack_auth_user_id, last_modified_time);
 
@@ -31,6 +29,7 @@ CREATE TABLE "MixtapeAudit" (
 	create_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	last_modified_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	version INTEGER NOT NULL, 
+	stack_auth_user_id VARCHAR, 
 	PRIMARY KEY (id), 
 	FOREIGN KEY(mixtape_id) REFERENCES "Mixtape" (id)
 );
