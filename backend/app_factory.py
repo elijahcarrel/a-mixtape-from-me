@@ -21,7 +21,7 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
             # Log the error but don't fail app creation (useful for tests)
             print(f"Warning: Could not create tables: {e}")
     
-    api_prefix = "/api/main"
+    api_prefix = "/api"
     
     app = FastAPI(docs_url=f"{api_prefix}/docs", openapi_url=f"{api_prefix}/openapi.json")
     
