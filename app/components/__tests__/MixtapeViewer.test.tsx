@@ -3,7 +3,14 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import MixtapeViewer from '../MixtapeViewer';
 
-jest.mock('../EditButton', () => () => <div data-testid="mock-edit-button" />);
+jest.mock('../EditButton', () => {
+  const mockReact = require('react');
+  return function MockEditButton() {
+    return (
+      <div data-testid="mock-edit-button" />
+    );
+  };
+});
 
 const mockMixtape = {
   public_id: 'test-mixtape-123',

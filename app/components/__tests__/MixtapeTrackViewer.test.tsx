@@ -46,7 +46,14 @@ const mockMixtape = {
   ],
 };
 
-jest.mock('../EditButton', () => () => <div data-testid="mock-edit-button" />);
+jest.mock('../EditButton', () => {
+  const mockReact = require('react');
+  return function MockEditButton() {
+    return (
+      <div data-testid="mock-edit-button" />
+    );
+  };
+});
 
 describe('MixtapeTrackViewer', () => {
   it('renders mixtape and track info', () => {
