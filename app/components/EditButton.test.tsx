@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import EditButton from './EditButton';
+import '@testing-library/jest-dom';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
