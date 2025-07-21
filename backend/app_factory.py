@@ -1,7 +1,10 @@
+import logging
 from fastapi import FastAPI, Request, Response
 from typing import Awaitable, Callable, Optional
 from fastapi.middleware.cors import CORSMiddleware
 import os
+
+from fastapi.responses import JSONResponse
 
 def create_app(database_url: Optional[str] = None) -> FastAPI:
     """Factory function to create FastAPI app with configurable database"""
@@ -74,4 +77,16 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
         print(f"Outgoing response status: {str(response.status_code)}")
         return response
     
+    @app.middleware("http")
+    async def catch_exceptions_middleware(request: Request, call_next):
+        try:
+            return await call_next(request)
+        except Exception as e:
+            print(f"Unhandled exception: {e}")
+            logging.exception("Exception caught in middleware")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Internal server error"},
+            )
+
     return app 
