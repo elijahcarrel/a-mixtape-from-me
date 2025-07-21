@@ -691,7 +691,9 @@
                 "properties": {
                     "track_position": {
                         "type": "integer",
-                        "title": "Track Position"
+                        "exclusiveMinimum": 0.0,
+                        "title": "Track Position",
+                        "description": "Unique position of the track within the mixtape (1-based index)"
                     },
                     "track_text": {
                         "anyOf": [
@@ -702,16 +704,17 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Track Text"
+                        "title": "Track Text",
+                        "description": "Optional text to display next to the track"
                     },
                     "track": {
-                        "$ref": "#/components/schemas/TrackDetails"
+                        "$ref": "#/components/schemas/TrackDetails",
+                        "description": "Details about the track, such as name, artist, and Spotify URI."
                     }
                 },
                 "type": "object",
                 "required": [
                     "track_position",
-                    "track_text",
                     "track"
                 ],
                 "title": "MixtapeTrackResponse"

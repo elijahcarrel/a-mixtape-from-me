@@ -19,9 +19,9 @@ class MixtapeTrackRequest(BaseModel):
     spotify_uri: str = Field(..., min_length=1, max_length=255, description="Spotify URI of the track")
 
 class MixtapeTrackResponse(BaseModel):
-    track_position: int
-    track_text: Optional[str]
-    track: TrackDetails
+    track_position: int = Field(..., gt=0, description="Unique position of the track within the mixtape (1-based index)")
+    track_text: Optional[str] = Field(None, description="Optional text to display next to the track")
+    track: TrackDetails = Field(..., description="Details about the track, such as name, artist, and Spotify URI.")
 
 class MixtapeRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the mixtape")

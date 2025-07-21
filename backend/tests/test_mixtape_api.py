@@ -20,15 +20,6 @@ from backend.app_factory import create_app
 # Import models to ensure they're registered with SQLModel metadata
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
-# --- FAKE SPOTIFY TRACK DETAILS ---
-FAKE_TRACK_DETAILS = lambda uri: {
-    "id": uri.replace("spotify:track:", ""),
-    "name": f"Fake Track for {uri}",
-    "artists": [{"name": "Fake Artist"}],
-    "album": {"name": "Fake Album", "images": [{"url": "http://fake", "width": 300, "height": 300}]},
-    "uri": uri
-}
-
 # Utility functions for better test assertions
 def assert_response_success(response: httpx.Response, expected_status: int = 200) -> None:
     """Assert that a response was successful with detailed error information"""

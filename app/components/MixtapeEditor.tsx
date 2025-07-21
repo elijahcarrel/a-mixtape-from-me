@@ -26,6 +26,7 @@ interface Track {
   track_position: number;
   track_text?: string;
   track: TrackDetails;
+  spotify_uri?: string;
 }
 
 interface MixtapeData {
@@ -58,6 +59,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
 
   const handleClaimMixtape = async () => {
     if (!isAuthenticated) {
+      // Redirect to sign in with current page as next parameter.
       router.push(`/handler/signup?next=${encodeURIComponent(currentPath)}`);
       return;
     }
@@ -67,6 +69,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         method: 'POST',
         body: {}
       });
+      // Call the parent's callback to refresh data.
       onMixtapeClaimed?.();
     } catch (error) {
       console.error('Error claiming mixtape:', error);
@@ -100,6 +103,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     [mixtape.public_id, makeRequest]
   );
 
+  // Update tracks when mixtape changes.
   useEffect(() => {
     setTracks(mixtape.tracks);
   }, [mixtape.tracks]);
@@ -113,7 +117,8 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
       track_position: tracks.length + 1,
       // TODO: Add UI for editing track_text (personal message) in the future
       track_text: undefined,
-      track: trackData
+      track: trackData,
+      spotify_uri: trackData.uri,
     };
     const updatedTracks = [...tracks, newTrack];
     setTracks(updatedTracks);
@@ -128,6 +133,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         track_position: index + 1
       }));
     setTracks(updatedTracks);
+    // Trigger save with updated tracks.
     debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
   };
 
