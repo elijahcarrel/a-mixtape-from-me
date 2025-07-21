@@ -5,14 +5,14 @@
         "version": "0.1.0"
     },
     "paths": {
-        "/api/main/auth/me": {
+        "/api/auth/me": {
             "get": {
                 "tags": [
                     "auth"
                 ],
                 "summary": "Get Current User",
                 "description": "Get current user information from Stack Auth token",
-                "operationId": "get_current_user_api_main_auth_me_get",
+                "operationId": "get_current_user_api_auth_me_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -25,14 +25,14 @@
                 }
             }
         },
-        "/api/main/auth/logout": {
+        "/api/auth/logout": {
             "post": {
                 "tags": [
                     "auth"
                 ],
                 "summary": "Logout",
                 "description": "Logout the current user (clear cache)",
-                "operationId": "logout_api_main_auth_logout_post",
+                "operationId": "logout_api_auth_logout_post",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -45,14 +45,14 @@
                 }
             }
         },
-        "/api/main/auth/verify": {
+        "/api/auth/verify": {
             "get": {
                 "tags": [
                     "auth"
                 ],
                 "summary": "Verify Token",
                 "description": "Verify if the provided token is valid",
-                "operationId": "verify_token_api_main_auth_verify_get",
+                "operationId": "verify_token_api_auth_verify_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -65,14 +65,14 @@
                 }
             }
         },
-        "/api/main/account/me": {
+        "/api/account/me": {
             "get": {
                 "tags": [
                     "account"
                 ],
                 "summary": "Get Account",
                 "description": "Get current user account information",
-                "operationId": "get_account_api_main_account_me_get",
+                "operationId": "get_account_api_account_me_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -85,14 +85,14 @@
                 }
             }
         },
-        "/api/main/account/profile": {
+        "/api/account/profile": {
             "get": {
                 "tags": [
                     "account"
                 ],
                 "summary": "Get Profile",
                 "description": "Get user profile information",
-                "operationId": "get_profile_api_main_account_profile_get",
+                "operationId": "get_profile_api_account_profile_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -105,13 +105,13 @@
                 }
             }
         },
-        "/api/main/health/db": {
+        "/api/health/db": {
             "get": {
                 "tags": [
                     "health"
                 ],
                 "summary": "Db",
-                "operationId": "db_api_main_health_db_get",
+                "operationId": "db_api_health_db_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -124,13 +124,13 @@
                 }
             }
         },
-        "/api/main/health/app": {
+        "/api/health/app": {
             "get": {
                 "tags": [
                     "health"
                 ],
                 "summary": "App Health",
-                "operationId": "app_health_api_main_health_app_get",
+                "operationId": "app_health_api_health_app_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -143,14 +143,14 @@
                 }
             }
         },
-        "/api/main/spotify/search": {
+        "/api/spotify/search": {
             "get": {
                 "tags": [
                     "spotify"
                 ],
                 "summary": "Search Tracks",
                 "description": "Search for tracks using service account credentials",
-                "operationId": "search_tracks_api_main_spotify_search_get",
+                "operationId": "search_tracks_api_spotify_search_get",
                 "parameters": [
                     {
                         "name": "query",
@@ -172,7 +172,7 @@
                                     "items": {
                                         "$ref": "#/components/schemas/TrackDetails"
                                     },
-                                    "title": "Response Search Tracks Api Main Spotify Search Get"
+                                    "title": "Response Search Tracks Api Spotify Search Get"
                                 }
                             }
                         }
@@ -190,14 +190,14 @@
                 }
             }
         },
-        "/api/main/spotify/track/{track_id}": {
+        "/api/spotify/track/{track_id}": {
             "get": {
                 "tags": [
                     "spotify"
                 ],
                 "summary": "Get Track",
                 "description": "Get track details using service account credentials",
-                "operationId": "get_track_api_main_spotify_track__track_id__get",
+                "operationId": "get_track_api_spotify_track__track_id__get",
                 "parameters": [
                     {
                         "name": "track_id",
@@ -233,13 +233,13 @@
                 }
             }
         },
-        "/api/main/mixtape/": {
+        "/api/mixtape": {
             "post": {
                 "tags": [
                     "mixtape"
                 ],
                 "summary": "Create Mixtape",
-                "operationId": "create_mixtape_api_main_mixtape__post",
+                "operationId": "create_mixtape_api_mixtape_post",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -258,7 +258,7 @@
                                 "schema": {
                                     "type": "object",
                                     "additionalProperties": true,
-                                    "title": "Response Create Mixtape Api Main Mixtape  Post"
+                                    "title": "Response Create Mixtape Api Mixtape Post"
                                 }
                             }
                         }
@@ -280,7 +280,7 @@
                     "mixtape"
                 ],
                 "summary": "List My Mixtapes",
-                "operationId": "list_my_mixtapes_api_main_mixtape__get",
+                "operationId": "list_my_mixtapes_api_mixtape_get",
                 "parameters": [
                     {
                         "name": "q",
@@ -339,7 +339,7 @@
                                         "type": "object",
                                         "additionalProperties": true
                                     },
-                                    "title": "Response List My Mixtapes Api Main Mixtape  Get"
+                                    "title": "Response List My Mixtapes Api Mixtape Get"
                                 }
                             }
                         }
@@ -357,14 +357,14 @@
                 }
             }
         },
-        "/api/main/mixtape/{public_id}/claim": {
+        "/api/mixtape/{public_id}/claim": {
             "post": {
                 "tags": [
                     "mixtape"
                 ],
                 "summary": "Claim Mixtape",
                 "description": "Claim an anonymous mixtape, making the authenticated user the owner.",
-                "operationId": "claim_mixtape_api_main_mixtape__public_id__claim_post",
+                "operationId": "claim_mixtape_api_mixtape__public_id__claim_post",
                 "parameters": [
                     {
                         "name": "public_id",
@@ -384,7 +384,7 @@
                                 "schema": {
                                     "type": "object",
                                     "additionalProperties": true,
-                                    "title": "Response Claim Mixtape Api Main Mixtape  Public Id  Claim Post"
+                                    "title": "Response Claim Mixtape Api Mixtape  Public Id  Claim Post"
                                 }
                             }
                         }
@@ -402,13 +402,13 @@
                 }
             }
         },
-        "/api/main/mixtape/{public_id}": {
+        "/api/mixtape/{public_id}": {
             "get": {
                 "tags": [
                     "mixtape"
                 ],
                 "summary": "Get Mixtape",
-                "operationId": "get_mixtape_api_main_mixtape__public_id__get",
+                "operationId": "get_mixtape_api_mixtape__public_id__get",
                 "parameters": [
                     {
                         "name": "public_id",
@@ -448,7 +448,7 @@
                     "mixtape"
                 ],
                 "summary": "Update Mixtape",
-                "operationId": "update_mixtape_api_main_mixtape__public_id__put",
+                "operationId": "update_mixtape_api_mixtape__public_id__put",
                 "parameters": [
                     {
                         "name": "public_id",
@@ -478,7 +478,7 @@
                                 "schema": {
                                     "type": "object",
                                     "additionalProperties": true,
-                                    "title": "Response Update Mixtape Api Main Mixtape  Public Id  Put"
+                                    "title": "Response Update Mixtape Api Mixtape  Public Id  Put"
                                 }
                             }
                         }
@@ -496,10 +496,10 @@
                 }
             }
         },
-        "/api/main/": {
+        "/api/": {
             "get": {
                 "summary": "Root",
-                "operationId": "root_api_main__get",
+                "operationId": "root_api__get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -512,10 +512,10 @@
                 }
             }
         },
-        "/api/main/debug": {
+        "/api/debug": {
             "get": {
                 "summary": "Debug",
-                "operationId": "debug_api_main_debug_get",
+                "operationId": "debug_api_debug_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",

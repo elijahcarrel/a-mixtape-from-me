@@ -14,7 +14,7 @@ export default function EditMixtapePage() {
   const publicId = params.publicId as string;
 
   const { data: mixtape, loading, error, refetch } = useApiRequest<MixtapeResponse>({
-    url: `/api/main/mixtape/${publicId}`,
+    url: `/api/mixtape/${publicId}`,
     method: 'GET',
   });
 

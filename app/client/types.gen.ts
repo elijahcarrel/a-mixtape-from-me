@@ -198,105 +198,105 @@ export type ValidationError = {
     type: string;
 };
 
-export type GetCurrentUserApiMainAuthMeGetData = {
+export type GetCurrentUserApiAuthMeGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/auth/me';
+    url: '/api/auth/me';
 };
 
-export type GetCurrentUserApiMainAuthMeGetResponses = {
+export type GetCurrentUserApiAuthMeGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type LogoutApiMainAuthLogoutPostData = {
+export type LogoutApiAuthLogoutPostData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/auth/logout';
+    url: '/api/auth/logout';
 };
 
-export type LogoutApiMainAuthLogoutPostResponses = {
+export type LogoutApiAuthLogoutPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type VerifyTokenApiMainAuthVerifyGetData = {
+export type VerifyTokenApiAuthVerifyGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/auth/verify';
+    url: '/api/auth/verify';
 };
 
-export type VerifyTokenApiMainAuthVerifyGetResponses = {
+export type VerifyTokenApiAuthVerifyGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetAccountApiMainAccountMeGetData = {
+export type GetAccountApiAccountMeGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/account/me';
+    url: '/api/account/me';
 };
 
-export type GetAccountApiMainAccountMeGetResponses = {
+export type GetAccountApiAccountMeGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetProfileApiMainAccountProfileGetData = {
+export type GetProfileApiAccountProfileGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/account/profile';
+    url: '/api/account/profile';
 };
 
-export type GetProfileApiMainAccountProfileGetResponses = {
+export type GetProfileApiAccountProfileGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type DbApiMainHealthDbGetData = {
+export type DbApiHealthDbGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/health/db';
+    url: '/api/health/db';
 };
 
-export type DbApiMainHealthDbGetResponses = {
+export type DbApiHealthDbGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type AppHealthApiMainHealthAppGetData = {
+export type AppHealthApiHealthAppGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/health/app';
+    url: '/api/health/app';
 };
 
-export type AppHealthApiMainHealthAppGetResponses = {
+export type AppHealthApiHealthAppGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type SearchTracksApiMainSpotifySearchGetData = {
+export type SearchTracksApiSpotifySearchGetData = {
     body?: never;
     path?: never;
     query: {
@@ -305,29 +305,29 @@ export type SearchTracksApiMainSpotifySearchGetData = {
          */
         query: string;
     };
-    url: '/api/main/spotify/search';
+    url: '/api/spotify/search';
 };
 
-export type SearchTracksApiMainSpotifySearchGetErrors = {
+export type SearchTracksApiSpotifySearchGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type SearchTracksApiMainSpotifySearchGetError = SearchTracksApiMainSpotifySearchGetErrors[keyof SearchTracksApiMainSpotifySearchGetErrors];
+export type SearchTracksApiSpotifySearchGetError = SearchTracksApiSpotifySearchGetErrors[keyof SearchTracksApiSpotifySearchGetErrors];
 
-export type SearchTracksApiMainSpotifySearchGetResponses = {
+export type SearchTracksApiSpotifySearchGetResponses = {
     /**
-     * Response Search Tracks Api Main Spotify Search Get
+     * Response Search Tracks Api Spotify Search Get
      * Successful Response
      */
     200: Array<TrackDetails>;
 };
 
-export type SearchTracksApiMainSpotifySearchGetResponse = SearchTracksApiMainSpotifySearchGetResponses[keyof SearchTracksApiMainSpotifySearchGetResponses];
+export type SearchTracksApiSpotifySearchGetResponse = SearchTracksApiSpotifySearchGetResponses[keyof SearchTracksApiSpotifySearchGetResponses];
 
-export type GetTrackApiMainSpotifyTrackTrackIdGetData = {
+export type GetTrackApiSpotifyTrackTrackIdGetData = {
     body?: never;
     path: {
         /**
@@ -336,28 +336,28 @@ export type GetTrackApiMainSpotifyTrackTrackIdGetData = {
         track_id: string;
     };
     query?: never;
-    url: '/api/main/spotify/track/{track_id}';
+    url: '/api/spotify/track/{track_id}';
 };
 
-export type GetTrackApiMainSpotifyTrackTrackIdGetErrors = {
+export type GetTrackApiSpotifyTrackTrackIdGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetTrackApiMainSpotifyTrackTrackIdGetError = GetTrackApiMainSpotifyTrackTrackIdGetErrors[keyof GetTrackApiMainSpotifyTrackTrackIdGetErrors];
+export type GetTrackApiSpotifyTrackTrackIdGetError = GetTrackApiSpotifyTrackTrackIdGetErrors[keyof GetTrackApiSpotifyTrackTrackIdGetErrors];
 
-export type GetTrackApiMainSpotifyTrackTrackIdGetResponses = {
+export type GetTrackApiSpotifyTrackTrackIdGetResponses = {
     /**
      * Successful Response
      */
     200: TrackDetails;
 };
 
-export type GetTrackApiMainSpotifyTrackTrackIdGetResponse = GetTrackApiMainSpotifyTrackTrackIdGetResponses[keyof GetTrackApiMainSpotifyTrackTrackIdGetResponses];
+export type GetTrackApiSpotifyTrackTrackIdGetResponse = GetTrackApiSpotifyTrackTrackIdGetResponses[keyof GetTrackApiSpotifyTrackTrackIdGetResponses];
 
-export type ListMyMixtapesApiMainMixtapeGetData = {
+export type ListMyMixtapesApiMixtapeGetData = {
     body?: never;
     path?: never;
     query?: {
@@ -377,21 +377,21 @@ export type ListMyMixtapesApiMainMixtapeGetData = {
          */
         offset?: number;
     };
-    url: '/api/main/mixtape/';
+    url: '/api/mixtape';
 };
 
-export type ListMyMixtapesApiMainMixtapeGetErrors = {
+export type ListMyMixtapesApiMixtapeGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type ListMyMixtapesApiMainMixtapeGetError = ListMyMixtapesApiMainMixtapeGetErrors[keyof ListMyMixtapesApiMainMixtapeGetErrors];
+export type ListMyMixtapesApiMixtapeGetError = ListMyMixtapesApiMixtapeGetErrors[keyof ListMyMixtapesApiMixtapeGetErrors];
 
-export type ListMyMixtapesApiMainMixtapeGetResponses = {
+export type ListMyMixtapesApiMixtapeGetResponses = {
     /**
-     * Response List My Mixtapes Api Main Mixtape  Get
+     * Response List My Mixtapes Api Mixtape Get
      * Successful Response
      */
     200: Array<{
@@ -399,27 +399,27 @@ export type ListMyMixtapesApiMainMixtapeGetResponses = {
     }>;
 };
 
-export type ListMyMixtapesApiMainMixtapeGetResponse = ListMyMixtapesApiMainMixtapeGetResponses[keyof ListMyMixtapesApiMainMixtapeGetResponses];
+export type ListMyMixtapesApiMixtapeGetResponse = ListMyMixtapesApiMixtapeGetResponses[keyof ListMyMixtapesApiMixtapeGetResponses];
 
-export type CreateMixtapeApiMainMixtapePostData = {
+export type CreateMixtapeApiMixtapePostData = {
     body: MixtapeRequest;
     path?: never;
     query?: never;
-    url: '/api/main/mixtape/';
+    url: '/api/mixtape';
 };
 
-export type CreateMixtapeApiMainMixtapePostErrors = {
+export type CreateMixtapeApiMixtapePostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type CreateMixtapeApiMainMixtapePostError = CreateMixtapeApiMainMixtapePostErrors[keyof CreateMixtapeApiMainMixtapePostErrors];
+export type CreateMixtapeApiMixtapePostError = CreateMixtapeApiMixtapePostErrors[keyof CreateMixtapeApiMixtapePostErrors];
 
-export type CreateMixtapeApiMainMixtapePostResponses = {
+export type CreateMixtapeApiMixtapePostResponses = {
     /**
-     * Response Create Mixtape Api Main Mixtape  Post
+     * Response Create Mixtape Api Mixtape Post
      * Successful Response
      */
     201: {
@@ -427,9 +427,9 @@ export type CreateMixtapeApiMainMixtapePostResponses = {
     };
 };
 
-export type CreateMixtapeApiMainMixtapePostResponse = CreateMixtapeApiMainMixtapePostResponses[keyof CreateMixtapeApiMainMixtapePostResponses];
+export type CreateMixtapeApiMixtapePostResponse = CreateMixtapeApiMixtapePostResponses[keyof CreateMixtapeApiMixtapePostResponses];
 
-export type ClaimMixtapeApiMainMixtapePublicIdClaimPostData = {
+export type ClaimMixtapeApiMixtapePublicIdClaimPostData = {
     body?: never;
     path: {
         /**
@@ -438,21 +438,21 @@ export type ClaimMixtapeApiMainMixtapePublicIdClaimPostData = {
         public_id: string;
     };
     query?: never;
-    url: '/api/main/mixtape/{public_id}/claim';
+    url: '/api/mixtape/{public_id}/claim';
 };
 
-export type ClaimMixtapeApiMainMixtapePublicIdClaimPostErrors = {
+export type ClaimMixtapeApiMixtapePublicIdClaimPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type ClaimMixtapeApiMainMixtapePublicIdClaimPostError = ClaimMixtapeApiMainMixtapePublicIdClaimPostErrors[keyof ClaimMixtapeApiMainMixtapePublicIdClaimPostErrors];
+export type ClaimMixtapeApiMixtapePublicIdClaimPostError = ClaimMixtapeApiMixtapePublicIdClaimPostErrors[keyof ClaimMixtapeApiMixtapePublicIdClaimPostErrors];
 
-export type ClaimMixtapeApiMainMixtapePublicIdClaimPostResponses = {
+export type ClaimMixtapeApiMixtapePublicIdClaimPostResponses = {
     /**
-     * Response Claim Mixtape Api Main Mixtape  Public Id  Claim Post
+     * Response Claim Mixtape Api Mixtape  Public Id  Claim Post
      * Successful Response
      */
     200: {
@@ -460,9 +460,9 @@ export type ClaimMixtapeApiMainMixtapePublicIdClaimPostResponses = {
     };
 };
 
-export type ClaimMixtapeApiMainMixtapePublicIdClaimPostResponse = ClaimMixtapeApiMainMixtapePublicIdClaimPostResponses[keyof ClaimMixtapeApiMainMixtapePublicIdClaimPostResponses];
+export type ClaimMixtapeApiMixtapePublicIdClaimPostResponse = ClaimMixtapeApiMixtapePublicIdClaimPostResponses[keyof ClaimMixtapeApiMixtapePublicIdClaimPostResponses];
 
-export type GetMixtapeApiMainMixtapePublicIdGetData = {
+export type GetMixtapeApiMixtapePublicIdGetData = {
     body?: never;
     path: {
         /**
@@ -471,28 +471,28 @@ export type GetMixtapeApiMainMixtapePublicIdGetData = {
         public_id: string;
     };
     query?: never;
-    url: '/api/main/mixtape/{public_id}';
+    url: '/api/mixtape/{public_id}';
 };
 
-export type GetMixtapeApiMainMixtapePublicIdGetErrors = {
+export type GetMixtapeApiMixtapePublicIdGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetMixtapeApiMainMixtapePublicIdGetError = GetMixtapeApiMainMixtapePublicIdGetErrors[keyof GetMixtapeApiMainMixtapePublicIdGetErrors];
+export type GetMixtapeApiMixtapePublicIdGetError = GetMixtapeApiMixtapePublicIdGetErrors[keyof GetMixtapeApiMixtapePublicIdGetErrors];
 
-export type GetMixtapeApiMainMixtapePublicIdGetResponses = {
+export type GetMixtapeApiMixtapePublicIdGetResponses = {
     /**
      * Successful Response
      */
     200: MixtapeResponse;
 };
 
-export type GetMixtapeApiMainMixtapePublicIdGetResponse = GetMixtapeApiMainMixtapePublicIdGetResponses[keyof GetMixtapeApiMainMixtapePublicIdGetResponses];
+export type GetMixtapeApiMixtapePublicIdGetResponse = GetMixtapeApiMixtapePublicIdGetResponses[keyof GetMixtapeApiMixtapePublicIdGetResponses];
 
-export type UpdateMixtapeApiMainMixtapePublicIdPutData = {
+export type UpdateMixtapeApiMixtapePublicIdPutData = {
     body: MixtapeRequest;
     path: {
         /**
@@ -501,21 +501,21 @@ export type UpdateMixtapeApiMainMixtapePublicIdPutData = {
         public_id: string;
     };
     query?: never;
-    url: '/api/main/mixtape/{public_id}';
+    url: '/api/mixtape/{public_id}';
 };
 
-export type UpdateMixtapeApiMainMixtapePublicIdPutErrors = {
+export type UpdateMixtapeApiMixtapePublicIdPutErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type UpdateMixtapeApiMainMixtapePublicIdPutError = UpdateMixtapeApiMainMixtapePublicIdPutErrors[keyof UpdateMixtapeApiMainMixtapePublicIdPutErrors];
+export type UpdateMixtapeApiMixtapePublicIdPutError = UpdateMixtapeApiMixtapePublicIdPutErrors[keyof UpdateMixtapeApiMixtapePublicIdPutErrors];
 
-export type UpdateMixtapeApiMainMixtapePublicIdPutResponses = {
+export type UpdateMixtapeApiMixtapePublicIdPutResponses = {
     /**
-     * Response Update Mixtape Api Main Mixtape  Public Id  Put
+     * Response Update Mixtape Api Mixtape  Public Id  Put
      * Successful Response
      */
     200: {
@@ -523,30 +523,30 @@ export type UpdateMixtapeApiMainMixtapePublicIdPutResponses = {
     };
 };
 
-export type UpdateMixtapeApiMainMixtapePublicIdPutResponse = UpdateMixtapeApiMainMixtapePublicIdPutResponses[keyof UpdateMixtapeApiMainMixtapePublicIdPutResponses];
+export type UpdateMixtapeApiMixtapePublicIdPutResponse = UpdateMixtapeApiMixtapePublicIdPutResponses[keyof UpdateMixtapeApiMixtapePublicIdPutResponses];
 
-export type RootApiMainGetData = {
+export type RootApiGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/';
+    url: '/api/';
 };
 
-export type RootApiMainGetResponses = {
+export type RootApiGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type DebugApiMainDebugGetData = {
+export type DebugApiDebugGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/debug';
+    url: '/api/debug';
 };
 
-export type DebugApiMainDebugGetResponses = {
+export type DebugApiDebugGetResponses = {
     /**
      * Successful Response
      */

@@ -188,7 +188,7 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
 
   const searchTracks = async (query: string): Promise<TrackSearchResult[]> => {
     try {
-      const data = await makeRequest(`/api/main/spotify/search?query=${encodeURIComponent(query)}`);
+      const data = await makeRequest(`/api/spotify/search?query=${encodeURIComponent(query)}`);
       return data || [];
     } catch (error) {
       console.error('Error searching tracks:', error);

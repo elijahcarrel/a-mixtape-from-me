@@ -15,7 +15,7 @@ export default function MixtapeTrackPage() {
   const trackNumber = parseInt(params.track_number as string, 10);
 
   const { data: mixtape, loading, error, refetch } = useApiRequest({
-    url: `/api/main/mixtape/${publicId}`,
+    url: `/api/mixtape/${publicId}`,
     method: 'GET',
   });
 

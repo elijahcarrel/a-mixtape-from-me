@@ -47,7 +47,7 @@ class MixtapeResponse(BaseModel):
     stack_auth_user_id: Optional[str]
     tracks: List[MixtapeTrackResponse]
 
-@router.post("/", response_model=dict, status_code=201)
+@router.post("", response_model=dict, status_code=201)
 def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Validate and enrich tracks
     enriched_tracks = []
@@ -98,7 +98,7 @@ def claim_mixtape(public_id: str, request_obj: Request, user_info: dict = Depend
         raise HTTPException(status_code=400, detail=str(e))
     return {"version": new_version}
 
-@router.get("/", response_model=List[dict])
+@router.get("", response_model=List[dict])
 def list_my_mixtapes(
     request_obj: Request,
     user_info: dict = Depends(get_current_user),

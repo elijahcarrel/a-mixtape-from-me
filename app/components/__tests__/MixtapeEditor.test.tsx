@@ -224,7 +224,7 @@ describe('MixtapeEditor', () => {
     });
     
     await waitFor(() => {
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
         method: 'PUT',
         body: {
           name: 'Updated Mixtape',
@@ -296,7 +296,7 @@ describe('MixtapeEditor', () => {
     });
     
     await waitFor(() => {
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
         method: 'PUT',
         body: {
           name: 'Test Mixtape',
@@ -339,7 +339,7 @@ describe('MixtapeEditor', () => {
     });
     
     await waitFor(() => {
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
         method: 'PUT',
         body: {
           name: 'Test Mixtape',
@@ -369,7 +369,7 @@ describe('MixtapeEditor', () => {
     });
     
     await waitFor(() => {
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123', {
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
         method: 'PUT',
         body: {
           name: 'Test Mixtape',
@@ -449,7 +449,7 @@ describe('MixtapeEditor', () => {
       fireEvent.click(claimButton);
       
       await waitFor(() => {
-        expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/mixtape/test-mixtape-123/claim', {
+        expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123/claim', {
           method: 'POST',
           body: {},
         });

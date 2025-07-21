@@ -125,7 +125,7 @@ jobs:
         with:
           base: 'tmp/openapi_clean.json'
           revision: 'tmp/openapi_generated_clean.json'
-          format: 'json'
+          format: 'text'
           output-to-file: 'diff.txt'
       - name: Check if diff has contents
         run: |
