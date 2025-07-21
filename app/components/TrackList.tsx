@@ -1,26 +1,10 @@
 'use client';
 
+import { MixtapeTrackRequest, MixtapeTrackResponse } from '../client';
 import { useTheme } from './ThemeProvider';
 
-interface TrackDetails {
-  id: string;
-  name: string;
-  artists: Array<{ name: string }>;
-  album: {
-    name: string;
-    images: Array<{ url: string; width: number; height: number }>;
-  };
-  uri: string;
-}
-
-interface Track {
-  track_position: number;
-  track_text?: string;
-  track: TrackDetails;
-}
-
 interface TrackListProps {
-  tracks: Track[];
+  tracks: MixtapeTrackResponse[];
   onRemoveTrack: (position: number) => void;
 }
 
