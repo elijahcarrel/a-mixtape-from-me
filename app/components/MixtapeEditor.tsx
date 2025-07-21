@@ -11,6 +11,7 @@ import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse, TrackDetails } from '../client';
+import { normalizeTrackToRequest, normalizeTrackToResponse } from '../util/track-util';
 
 interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
@@ -52,18 +53,14 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
 
   // Debounced save function that always uses the latest tracks
   const debouncedSave = useCallback(
-    debounce(async (values: any, tracksOverride: Track[]) => {
+    debounce(async (values: any, tracksOverride: (MixtapeTrackResponse | MixtapeTrackRequest)[]) => {
       setIsSaving(true);
       try {
         await makeRequest(`/api/main/mixtape/${mixtape.public_id}`, {
           method: 'PUT',
           body: {
             ...values,
-            tracks: tracksOverride.map(t => ({
-              track_position: t.track_position,
-              track_text: t.track_text,
-              spotify_uri: t.track.uri
-            }))
+            tracks: tracksOverride.map(normalizeTrackToRequest)
           }
         });
       } catch (error) {
@@ -249,7 +246,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
           Tracks ({tracks.length})
         </h2>
-        <TrackList tracks={tracks} onRemoveTrack={removeTrack} />
+        <TrackList tracks={tracks.map(normalizeTrackToResponse)} onRemoveTrack={removeTrack} />
       </div>
     </div>
   );
