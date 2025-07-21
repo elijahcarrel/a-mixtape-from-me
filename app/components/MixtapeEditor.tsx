@@ -10,43 +10,16 @@ import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
-
-interface TrackDetails {
-  id: string;
-  name: string;
-  artists: Array<{ name: string }>;
-  album: {
-    name: string;
-    images: Array<{ url: string; width: number; height: number }>;
-  };
-  uri: string;
-}
-
-interface Track {
-  track_position: number;
-  track_text?: string;
-  track: TrackDetails;
-  spotify_uri?: string;
-}
-
-interface MixtapeData {
-  public_id: string;
-  name: string;
-  intro_text?: string;
-  is_public: boolean;
-  create_time: string;
-  last_modified_time: string;
-  tracks: Track[];
-  stack_auth_user_id?: string;
-}
+import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse, TrackDetails } from '../client';
+import { normalizeTrackToRequest, normalizeTrackToResponse } from '../util/track-util';
 
 interface MixtapeEditorProps {
-  mixtape: MixtapeData;
+  mixtape: MixtapeResponse;
   onMixtapeClaimed?: () => void;
 }
 
 export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEditorProps) {
-  const [tracks, setTracks] = useState<Track[]>(mixtape.tracks);
+  const [tracks, setTracks] = useState<(MixtapeTrackResponse | MixtapeTrackRequest)[]>(mixtape.tracks);
   const [isSaving, setIsSaving] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
@@ -80,18 +53,14 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
 
   // Debounced save function that always uses the latest tracks
   const debouncedSave = useCallback(
-    debounce(async (values: any, tracksOverride: Track[]) => {
+    debounce(async (values: any, tracksOverride: (MixtapeTrackResponse | MixtapeTrackRequest)[]) => {
       setIsSaving(true);
       try {
         await makeRequest(`/api/main/mixtape/${mixtape.public_id}`, {
           method: 'PUT',
           body: {
             ...values,
-            tracks: tracksOverride.map(t => ({
-              track_position: t.track_position,
-              track_text: t.track_text,
-              spotify_uri: t.track.uri
-            }))
+            tracks: tracksOverride.map(normalizeTrackToRequest)
           }
         });
       } catch (error) {
@@ -113,7 +82,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   };
 
   const addTrack = (spotifyUri: string, trackData: TrackDetails) => {
-    const newTrack: Track = {
+    const newTrack: MixtapeTrackRequest | MixtapeTrackResponse = {
       track_position: tracks.length + 1,
       // TODO: Add UI for editing track_text (personal message) in the future
       track_text: undefined,
@@ -277,7 +246,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
           Tracks ({tracks.length})
         </h2>
-        <TrackList tracks={tracks} onRemoveTrack={removeTrack} />
+        <TrackList tracks={tracks.map(normalizeTrackToResponse)} onRemoveTrack={removeTrack} />
       </div>
     </div>
   );

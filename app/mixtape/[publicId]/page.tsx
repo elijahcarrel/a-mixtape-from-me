@@ -7,40 +7,13 @@ import ErrorDisplay from '../../components/ErrorDisplay';
 import MainContainer from '../../components/layout/MainContainer';
 import ContentPane from '../../components/layout/ContentPane';
 import MixtapeViewer from '../../components/MixtapeViewer';
-
-interface TrackDetails {
-  id: string;
-  name: string;
-  artists: Array<{ name: string }>;
-  album: {
-    name: string;
-    images: Array<{ url: string; width: number; height: number }>;
-  };
-  uri: string;
-}
-
-interface Track {
-  track_position: number;
-  track_text?: string;
-  track: TrackDetails;
-}
-
-interface MixtapeData {
-  public_id: string;
-  name: string;
-  intro_text?: string;
-  is_public: boolean;
-  create_time: string;
-  last_modified_time: string;
-  tracks: Track[];
-  stack_auth_user_id?: string;
-}
+import { MixtapeResponse } from '../../client';
 
 export default function ViewMixtapePage() {
   const params = useParams();
   const publicId = params.publicId as string;
 
-  const { data: mixtape, loading, error, refetch } = useApiRequest<MixtapeData>({
+  const { data: mixtape, loading, error, refetch } = useApiRequest<MixtapeResponse>({
     url: `/api/main/mixtape/${publicId}`,
     method: 'GET',
   });
