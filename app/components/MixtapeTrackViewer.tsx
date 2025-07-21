@@ -1,6 +1,7 @@
 import React from 'react';
 import CassetteSVG from './CassetteSVG';
 import { MixtapeResponse, MixtapeTrackResponse } from '../client';
+import EditButton from './EditButton';
 
 interface MixtapeTrackViewerProps {
   mixtape: MixtapeResponse;
@@ -13,6 +14,7 @@ interface MixtapeTrackViewerProps {
 export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrevTrack, onNextTrack }: MixtapeTrackViewerProps) {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-between bg-amber-50 dark:bg-amber-950 overflow-hidden pb-40">
+      <EditButton mixtape={mixtape} />
       {/* Grain overlay */}
       <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
       <div className="relative z-10 w-full max-w-md px-4 pt-8 flex flex-col items-center">

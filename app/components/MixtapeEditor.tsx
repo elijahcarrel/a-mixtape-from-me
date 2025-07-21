@@ -12,6 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse, TrackDetails } from '../client';
 import { normalizeTrackToRequest, normalizeTrackToResponse } from '../util/track-util';
+import PreviewButton from './PreviewButton';
 
 interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
@@ -248,6 +249,9 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         </h2>
         <TrackList tracks={tracks.map(normalizeTrackToResponse)} onRemoveTrack={removeTrack} />
       </div>
+
+      {/* Preview Button - floating bottom right */}
+      <PreviewButton mixtape={mixtape} />
     </div>
   );
 } 
