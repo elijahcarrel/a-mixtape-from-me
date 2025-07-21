@@ -19,7 +19,7 @@ export default function CreateMixtapePage() {
   // to access their own mixtape.
   const isPublic = !isAuthenticated;
   const { data: createResponse, loading, error } = useApiRequest<{ public_id: string }>({
-    url: '/api/mixtape/',
+    url: '/api/mixtape',
     method: 'POST',
     body: {
       name: 'Untitled Mixtape',

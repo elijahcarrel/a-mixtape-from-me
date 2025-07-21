@@ -47,7 +47,7 @@ class MixtapeResponse(BaseModel):
     stack_auth_user_id: Optional[str]
     tracks: List[MixtapeTrackResponse]
 
-@router.post("/", response_model=dict, status_code=201)
+@router.post("", response_model=dict, status_code=201)
 def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Validate and enrich tracks
     enriched_tracks = []
@@ -78,10 +78,6 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dic
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
 
-@router.post("", response_model=dict, status_code=201)
-def create_mixtape_no_slash(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
-    return create_mixtape(request, request_obj, user_info, spotify_client)
-
 @router.post("/{public_id}/claim", response_model=dict)
 def claim_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_current_user)):
     """Claim an anonymous mixtape, making the authenticated user the owner."""
@@ -102,7 +98,7 @@ def claim_mixtape(public_id: str, request_obj: Request, user_info: dict = Depend
         raise HTTPException(status_code=400, detail=str(e))
     return {"version": new_version}
 
-@router.get("/", response_model=List[dict])
+@router.get("", response_model=List[dict])
 def list_my_mixtapes(
     request_obj: Request,
     user_info: dict = Depends(get_current_user),
@@ -116,16 +112,6 @@ def list_my_mixtapes(
         raise HTTPException(status_code=401, detail="Not authenticated")
     mixtapes = MixtapeEntity.list_mixtapes_for_user(session, stack_auth_user_id, q=q, limit=limit, offset=offset)
     return mixtapes
-
-@router.get("", response_model=List[dict])
-def list_my_mixtapes_no_slash(
-    request_obj: Request,
-    user_info: dict = Depends(get_current_user),
-    q: Optional[str] = Query(None, description="Search mixtape titles (partial match)"),
-    limit: int = Query(20, ge=1, le=100, description="Max results to return"),
-    offset: int = Query(0, ge=0, description="Results offset for pagination"),
-):
-    return list_my_mixtapes(request_obj, user_info, q, limit, offset)
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
 def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
