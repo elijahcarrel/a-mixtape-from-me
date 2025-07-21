@@ -233,13 +233,13 @@
                 }
             }
         },
-        "/api/mixtape/": {
+        "/api/mixtape": {
             "post": {
                 "tags": [
                     "mixtape"
                 ],
                 "summary": "Create Mixtape",
-                "operationId": "create_mixtape_api_mixtape__post",
+                "operationId": "create_mixtape_api_mixtape_post",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -258,7 +258,7 @@
                                 "schema": {
                                     "type": "object",
                                     "additionalProperties": true,
-                                    "title": "Response Create Mixtape Api Mixtape  Post"
+                                    "title": "Response Create Mixtape Api Mixtape Post"
                                 }
                             }
                         }
@@ -280,7 +280,7 @@
                     "mixtape"
                 ],
                 "summary": "List My Mixtapes",
-                "operationId": "list_my_mixtapes_api_mixtape__get",
+                "operationId": "list_my_mixtapes_api_mixtape_get",
                 "parameters": [
                     {
                         "name": "q",
@@ -339,131 +339,7 @@
                                         "type": "object",
                                         "additionalProperties": true
                                     },
-                                    "title": "Response List My Mixtapes Api Mixtape  Get"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/mixtape": {
-            "post": {
-                "tags": [
-                    "mixtape"
-                ],
-                "summary": "Create Mixtape No Slash",
-                "operationId": "create_mixtape_no_slash_api_mixtape_post",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/MixtapeRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": true,
-                                    "title": "Response Create Mixtape No Slash Api Mixtape Post"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "get": {
-                "tags": [
-                    "mixtape"
-                ],
-                "summary": "List My Mixtapes No Slash",
-                "operationId": "list_my_mixtapes_no_slash_api_mixtape_get",
-                "parameters": [
-                    {
-                        "name": "q",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "description": "Search mixtape titles (partial match)",
-                            "title": "Q"
-                        },
-                        "description": "Search mixtape titles (partial match)"
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "maximum": 100,
-                            "minimum": 1,
-                            "description": "Max results to return",
-                            "default": 20,
-                            "title": "Limit"
-                        },
-                        "description": "Max results to return"
-                    },
-                    {
-                        "name": "offset",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "description": "Results offset for pagination",
-                            "default": 0,
-                            "title": "Offset"
-                        },
-                        "description": "Results offset for pagination"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "additionalProperties": true
-                                    },
-                                    "title": "Response List My Mixtapes No Slash Api Mixtape Get"
+                                    "title": "Response List My Mixtapes Api Mixtape Get"
                                 }
                             }
                         }
