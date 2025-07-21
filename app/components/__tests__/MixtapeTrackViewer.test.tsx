@@ -46,6 +46,8 @@ const mockMixtape = {
   ],
 };
 
+jest.mock('../EditButton', () => () => <div data-testid="mock-edit-button" />);
+
 describe('MixtapeTrackViewer', () => {
   it('renders mixtape and track info', () => {
     render(
@@ -121,5 +123,16 @@ describe('MixtapeTrackViewer', () => {
       'src',
       expect.stringContaining('spotify.com/embed/track/222')
     );
+  });
+
+  it('renders the EditButton', () => {
+    render(
+      <MixtapeTrackViewer
+        mixtape={mockMixtape}
+        track={mockMixtape.tracks[0]}
+        trackNumber={1}
+      />
+    );
+    expect(screen.getByTestId('mock-edit-button')).toBeInTheDocument();
   });
 }); 

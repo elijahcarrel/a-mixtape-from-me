@@ -398,6 +398,19 @@ describe('MixtapeEditor', () => {
     expect(screen.getByText('Tracks (2)')).toBeInTheDocument();
   });
 
+  it('renders the Preview button', () => {
+    render(<MixtapeEditor mixtape={mockMixtapeData} />);
+    expect(screen.getByTestId('preview-button')).toBeInTheDocument();
+    expect(screen.getByText('Preview')).toBeInTheDocument();
+  });
+
+  it('navigates to the viewer page when Preview button is clicked', () => {
+    render(<MixtapeEditor mixtape={mockMixtapeData} />);
+    const previewButton = screen.getByTestId('preview-button');
+    fireEvent.click(previewButton);
+    expect(mockPush).toHaveBeenCalledWith('/mixtape/test-mixtape-123');
+  });
+
   describe('Anonymous Mixtape Warning', () => {
     it('shows warning banner for anonymous mixtapes when user is authenticated', () => {
       render(<MixtapeEditor mixtape={mockAnonymousMixtapeData} />);
