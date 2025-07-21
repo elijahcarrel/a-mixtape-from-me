@@ -34,7 +34,18 @@ jest.mock('../TrackAutocomplete', () => {
     return (
       <div data-testid="track-autocomplete">
         <button
-          onClick={() => onTrackSelect('spotify:track:456', { name: 'Test Track 2' })}
+          onClick={() => onTrackSelect('spotify:track:456', {
+            id: 'track456',
+            name: 'Test Track 2',
+            artists: [{ name: 'Artist 2' }],
+            album: {
+              name: 'Album 2',
+              images: [{ url: 'https://example.com/image2.jpg', width: 300, height: 300 }],
+            },
+            uri: 'spotify:track:456',
+            // Simulate a user-supplied message (track_text) if the UI ever supports it
+            // track_text: 'You played this for me on our first date. <3',
+          })}
           data-testid="add-track-button"
         >
           Add Test Track
@@ -50,7 +61,10 @@ jest.mock('../TrackList', () => {
       <div data-testid="track-list">
         {tracks.map((track: any) => (
           <div key={track.track_position} data-testid={`track-${track.track_position}`}>
-            {track.track_text}
+            {/* Render the track title */}
+            {track.track && track.track.name}
+            {/* Render the track_text if present */}
+            {track.track_text && <div>{track.track_text}</div>}
             <button
               onClick={() => onRemoveTrack(track.track_position)}
               data-testid={`remove-track-${track.track_position}`}
@@ -76,6 +90,27 @@ jest.mock('../layout/HeaderContainer', () => {
   };
 });
 
+const mockTrackDetails = {
+  id: 'track123',
+  name: 'Test Track 1',
+  artists: [{ name: 'Artist 1' }],
+  album: {
+    name: 'Album 1',
+    images: [{ url: 'https://example.com/image1.jpg', width: 300, height: 300 }],
+  },
+  uri: 'spotify:track:123',
+};
+const mockTrackDetails2 = {
+  id: 'track456',
+  name: 'Test Track 2',
+  artists: [{ name: 'Artist 2' }],
+  album: {
+    name: 'Album 2',
+    images: [{ url: 'https://example.com/image2.jpg', width: 300, height: 300 }],
+  },
+  uri: 'spotify:track:456',
+};
+
 const mockMixtapeData = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
@@ -83,12 +118,12 @@ const mockMixtapeData = {
   is_public: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
-  stack_auth_user_id: 'user123', // Owned mixtape
+  stack_auth_user_id: 'user123',
   tracks: [
     {
       track_position: 1,
-      track_text: 'Test Track 1',
-      spotify_uri: 'spotify:track:123',
+      track_text: 'This song always reminds me of our road trip to Big Sur!',
+      track: mockTrackDetails,
     },
   ],
 };
@@ -100,15 +135,40 @@ const mockAnonymousMixtapeData = {
   is_public: true,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
-  stack_auth_user_id: null, // Anonymous mixtape
+  stack_auth_user_id: null,
   tracks: [
     {
       track_position: 1,
-      track_text: 'Test Track 1',
-      spotify_uri: 'spotify:track:123',
+      track_text: 'This song always reminds me of our road trip to Big Sur!',
+      track: mockTrackDetails,
     },
   ],
 };
+
+// In tests that simulate adding a track, use:
+const newTrackDetails = {
+  id: 'track456',
+  name: 'Test Track 2',
+  artists: [{ name: 'Artist 2' }],
+  album: {
+    name: 'Album 2',
+    images: [{ url: 'https://example.com/image2.jpg', width: 300, height: 300 }],
+  },
+  uri: 'spotify:track:456',
+};
+const newTrack = {
+  track_position: 2,
+  track_text: 'You played this for me on our first date. <3',
+  track: newTrackDetails,
+};
+
+// When asserting save API calls, expect:
+// tracks: [
+//   { track_position: 1, track_text: ..., spotify_uri: ... },
+//   { track_position: 2, track_text: ..., spotify_uri: ... },
+// ]
+// where spotify_uri is track.track.uri
+// ... update all usages of tracks in tests to use the new structure and intent ...
 
 describe('MixtapeEditor', () => {
   beforeEach(() => {
@@ -170,7 +230,11 @@ describe('MixtapeEditor', () => {
           name: 'Updated Mixtape',
           intro_text: 'A test mixtape',
           is_public: false,
-          tracks: mockMixtapeData.tracks,
+          tracks: mockMixtapeData.tracks.map(track => ({
+            track_position: track.track_position,
+            track_text: track.track_text,
+            spotify_uri: track.track.uri,
+          })),
         },
       });
     });
@@ -178,12 +242,11 @@ describe('MixtapeEditor', () => {
 
   it('adds a new track when TrackAutocomplete calls onTrackSelect', () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
-    
     const addTrackButton = screen.getByTestId('add-track-button');
     fireEvent.click(addTrackButton);
-    
     // Check that the new track appears in the track list
     expect(screen.getByTestId('track-2')).toBeInTheDocument();
+    // track_text is undefined for new tracks, so only the title is rendered
     expect(screen.getByText('Test Track 2')).toBeInTheDocument();
   });
 
@@ -204,9 +267,9 @@ describe('MixtapeEditor', () => {
     const mixtapeWithMultipleTracks = {
       ...mockMixtapeData,
       tracks: [
-        { track_position: 1, track_text: 'Track 1', spotify_uri: 'spotify:track:1' },
-        { track_position: 2, track_text: 'Track 2', spotify_uri: 'spotify:track:2' },
-        { track_position: 3, track_text: 'Track 3', spotify_uri: 'spotify:track:3' },
+        { track_position: 1, track_text: 'Track 1', track: mockTrackDetails },
+        { track_position: 2, track_text: 'Track 2', track: mockTrackDetails2 },
+        { track_position: 3, track_text: 'Track 3', track: mockTrackDetails },
       ],
     };
     
@@ -240,11 +303,15 @@ describe('MixtapeEditor', () => {
           intro_text: 'A test mixtape',
           is_public: false,
           tracks: [
-            ...mockMixtapeData.tracks,
+            {
+              track_position: 1,
+              track_text: 'This song always reminds me of our road trip to Big Sur!',
+              spotify_uri: 'spotify:track:123',
+            },
             {
               track_position: 2,
+              track_text: undefined,
               spotify_uri: 'spotify:track:456',
-              track_text: 'Test Track 2',
             },
           ],
         },
@@ -256,8 +323,8 @@ describe('MixtapeEditor', () => {
     const mixtapeWithMultipleTracks = {
       ...mockMixtapeData,
       tracks: [
-        { track_position: 1, track_text: 'Track 1', spotify_uri: 'spotify:track:1' },
-        { track_position: 2, track_text: 'Track 2', spotify_uri: 'spotify:track:2' },
+        { track_position: 1, track_text: 'Track 1', track: mockTrackDetails },
+        { track_position: 2, track_text: 'Track 2', track: mockTrackDetails2 },
       ],
     };
     
@@ -282,7 +349,7 @@ describe('MixtapeEditor', () => {
             {
               track_position: 1,
               track_text: 'Track 2',
-              spotify_uri: 'spotify:track:2',
+              spotify_uri: mockTrackDetails2.uri,
             },
           ],
         },
@@ -308,7 +375,11 @@ describe('MixtapeEditor', () => {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
           is_public: true,
-          tracks: mockMixtapeData.tracks,
+          tracks: mockMixtapeData.tracks.map(track => ({
+            track_position: track.track_position,
+            track_text: track.track_text,
+            spotify_uri: track.track.uri,
+          })),
         },
       });
     });
@@ -318,8 +389,8 @@ describe('MixtapeEditor', () => {
     const mixtapeWithMultipleTracks = {
       ...mockMixtapeData,
       tracks: [
-        { track_position: 1, track_text: 'Track 1', spotify_uri: 'spotify:track:1' },
-        { track_position: 2, track_text: 'Track 2', spotify_uri: 'spotify:track:2' },
+        { track_position: 1, track_text: 'Track 1', track: mockTrackDetails },
+        { track_position: 2, track_text: 'Track 2', track: mockTrackDetails2 },
       ],
     };
     

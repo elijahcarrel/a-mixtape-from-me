@@ -1,14 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuthenticatedRequest } from '../hooks/useApiRequest';
 import { useTheme } from './ThemeProvider';
-
-interface Track {
-  track_position: number;
-  track_text?: string;
-  spotify_uri: string;
-}
 
 interface TrackDetails {
   id: string;
@@ -18,6 +10,13 @@ interface TrackDetails {
     name: string;
     images: Array<{ url: string; width: number; height: number }>;
   };
+  uri: string;
+}
+
+interface Track {
+  track_position: number;
+  track_text?: string;
+  track: TrackDetails;
 }
 
 interface TrackListProps {
@@ -26,48 +25,7 @@ interface TrackListProps {
 }
 
 export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
-  const [trackDetails, setTrackDetails] = useState<Record<string, TrackDetails>>({});
-  const [loadingTracks, setLoadingTracks] = useState<Set<string>>(new Set());
-  const { makeRequest } = useAuthenticatedRequest();
   const { theme } = useTheme();
-
-  // Extract track IDs from URIs
-  const getTrackId = (uri: string) => {
-    const match = uri.match(/spotify:track:(.+)/);
-    return match ? match[1] : null;
-  };
-
-  // Fetch track details for tracks that don't have them yet
-  useEffect(() => {
-    const fetchTrackDetails = async (trackId: string) => {
-      if (trackDetails[trackId] || loadingTracks.has(trackId)) return;
-
-      setLoadingTracks(prev => new Set(prev).add(trackId));
-      
-      try {
-        const details = await makeRequest(`/api/main/spotify/track/${trackId}`);
-        setTrackDetails(prev => ({
-          ...prev,
-          [trackId]: details
-        }));
-      } catch (error) {
-        console.error('Error fetching track details:', error);
-      } finally {
-        setLoadingTracks(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(trackId);
-          return newSet;
-        });
-      }
-    };
-
-    tracks.forEach(track => {
-      const trackId = getTrackId(track.spotify_uri);
-      if (trackId && !trackDetails[trackId]) {
-        fetchTrackDetails(trackId);
-      }
-    });
-  }, [tracks, trackDetails, loadingTracks]);
 
   if (tracks.length === 0) {
     return (
@@ -82,10 +40,7 @@ export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
   return (
     <div className="space-y-3">
       {tracks.map((track) => {
-        const trackId = getTrackId(track.spotify_uri);
-        const details = trackId ? trackDetails[trackId] : null;
-        const isLoading = trackId ? loadingTracks.has(trackId) : false;
-
+        const details = track.track;
         return (
           <div
             key={track.track_position}
@@ -97,11 +52,7 @@ export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
           >
             {/* Album Art */}
             <div className="flex-shrink-0">
-              {isLoading ? (
-                <div className={`w-16 h-16 rounded animate-pulse ${
-                  theme === 'dark' ? 'bg-neutral-800' : 'bg-amber-200'
-                }`}></div>
-              ) : details?.album.images[0] ? (
+              {details.album.images[0] ? (
                 <img
                   src={details.album.images[0].url}
                   alt={details.album.name}
@@ -120,33 +71,18 @@ export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
 
             {/* Track Info */}
             <div className="flex-1 min-w-0">
-              {isLoading ? (
-                <div className="space-y-2">
-                  <div className={`h-4 rounded animate-pulse ${
-                    theme === 'dark' ? 'bg-neutral-800' : 'bg-amber-200'
-                  }`}></div>
-                  <div className={`h-3 rounded animate-pulse w-2/3 ${
-                    theme === 'dark' ? 'bg-neutral-800' : 'bg-amber-200'
-                  }`}></div>
-                </div>
-              ) : details ? (
-                <>
-                  <div className={`text-lg font-medium truncate ${
-                    theme === 'dark' ? 'text-neutral-100' : 'text-amber-900'
-                  }`}>
-                    {details.name}
-                  </div>
-                  <div className={`text-sm truncate ${
-                    theme === 'dark' ? 'text-neutral-300' : 'text-amber-600'
-                  }`}>
-                    {details.artists.map(a => a.name).join(', ')}
-                  </div>
-                </>
-              ) : (
-                <div className={theme === 'dark' ? 'text-neutral-300' : 'text-amber-600'}>
-                  <div className="text-lg font-medium">Track {track.track_position}</div>
-                  <div className="text-sm">Loading...</div>
-                </div>
+              <div className={`text-lg font-medium truncate ${
+                theme === 'dark' ? 'text-neutral-100' : 'text-amber-900'
+              }`}>
+                {details.name}
+              </div>
+              <div className={`text-sm truncate ${
+                theme === 'dark' ? 'text-neutral-300' : 'text-amber-600'
+              }`}>
+                {details.artists.map(a => a.name).join(', ')}
+              </div>
+              {track.track_text && (
+                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-neutral-400' : 'text-amber-700'}`}>{track.track_text}</div>
               )}
             </div>
 

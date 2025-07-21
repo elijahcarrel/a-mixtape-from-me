@@ -1,10 +1,21 @@
 import React from 'react';
 import CassetteSVG from './CassetteSVG';
 
+interface TrackDetails {
+  id: string;
+  name: string;
+  artists: Array<{ name: string }>;
+  album: {
+    name: string;
+    images: Array<{ url: string; width: number; height: number }>;
+  };
+  uri: string;
+}
+
 interface Track {
   track_position: number;
   track_text?: string;
-  spotify_uri: string;
+  track: TrackDetails;
 }
 
 interface MixtapeData {
@@ -30,13 +41,14 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-between bg-amber-50 dark:bg-amber-950 overflow-hidden pb-40">
       {/* Grain overlay */}
-      <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC\")', opacity: 0.18, mixBlendMode: 'multiply'}} />
+      <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
       <div className="relative z-10 w-full max-w-md px-4 pt-8 flex flex-col items-center">
         <CassetteSVG isAnimated={true} />
         <div className="w-full text-center mb-4">
           <h2 className="text-2xl font-bold text-amber-900 dark:text-amber-100 mb-1 truncate">{mixtape.name}</h2>
           <div className="text-sm text-amber-700 dark:text-amber-200 mb-2">Track {trackNumber} of {mixtape.tracks.length}</div>
-          <div className="text-xl font-semibold text-amber-800 dark:text-amber-100 mb-2 truncate">{track.spotify_uri}</div>
+          <div className="text-xl font-semibold text-amber-800 dark:text-amber-100 mb-2 truncate">{track.track.name}</div>
+          <div className="text-base text-amber-700 dark:text-amber-200 mb-2 truncate">{track.track.artists.map(a => a.name).join(', ')}</div>
         </div>
         {track.track_text && (
           <div className="w-full bg-amber-100/70 dark:bg-amber-900/40 rounded-lg p-4 mb-6 text-amber-900 dark:text-amber-100 text-base shadow-inner whitespace-pre-line" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
@@ -65,7 +77,7 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
         <iframe
           data-testid="spotify-embed"
           style={{ borderRadius: 12 }}
-          src={`https://open.spotify.com/embed/track/${track.spotify_uri.replace('spotify:track:', '')}?utm_source=generator`}
+          src={`https://open.spotify.com/embed/track/${track.track.uri.replace('spotify:track:', '')}?utm_source=generator`}
           width="100%"
           height="152"
           frameBorder="0"

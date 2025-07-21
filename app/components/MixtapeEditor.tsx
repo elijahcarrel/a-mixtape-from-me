@@ -11,10 +11,22 @@ import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 
+interface TrackDetails {
+  id: string;
+  name: string;
+  artists: Array<{ name: string }>;
+  album: {
+    name: string;
+    images: Array<{ url: string; width: number; height: number }>;
+  };
+  uri: string;
+}
+
 interface Track {
   track_position: number;
   track_text?: string;
-  spotify_uri: string;
+  track: TrackDetails;
+  spotify_uri?: string;
 }
 
 interface MixtapeData {
@@ -40,25 +52,24 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   const { makeRequest } = useAuthenticatedRequest();
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
-  const currentPath = usePathname()
+  const currentPath = usePathname();
   const router = useRouter();
 
   const isAnonymousMixtape = !mixtape.stack_auth_user_id;
 
   const handleClaimMixtape = async () => {
     if (!isAuthenticated) {
-      // Redirect to sign in with current page as next parameter
+      // Redirect to sign in with current page as next parameter.
       router.push(`/handler/signup?next=${encodeURIComponent(currentPath)}`);
       return;
     }
-
     setIsClaiming(true);
     try {
       await makeRequest(`/api/main/mixtape/${mixtape.public_id}/claim`, {
         method: 'POST',
         body: {}
       });
-      // Call the parent's callback to refresh data
+      // Call the parent's callback to refresh data.
       onMixtapeClaimed?.();
     } catch (error) {
       console.error('Error claiming mixtape:', error);
@@ -76,10 +87,13 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
           method: 'PUT',
           body: {
             ...values,
-            tracks: tracksOverride
+            tracks: tracksOverride.map(t => ({
+              track_position: t.track_position,
+              track_text: t.track_text,
+              spotify_uri: t.track.uri
+            }))
           }
         });
-        // No onSave call here; UI is already up to date
       } catch (error) {
         console.error('Error saving mixtape:', error);
       } finally {
@@ -89,7 +103,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     [mixtape.public_id, makeRequest]
   );
 
-  // Update tracks when mixtape changes
+  // Update tracks when mixtape changes.
   useEffect(() => {
     setTracks(mixtape.tracks);
   }, [mixtape.tracks]);
@@ -98,15 +112,16 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     debouncedSave(values, tracks);
   };
 
-  const addTrack = (spotifyUri: string, trackData: any) => {
+  const addTrack = (spotifyUri: string, trackData: TrackDetails) => {
     const newTrack: Track = {
       track_position: tracks.length + 1,
-      spotify_uri: spotifyUri,
-      track_text: trackData.name
+      // TODO: Add UI for editing track_text (personal message) in the future
+      track_text: undefined,
+      track: trackData,
+      spotify_uri: trackData.uri,
     };
     const updatedTracks = [...tracks, newTrack];
     setTracks(updatedTracks);
-    // Trigger save with updated tracks
     debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
   };
 
@@ -118,7 +133,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         track_position: index + 1
       }));
     setTracks(updatedTracks);
-    // Trigger save with updated tracks
+    // Trigger save with updated tracks.
     debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
   };
 
