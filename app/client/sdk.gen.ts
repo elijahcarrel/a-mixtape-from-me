@@ -24,7 +24,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  */
 export const getCurrentUserApiMainAuthMeGet = <ThrowOnError extends boolean = false>(options?: Options<GetCurrentUserApiMainAuthMeGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<GetCurrentUserApiMainAuthMeGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/auth/me',
+        url: '/api/auth/me',
         ...options
     });
 };
@@ -35,7 +35,7 @@ export const getCurrentUserApiMainAuthMeGet = <ThrowOnError extends boolean = fa
  */
 export const logoutApiMainAuthLogoutPost = <ThrowOnError extends boolean = false>(options?: Options<LogoutApiMainAuthLogoutPostData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).post<LogoutApiMainAuthLogoutPostResponses, unknown, ThrowOnError>({
-        url: '/api/main/auth/logout',
+        url: '/api/auth/logout',
         ...options
     });
 };
@@ -46,7 +46,7 @@ export const logoutApiMainAuthLogoutPost = <ThrowOnError extends boolean = false
  */
 export const verifyTokenApiMainAuthVerifyGet = <ThrowOnError extends boolean = false>(options?: Options<VerifyTokenApiMainAuthVerifyGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<VerifyTokenApiMainAuthVerifyGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/auth/verify',
+        url: '/api/auth/verify',
         ...options
     });
 };
@@ -57,7 +57,7 @@ export const verifyTokenApiMainAuthVerifyGet = <ThrowOnError extends boolean = f
  */
 export const getAccountApiMainAccountMeGet = <ThrowOnError extends boolean = false>(options?: Options<GetAccountApiMainAccountMeGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<GetAccountApiMainAccountMeGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/account/me',
+        url: '/api/account/me',
         ...options
     });
 };
@@ -68,7 +68,7 @@ export const getAccountApiMainAccountMeGet = <ThrowOnError extends boolean = fal
  */
 export const getProfileApiMainAccountProfileGet = <ThrowOnError extends boolean = false>(options?: Options<GetProfileApiMainAccountProfileGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<GetProfileApiMainAccountProfileGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/account/profile',
+        url: '/api/account/profile',
         ...options
     });
 };
@@ -78,7 +78,7 @@ export const getProfileApiMainAccountProfileGet = <ThrowOnError extends boolean 
  */
 export const dbApiMainHealthDbGet = <ThrowOnError extends boolean = false>(options?: Options<DbApiMainHealthDbGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<DbApiMainHealthDbGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/health/db',
+        url: '/api/health/db',
         ...options
     });
 };
@@ -88,7 +88,7 @@ export const dbApiMainHealthDbGet = <ThrowOnError extends boolean = false>(optio
  */
 export const appHealthApiMainHealthAppGet = <ThrowOnError extends boolean = false>(options?: Options<AppHealthApiMainHealthAppGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<AppHealthApiMainHealthAppGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/health/app',
+        url: '/api/health/app',
         ...options
     });
 };
@@ -99,7 +99,7 @@ export const appHealthApiMainHealthAppGet = <ThrowOnError extends boolean = fals
  */
 export const searchTracksApiMainSpotifySearchGet = <ThrowOnError extends boolean = false>(options: Options<SearchTracksApiMainSpotifySearchGetData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<SearchTracksApiMainSpotifySearchGetResponses, SearchTracksApiMainSpotifySearchGetErrors, ThrowOnError>({
-        url: '/api/main/spotify/search',
+        url: '/api/spotify/search',
         ...options
     });
 };
@@ -110,7 +110,7 @@ export const searchTracksApiMainSpotifySearchGet = <ThrowOnError extends boolean
  */
 export const getTrackApiMainSpotifyTrackTrackIdGet = <ThrowOnError extends boolean = false>(options: Options<GetTrackApiMainSpotifyTrackTrackIdGetData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<GetTrackApiMainSpotifyTrackTrackIdGetResponses, GetTrackApiMainSpotifyTrackTrackIdGetErrors, ThrowOnError>({
-        url: '/api/main/spotify/track/{track_id}',
+        url: '/api/spotify/track/{track_id}',
         ...options
     });
 };
@@ -120,7 +120,7 @@ export const getTrackApiMainSpotifyTrackTrackIdGet = <ThrowOnError extends boole
  */
 export const listMyMixtapesApiMainMixtapeGet = <ThrowOnError extends boolean = false>(options?: Options<ListMyMixtapesApiMainMixtapeGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<ListMyMixtapesApiMainMixtapeGetResponses, ListMyMixtapesApiMainMixtapeGetErrors, ThrowOnError>({
-        url: '/api/main/mixtape/',
+        url: '/api/mixtape/',
         ...options
     });
 };
@@ -130,7 +130,7 @@ export const listMyMixtapesApiMainMixtapeGet = <ThrowOnError extends boolean = f
  */
 export const createMixtapeApiMainMixtapePost = <ThrowOnError extends boolean = false>(options: Options<CreateMixtapeApiMainMixtapePostData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<CreateMixtapeApiMainMixtapePostResponses, CreateMixtapeApiMainMixtapePostErrors, ThrowOnError>({
-        url: '/api/main/mixtape/',
+        url: '/api/mixtape/',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ export const createMixtapeApiMainMixtapePost = <ThrowOnError extends boolean = f
  */
 export const claimMixtapeApiMainMixtapePublicIdClaimPost = <ThrowOnError extends boolean = false>(options: Options<ClaimMixtapeApiMainMixtapePublicIdClaimPostData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<ClaimMixtapeApiMainMixtapePublicIdClaimPostResponses, ClaimMixtapeApiMainMixtapePublicIdClaimPostErrors, ThrowOnError>({
-        url: '/api/main/mixtape/{public_id}/claim',
+        url: '/api/mixtape/{public_id}/claim',
         ...options
     });
 };
@@ -155,7 +155,7 @@ export const claimMixtapeApiMainMixtapePublicIdClaimPost = <ThrowOnError extends
  */
 export const getMixtapeApiMainMixtapePublicIdGet = <ThrowOnError extends boolean = false>(options: Options<GetMixtapeApiMainMixtapePublicIdGetData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<GetMixtapeApiMainMixtapePublicIdGetResponses, GetMixtapeApiMainMixtapePublicIdGetErrors, ThrowOnError>({
-        url: '/api/main/mixtape/{public_id}',
+        url: '/api/mixtape/{public_id}',
         ...options
     });
 };
@@ -165,7 +165,7 @@ export const getMixtapeApiMainMixtapePublicIdGet = <ThrowOnError extends boolean
  */
 export const updateMixtapeApiMainMixtapePublicIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateMixtapeApiMainMixtapePublicIdPutData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).put<UpdateMixtapeApiMainMixtapePublicIdPutResponses, UpdateMixtapeApiMainMixtapePublicIdPutErrors, ThrowOnError>({
-        url: '/api/main/mixtape/{public_id}',
+        url: '/api/mixtape/{public_id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ export const updateMixtapeApiMainMixtapePublicIdPut = <ThrowOnError extends bool
  */
 export const rootApiMainGet = <ThrowOnError extends boolean = false>(options?: Options<RootApiMainGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<RootApiMainGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/',
+        url: '/api/',
         ...options
     });
 };
@@ -189,7 +189,7 @@ export const rootApiMainGet = <ThrowOnError extends boolean = false>(options?: O
  */
 export const debugApiMainDebugGet = <ThrowOnError extends boolean = false>(options?: Options<DebugApiMainDebugGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<DebugApiMainDebugGetResponses, unknown, ThrowOnError>({
-        url: '/api/main/debug',
+        url: '/api/debug',
         ...options
     });
 };

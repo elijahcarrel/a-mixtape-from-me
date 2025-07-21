@@ -85,7 +85,7 @@ describe('TrackAutocomplete', () => {
       await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
-    expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/search?query=test');
+    expect(mockMakeRequest).toHaveBeenCalledWith('/api/spotify/search?query=test');
   });
 
   it('displays search results', async () => {
@@ -248,6 +248,6 @@ describe('TrackAutocomplete', () => {
     
     // Should only call the API once with the final query
     expect(mockMakeRequest).toHaveBeenCalledTimes(1);
-    expect(mockMakeRequest).toHaveBeenCalledWith('/api/main/spotify/search?query=test');
+    expect(mockMakeRequest).toHaveBeenCalledWith('/api/spotify/search?query=test');
   });
 }); 

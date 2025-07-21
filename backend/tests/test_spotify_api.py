@@ -36,7 +36,7 @@ def client():
 
 def test_search_tracks(client):
     test_client, token, mock_spotify = client
-    resp = test_client.get("/api/main/spotify/search?query=Mock", headers={"x-stack-access-token": token})
+    resp = test_client.get("/api/spotify/search?query=Mock", headers={"x-stack-access-token": token})
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data, list)
@@ -51,7 +51,7 @@ def test_search_tracks(client):
 def test_get_track(client):
     test_client, token, mock_spotify = client
     track_id = mock_spotify.tracks[0].id
-    resp = test_client.get(f"/api/main/spotify/track/{track_id}", headers={"x-stack-access-token": token})
+    resp = test_client.get(f"/api/spotify/track/{track_id}", headers={"x-stack-access-token": token})
     assert resp.status_code == 200
     data = resp.json()
     assert data["id"] == track_id
@@ -59,6 +59,6 @@ def test_get_track(client):
 
 def test_get_track_not_found(client):
     test_client, token, _ = client
-    resp = test_client.get("/api/main/spotify/track/doesnotexist", headers={"x-stack-access-token": token})
+    resp = test_client.get("/api/spotify/track/doesnotexist", headers={"x-stack-access-token": token})
     assert resp.status_code == 500
     assert "Failed to fetch track" in resp.text 

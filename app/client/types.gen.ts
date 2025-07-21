@@ -202,7 +202,7 @@ export type GetCurrentUserApiMainAuthMeGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/auth/me';
+    url: '/api/auth/me';
 };
 
 export type GetCurrentUserApiMainAuthMeGetResponses = {
@@ -216,7 +216,7 @@ export type LogoutApiMainAuthLogoutPostData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/auth/logout';
+    url: '/api/auth/logout';
 };
 
 export type LogoutApiMainAuthLogoutPostResponses = {
@@ -230,7 +230,7 @@ export type VerifyTokenApiMainAuthVerifyGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/auth/verify';
+    url: '/api/auth/verify';
 };
 
 export type VerifyTokenApiMainAuthVerifyGetResponses = {
@@ -244,7 +244,7 @@ export type GetAccountApiMainAccountMeGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/account/me';
+    url: '/api/account/me';
 };
 
 export type GetAccountApiMainAccountMeGetResponses = {
@@ -258,7 +258,7 @@ export type GetProfileApiMainAccountProfileGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/account/profile';
+    url: '/api/account/profile';
 };
 
 export type GetProfileApiMainAccountProfileGetResponses = {
@@ -272,7 +272,7 @@ export type DbApiMainHealthDbGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/health/db';
+    url: '/api/health/db';
 };
 
 export type DbApiMainHealthDbGetResponses = {
@@ -286,7 +286,7 @@ export type AppHealthApiMainHealthAppGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/health/app';
+    url: '/api/health/app';
 };
 
 export type AppHealthApiMainHealthAppGetResponses = {
@@ -305,7 +305,7 @@ export type SearchTracksApiMainSpotifySearchGetData = {
          */
         query: string;
     };
-    url: '/api/main/spotify/search';
+    url: '/api/spotify/search';
 };
 
 export type SearchTracksApiMainSpotifySearchGetErrors = {
@@ -336,7 +336,7 @@ export type GetTrackApiMainSpotifyTrackTrackIdGetData = {
         track_id: string;
     };
     query?: never;
-    url: '/api/main/spotify/track/{track_id}';
+    url: '/api/spotify/track/{track_id}';
 };
 
 export type GetTrackApiMainSpotifyTrackTrackIdGetErrors = {
@@ -377,7 +377,7 @@ export type ListMyMixtapesApiMainMixtapeGetData = {
          */
         offset?: number;
     };
-    url: '/api/main/mixtape/';
+    url: '/api/mixtape/';
 };
 
 export type ListMyMixtapesApiMainMixtapeGetErrors = {
@@ -405,7 +405,7 @@ export type CreateMixtapeApiMainMixtapePostData = {
     body: MixtapeRequest;
     path?: never;
     query?: never;
-    url: '/api/main/mixtape/';
+    url: '/api/mixtape/';
 };
 
 export type CreateMixtapeApiMainMixtapePostErrors = {
@@ -438,7 +438,7 @@ export type ClaimMixtapeApiMainMixtapePublicIdClaimPostData = {
         public_id: string;
     };
     query?: never;
-    url: '/api/main/mixtape/{public_id}/claim';
+    url: '/api/mixtape/{public_id}/claim';
 };
 
 export type ClaimMixtapeApiMainMixtapePublicIdClaimPostErrors = {
@@ -471,7 +471,7 @@ export type GetMixtapeApiMainMixtapePublicIdGetData = {
         public_id: string;
     };
     query?: never;
-    url: '/api/main/mixtape/{public_id}';
+    url: '/api/mixtape/{public_id}';
 };
 
 export type GetMixtapeApiMainMixtapePublicIdGetErrors = {
@@ -501,7 +501,7 @@ export type UpdateMixtapeApiMainMixtapePublicIdPutData = {
         public_id: string;
     };
     query?: never;
-    url: '/api/main/mixtape/{public_id}';
+    url: '/api/mixtape/{public_id}';
 };
 
 export type UpdateMixtapeApiMainMixtapePublicIdPutErrors = {
@@ -529,7 +529,7 @@ export type RootApiMainGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/';
+    url: '/api/';
 };
 
 export type RootApiMainGetResponses = {
@@ -543,7 +543,7 @@ export type DebugApiMainDebugGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/main/debug';
+    url: '/api/debug';
 };
 
 export type DebugApiMainDebugGetResponses = {

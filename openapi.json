@@ -5,7 +5,7 @@
         "version": "0.1.0"
     },
     "paths": {
-        "/api/main/auth/me": {
+        "/api/auth/me": {
             "get": {
                 "tags": [
                     "auth"
@@ -25,7 +25,7 @@
                 }
             }
         },
-        "/api/main/auth/logout": {
+        "/api/auth/logout": {
             "post": {
                 "tags": [
                     "auth"
@@ -45,7 +45,7 @@
                 }
             }
         },
-        "/api/main/auth/verify": {
+        "/api/auth/verify": {
             "get": {
                 "tags": [
                     "auth"
@@ -65,7 +65,7 @@
                 }
             }
         },
-        "/api/main/account/me": {
+        "/api/account/me": {
             "get": {
                 "tags": [
                     "account"
@@ -85,7 +85,7 @@
                 }
             }
         },
-        "/api/main/account/profile": {
+        "/api/account/profile": {
             "get": {
                 "tags": [
                     "account"
@@ -105,7 +105,7 @@
                 }
             }
         },
-        "/api/main/health/db": {
+        "/api/health/db": {
             "get": {
                 "tags": [
                     "health"
@@ -124,7 +124,7 @@
                 }
             }
         },
-        "/api/main/health/app": {
+        "/api/health/app": {
             "get": {
                 "tags": [
                     "health"
@@ -143,7 +143,7 @@
                 }
             }
         },
-        "/api/main/spotify/search": {
+        "/api/spotify/search": {
             "get": {
                 "tags": [
                     "spotify"
@@ -190,7 +190,7 @@
                 }
             }
         },
-        "/api/main/spotify/track/{track_id}": {
+        "/api/spotify/track/{track_id}": {
             "get": {
                 "tags": [
                     "spotify"
@@ -233,7 +233,7 @@
                 }
             }
         },
-        "/api/main/mixtape/": {
+        "/api/mixtape/": {
             "post": {
                 "tags": [
                     "mixtape"
@@ -357,7 +357,7 @@
                 }
             }
         },
-        "/api/main/mixtape/{public_id}/claim": {
+        "/api/mixtape/{public_id}/claim": {
             "post": {
                 "tags": [
                     "mixtape"
@@ -402,7 +402,7 @@
                 }
             }
         },
-        "/api/main/mixtape/{public_id}": {
+        "/api/mixtape/{public_id}": {
             "get": {
                 "tags": [
                     "mixtape"
@@ -496,7 +496,7 @@
                 }
             }
         },
-        "/api/main/": {
+        "/api/": {
             "get": {
                 "summary": "Root",
                 "operationId": "root_api_main__get",
@@ -512,7 +512,7 @@
                 }
             }
         },
-        "/api/main/debug": {
+        "/api/debug": {
             "get": {
                 "summary": "Debug",
                 "operationId": "debug_api_main_debug_get",

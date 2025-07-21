@@ -45,11 +45,11 @@ This feature allows users to create and edit mixtapes with a vintage, cassette-i
 - **Database**: SQLModel-based entities with audit trail support
 
 ### API Endpoints
-- `POST /api/main/mixtape/`: Create new mixtape
-- `GET /api/main/mixtape/{public_id}`: Get mixtape details
-- `PUT /api/main/mixtape/{public_id}`: Update mixtape
-- `GET /api/main/spotify/search`: Search Spotify tracks
-- `GET /api/main/spotify/track/{track_id}`: Get track details
+- `POST /api/mixtape/`: Create new mixtape
+- `GET /api/mixtape/{public_id}`: Get mixtape details
+- `PUT /api/mixtape/{public_id}`: Update mixtape
+- `GET /api/spotify/search`: Search Spotify tracks
+- `GET /api/spotify/track/{track_id}`: Get track details
 
 ## Styling
 - Vintage, sepia color scheme with cassette-inspired design

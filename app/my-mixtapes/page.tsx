@@ -28,7 +28,7 @@ export default function MyMixtapesPage() {
   const queryString = Object.keys(query).length > 0 ? '?' + new URLSearchParams(query).toString() : '';
 
   const { data: mixtapes, loading, error } = useApiRequest<any[]>({
-    url: `/api/main/mixtape/${queryString}`,
+    url: `/api/mixtape/${queryString}`,
   });
 
   return (

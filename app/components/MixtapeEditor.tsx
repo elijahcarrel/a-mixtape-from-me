@@ -38,7 +38,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     }
     setIsClaiming(true);
     try {
-      await makeRequest(`/api/main/mixtape/${mixtape.public_id}/claim`, {
+      await makeRequest(`/api/mixtape/${mixtape.public_id}/claim`, {
         method: 'POST',
         body: {}
       });
@@ -56,7 +56,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     debounce(async (values: any, tracksOverride: (MixtapeTrackResponse | MixtapeTrackRequest)[]) => {
       setIsSaving(true);
       try {
-        await makeRequest(`/api/main/mixtape/${mixtape.public_id}`, {
+        await makeRequest(`/api/mixtape/${mixtape.public_id}`, {
           method: 'PUT',
           body: {
             ...values,

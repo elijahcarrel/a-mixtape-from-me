@@ -9,7 +9,7 @@ import ErrorDisplay from "../components/ErrorDisplay";
 // Example 1: Simple GET request
 export function ExampleGetRequest() {
   const { data, loading, error } = useApiRequest<{ name: string; email: string }>({
-    url: "/api/main/account/me"
+    url: "/api/account/me"
   });
 
   if (loading) return <LoadingDisplay message="Loading user info..." />;
@@ -26,7 +26,7 @@ export function ExampleGetRequest() {
 // Example 2: POST request with body
 export function ExamplePostRequest() {
   const { data, loading, error, refetch } = useApiRequest<{ success: boolean }>({
-    url: "/api/main/account/create-playlist",
+    url: "/api/account/create-playlist",
     method: "POST",
     body: { name: "My New Playlist", description: "Created via API" },
     onSuccess: (data) => {
@@ -51,7 +51,7 @@ export function ExamplePostRequest() {
 // Example 3: Custom headers
 export function ExampleWithHeaders() {
   const { data, loading, error } = useApiRequest<{ items: any[] }>({
-    url: "/api/main/account/playlists",
+    url: "/api/account/playlists",
     headers: {
       "X-Custom-Header": "custom-value"
     }

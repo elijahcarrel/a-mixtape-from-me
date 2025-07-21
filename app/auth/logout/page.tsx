@@ -12,7 +12,7 @@ export default function AuthLogout() {
     const handleLogout = async () => {
       try {
         // Call the backend logout endpoint to clear cache
-        const response = await fetch("/api/main/auth/logout", {
+        const response = await fetch("/api/auth/logout", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
