@@ -12,6 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse, TrackDetails } from '../client';
 import { normalizeTrackToRequest, normalizeTrackToResponse } from '../util/track-util';
+import PreviewButton from './PreviewButton';
 
 interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
@@ -250,19 +251,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
       </div>
 
       {/* Preview Button - floating bottom right */}
-      <button
-        type="button"
-        onClick={() => router.push(`/mixtape/${mixtape.public_id}`)}
-        className="fixed bottom-8 right-8 z-30 bg-amber-700 hover:bg-amber-800 text-white rounded-full shadow-lg px-8 py-4 flex items-center gap-2 text-lg font-semibold transition-all duration-200 active:scale-95"
-        style={{boxShadow: '0 4px 24px #bfa76a33'}}
-        data-testid="preview-button"
-      >
-        <span>Preview</span>
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="14" cy="14" r="14" fill="#fff" fillOpacity="0.18" />
-          <polygon points="10,8 20,14 10,20" fill="#fff" />
-        </svg>
-      </button>
+      <PreviewButton mixtape={mixtape} />
     </div>
   );
 } 
