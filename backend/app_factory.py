@@ -23,7 +23,11 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
     
     api_prefix = "/api"
     
-    app = FastAPI(docs_url=f"{api_prefix}/docs", openapi_url=f"{api_prefix}/openapi.json")
+    app = FastAPI(
+        docs_url=f"{api_prefix}/docs",
+        openapi_url=f"{api_prefix}/openapi.json",
+        redirect_slashes=False,
+    )
     
     # Store the database dependency in app state
     def get_db_dep():
