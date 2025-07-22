@@ -80,23 +80,24 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
               {isEditing ? (
                 <div className="mt-2">
                   <textarea
-                    className={`w-full p-2 rounded border resize-none focus:outline-none transition-colors duration-200 ${
+                    className={`w-full p-2 rounded border resize-y focus:outline-none transition-colors duration-200 ${
                       theme === 'dark'
                         ? 'border-amber-700 bg-neutral-900 text-neutral-100 focus:border-amber-400'
                         : 'border-amber-300 bg-white text-neutral-900 focus:border-amber-600'
                     }`}
-                    rows={3}
+                    rows={5}
                     value={draftText}
                     onChange={e => setDraftText(e.target.value)}
                     data-testid={`track-textarea-${track.track_position}`}
                   />
                   <div className="flex space-x-2 mt-1">
                     <button
-                      className={`px-3 py-1 rounded font-medium text-xs transition-colors duration-200 ${
+                      className={`px-3 py-1 rounded font-medium text-xs transition-colors duration-200 border ${
                         theme === 'dark'
-                          ? 'bg-amber-700 text-white hover:bg-amber-600'
-                          : 'bg-amber-600 text-white hover:bg-amber-700'
+                          ? 'bg-amber-700 text-white hover:bg-amber-600 border-amber-800'
+                          : 'bg-amber-600 text-white hover:bg-amber-700 border-amber-700'
                       }`}
+                      style={{ boxShadow: theme === 'dark' ? '0 0 0 1.5px #a16207' : '0 0 0 1.5px #b45309' }}
                       onClick={() => {
                         onEditTrackText?.(track.track_position, draftText);
                         setEditingTrack(null);
@@ -106,7 +107,12 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
                       Save
                     </button>
                     <button
-                      className="px-3 py-1 rounded font-medium text-xs bg-neutral-200 text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                      className={`px-3 py-1 rounded font-medium text-xs border transition-colors duration-200 ${
+                        theme === 'dark'
+                          ? 'bg-neutral-800 text-neutral-200 hover:bg-neutral-700 border-neutral-700'
+                          : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300 border-neutral-400'
+                      }`}
+                      style={{ boxShadow: theme === 'dark' ? '0 0 0 1.5px #404040' : '0 0 0 1.5px #a3a3a3' }}
                       onClick={() => setEditingTrack(null)}
                       data-testid={`cancel-track-text-${track.track_position}`}
                     >

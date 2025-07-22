@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from './test-utils';
 import '@testing-library/jest-dom';
+import { render, screen, fireEvent, waitFor } from './test-utils';
 import TrackList from '../TrackList';
 
 const mockTrackDetails1 = {
