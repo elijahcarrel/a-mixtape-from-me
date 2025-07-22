@@ -2,14 +2,18 @@
 
 import { MixtapeTrackRequest, MixtapeTrackResponse } from '../client';
 import { useTheme } from './ThemeProvider';
+import { useState } from 'react';
 
 interface TrackListProps {
   tracks: MixtapeTrackResponse[];
   onRemoveTrack: (position: number) => void;
+  onEditTrackText?: (position: number, newText: string) => void;
 }
 
-export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
+export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: TrackListProps) {
   const { theme } = useTheme();
+  const [editingTrack, setEditingTrack] = useState<number | null>(null);
+  const [draftText, setDraftText] = useState<string>('');
 
   if (tracks.length === 0) {
     return (
@@ -25,14 +29,21 @@ export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
     <div className="space-y-3">
       {tracks.map((track) => {
         const details = track.track;
+        const isEditing = editingTrack === track.track_position;
+        const preview = track.track_text
+          ? track.track_text.length > 80
+            ? track.track_text.slice(0, 80) + '...'
+            : track.track_text
+          : '';
         return (
           <div
             key={track.track_position}
-            className={`flex items-center space-x-4 p-4 border rounded-lg hover:transition-colors duration-200 ${
+            className={`flex items-start space-x-4 p-4 border rounded-lg hover:transition-colors duration-200 ${
               theme === 'dark'
                 ? 'bg-neutral-900 border-amber-700 hover:bg-neutral-800'
                 : 'bg-amber-50 border-amber-200 hover:bg-amber-100'
             }`}
+            data-testid={`track-${track.track_position}`}
           >
             {/* Album Art */}
             <div className="flex-shrink-0">
@@ -65,8 +76,64 @@ export default function TrackList({ tracks, onRemoveTrack }: TrackListProps) {
               }`}>
                 {details.artists.map(a => a.name).join(', ')}
               </div>
-              {track.track_text && (
-                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-neutral-400' : 'text-amber-700'}`}>{track.track_text}</div>
+              {/* Track Text Editor */}
+              {isEditing ? (
+                <div className="mt-2">
+                  <textarea
+                    className={`w-full p-2 rounded border resize-none focus:outline-none transition-colors duration-200 ${
+                      theme === 'dark'
+                        ? 'border-amber-700 bg-neutral-900 text-neutral-100 focus:border-amber-400'
+                        : 'border-amber-300 bg-white text-neutral-900 focus:border-amber-600'
+                    }`}
+                    rows={3}
+                    value={draftText}
+                    onChange={e => setDraftText(e.target.value)}
+                    data-testid={`track-textarea-${track.track_position}`}
+                  />
+                  <div className="flex space-x-2 mt-1">
+                    <button
+                      className={`px-3 py-1 rounded font-medium text-xs transition-colors duration-200 ${
+                        theme === 'dark'
+                          ? 'bg-amber-700 text-white hover:bg-amber-600'
+                          : 'bg-amber-600 text-white hover:bg-amber-700'
+                      }`}
+                      onClick={() => {
+                        onEditTrackText?.(track.track_position, draftText);
+                        setEditingTrack(null);
+                      }}
+                      data-testid={`save-track-text-${track.track_position}`}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="px-3 py-1 rounded font-medium text-xs bg-neutral-200 text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                      onClick={() => setEditingTrack(null)}
+                      data-testid={`cancel-track-text-${track.track_position}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1 flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    {track.track_text ? (
+                      <span className={`text-xs ${theme === 'dark' ? 'text-neutral-400' : 'text-amber-700'}`}>{preview}</span>
+                    ) : (
+                      <span className="text-xs italic text-neutral-400">No note</span>
+                    )}
+                  </div>
+                  <button
+                    className={`text-xs underline flex-shrink-0 ml-2 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-700'}`}
+                    onClick={() => {
+                      setEditingTrack(track.track_position);
+                      setDraftText(track.track_text || '');
+                    }}
+                    data-testid={`edit-track-text-${track.track_position}`}
+                  >
+                    {track.track_text ? 'Edit note' : 'Add note'}
+                  </button>
+                </div>
               )}
             </div>
 

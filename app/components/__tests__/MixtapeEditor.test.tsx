@@ -56,7 +56,7 @@ jest.mock('../TrackAutocomplete', () => {
 });
 
 jest.mock('../TrackList', () => {
-  return function MockTrackList({ tracks, onRemoveTrack }: any) {
+  return function MockTrackList({ tracks, onRemoveTrack, onEditTrackText }: any) {
     return (
       <div data-testid="track-list">
         {tracks.map((track: any) => (
@@ -64,7 +64,14 @@ jest.mock('../TrackList', () => {
             {/* Render the track title */}
             {track.track && track.track.name}
             {/* Render the track_text if present */}
-            {track.track_text && <div>{track.track_text}</div>}
+            {track.track_text && <div data-testid={`track-text-${track.track_position}`}>{track.track_text}</div>}
+            {/* Mock edit track text button */}
+            <button
+              onClick={() => onEditTrackText?.(track.track_position, 'Updated note for track ' + track.track_position)}
+              data-testid={`edit-track-text-${track.track_position}`}
+            >
+              Edit Note
+            </button>
             <button
               onClick={() => onRemoveTrack(track.track_position)}
               data-testid={`remove-track-${track.track_position}`}
@@ -248,6 +255,41 @@ describe('MixtapeEditor', () => {
     expect(screen.getByTestId('track-2')).toBeInTheDocument();
     // track_text is undefined for new tracks, so only the title is rendered
     expect(screen.getByText('Test Track 2')).toBeInTheDocument();
+  });
+
+  it('updates track text when TrackList calls onEditTrackText', async () => {
+    render(<MixtapeEditor mixtape={mockMixtapeData} />);
+    
+    // Initially has the original track text
+    expect(screen.getByTestId('track-text-1')).toHaveTextContent('This song always reminds me of our road trip to Big Sur!');
+    
+    // Edit the track text
+    const editNoteButton = screen.getByTestId('edit-track-text-1');
+    fireEvent.click(editNoteButton);
+    
+    // Fast-forward debounce timer
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+    
+    // Should call save API with updated track text
+    await waitFor(() => {
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
+        method: 'PUT',
+        body: {
+          name: 'Test Mixtape',
+          intro_text: 'A test mixtape',
+          is_public: false,
+          tracks: [
+            {
+              track_position: 1,
+              track_text: 'Updated note for track 1',
+              spotify_uri: 'spotify:track:123',
+            },
+          ],
+        },
+      });
+    });
   });
 
   it('removes a track when TrackList calls onRemoveTrack', () => {

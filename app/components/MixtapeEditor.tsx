@@ -95,6 +95,14 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
   };
 
+  const editTrackText = (position: number, newText: string) => {
+    const updatedTracks = tracks.map(track =>
+      track.track_position === position ? { ...track, track_text: newText } : track
+    );
+    setTracks(updatedTracks);
+    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
+  };
+
   const removeTrack = (position: number) => {
     const updatedTracks = tracks
       .filter(track => track.track_position !== position)
@@ -247,7 +255,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
           Tracks ({tracks.length})
         </h2>
-        <TrackList tracks={tracks.map(normalizeTrackToResponse)} onRemoveTrack={removeTrack} />
+        <TrackList tracks={tracks.map(normalizeTrackToResponse)} onRemoveTrack={removeTrack} onEditTrackText={editTrackText} />
       </div>
 
       {/* Preview Button - floating bottom right */}
