@@ -19,6 +19,54 @@ interface UseApiRequestReturn<T = any> {
   refetch: () => void;
 }
 
+// Shared request logic
+async function makeAuthenticatedRequest<T = any>(
+  url: string,
+  options: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    body?: any;
+    headers?: Record<string, string>;
+  } = {},
+  user: any,
+  router: any
+): Promise<T> {
+  const { method = 'GET', body, headers = {} } = options;
+  
+  // Get auth headers
+  const authHeaders = await getAuthHeaders(user);
+  const requestHeaders = {
+    'Content-Type': 'application/json',
+    ...authHeaders,
+    ...headers,
+  };
+
+  const requestOptions: RequestInit = {
+    method,
+    headers: requestHeaders,
+  };
+
+  if (body && method !== 'GET') {
+    requestOptions.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, requestOptions);
+
+  if (response.status === 401) {
+    // Redirect to login with current page as next parameter
+    const currentPath = window.location.pathname + window.location.search;
+    const loginUrl = `/handler/signup?next=${encodeURIComponent(currentPath)}`;
+    router.replace(loginUrl);
+    throw new Error('Authentication required');
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 // Hook for making one-off authenticated API requests
 export function useAuthenticatedRequest() {
   const user = useUser();
@@ -32,41 +80,7 @@ export function useAuthenticatedRequest() {
       headers?: Record<string, string>;
     } = {}
   ): Promise<T> => {
-    const { method = 'GET', body, headers = {} } = options;
-    
-    // Get auth headers
-    const authHeaders = await getAuthHeaders(user);
-    const requestHeaders = {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-      ...headers,
-    };
-
-    const requestOptions: RequestInit = {
-      method,
-      headers: requestHeaders,
-    };
-
-    if (body && method !== 'GET') {
-      requestOptions.body = JSON.stringify(body);
-    }
-
-    const response = await fetch(url, requestOptions);
-
-    if (response.status === 401) {
-      // Redirect to login with current page as next parameter
-      const currentPath = window.location.pathname + window.location.search;
-      const loginUrl = `/handler/signup?next=${encodeURIComponent(currentPath)}`;
-      router.replace(loginUrl);
-      throw new Error('Authentication required');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
+    return makeAuthenticatedRequest(url, options, user, router);
   };
 
   return { makeRequest };
@@ -91,39 +105,7 @@ export function useApiRequest<T = any>({
     setError(null);
     
     try {
-      // Get auth headers using shared logic
-      const authHeaders = await getAuthHeaders(user);
-      const requestHeaders = {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...headers,
-      };
-
-      const requestOptions: RequestInit = {
-        method,
-        headers: requestHeaders,
-      };
-
-      if (body && method !== 'GET') {
-        requestOptions.body = JSON.stringify(body);
-      }
-
-      const response = await fetch(url, requestOptions);
-
-      if (response.status === 401) {
-        // Redirect to login with current page as next parameter
-        const currentPath = window.location.pathname + window.location.search;
-        const loginUrl = `/handler/signup?next=${encodeURIComponent(currentPath)}`;
-        router.replace(loginUrl);
-        return;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `HTTP error! status: ${response.status}`);
-      }
-
-      const responseData = await response.json();
+      const responseData = await makeAuthenticatedRequest(url, { method, body, headers }, user, router);
       setData(responseData as T);
       onSuccess?.(responseData as T);
     } catch (err: any) {
