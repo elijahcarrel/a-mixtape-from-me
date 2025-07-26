@@ -46,7 +46,7 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
             data-testid={`track-${track.track_position}`}
           >
             {/* Album Art */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {details.album.images[0] ? (
                 <img
                   src={details.album.images[0].url}
@@ -92,7 +92,7 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
                   />
                   <div className="flex space-x-2 mt-1">
                     <button
-                      className={`px-3 py-1 rounded font-medium text-xs transition-colors duration-200 border border-[2px] ${
+                      className={`px-3 py-1 rounded font-medium text-xs transition-colors duration-200 border border-2 ${
                         theme === 'dark'
                           ? 'bg-amber-700 text-white hover:bg-amber-600 border-amber-800'
                           : 'bg-amber-600 text-white hover:bg-amber-700 border-amber-700'
@@ -106,7 +106,7 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
                       Save
                     </button>
                     <button
-                      className={`px-3 py-1 rounded font-medium text-xs transition-colors duration-200 border border-[2px] ${
+                      className={`px-3 py-1 rounded font-medium text-xs transition-colors duration-200 border border-2 ${
                         theme === 'dark'
                           ? 'bg-neutral-800 text-neutral-200 hover:bg-neutral-700 border-neutral-700'
                           : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300 border-neutral-400'
@@ -128,7 +128,7 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
                     )}
                   </div>
                   <button
-                    className={`text-xs underline flex-shrink-0 ml-2 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-700'}`}
+                    className={`text-xs underline shrink-0 ml-2 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-700'}`}
                     onClick={() => {
                       setEditingTrack(track.track_position);
                       setDraftText(track.track_text || '');
@@ -144,7 +144,7 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
             {/* Delete Button */}
             <button
               onClick={() => onRemoveTrack(track.track_position)}
-              className={`flex-shrink-0 p-2 rounded-full transition-colors duration-200 ${
+              className={`shrink-0 p-2 rounded-full transition-colors duration-200 ${
                 theme === 'dark'
                   ? 'text-amber-400 hover:text-red-400 hover:bg-red-900/20'
                   : 'text-amber-600 hover:text-red-600 hover:bg-red-50'
