@@ -89,20 +89,20 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   }, [immediateSave, debouncedSave]);
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-4 sm:space-y-6 relative">
       {/* Anonymous Mixtape Warning */}
       {isAnonymousMixtape && (
-        <div className={`p-4 rounded-lg border-2 ${
+        <div className={`p-3 sm:p-4 rounded-lg border-2 ${
           theme === 'dark' 
             ? 'bg-amber-900/20 border-amber-600 text-amber-200' 
             : 'bg-amber-50 border-amber-300 text-amber-800'
         }`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="font-semibold mb-2">
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">
                 {isAuthenticated ? 'Claim this mixtape' : 'Sign in to save this mixtape'}
               </h3>
-              <p className="text-sm mb-3">
+              <p className="text-xs sm:text-sm mb-3">
                 {isAuthenticated 
                   ? 'This mixtape was created anonymously. Click below to attach it to your account so you can find it later and control who can edit it.'
                   : 'This mixtape was created anonymously. Sign in to attach it to your account so you can find it later and control who can edit it.'
@@ -111,7 +111,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
               <button
                 onClick={handleClaimMixtape}
                 disabled={isClaiming}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm sm:text-base ${
                   isClaiming 
                     ? 'opacity-50 cursor-not-allowed' 
                     : 'hover:opacity-80'
@@ -131,14 +131,14 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
       <HeaderContainer>
         {isSaving && (
           <div 
-            className={`absolute top-4 right-4 text-sm flex items-center px-3 py-2 rounded-lg shadow-sm border z-10 ${
+            className={`absolute top-2 sm:top-4 right-2 sm:right-4 text-xs sm:text-sm flex items-center px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm border z-10 ${
               theme === 'dark' 
                 ? 'text-amber-300 bg-amber-900/20 border-amber-700' 
                 : 'text-amber-600 bg-amber-50 border-amber-200'
             }`} 
             data-testid="saving-indicator"
           >
-            <div className={`animate-spin rounded-full h-4 w-4 border-b-2 mr-2 ${
+            <div className={`animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 mr-1 sm:mr-2 ${
               theme === 'dark' ? 'border-amber-300' : 'border-amber-600'
             }`}></div>
             Saving...

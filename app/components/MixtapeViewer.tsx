@@ -22,23 +22,23 @@ export default function MixtapeViewer({ mixtape }: MixtapeViewerProps) {
       <EditButton mixtape={mixtape} />
       {/* Grain overlay */}
       <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
-      <div className="relative z-10 w-full max-w-md px-4 pt-8 pb-24 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-md px-4 sm:px-6 pt-4 sm:pt-8 pb-20 sm:pb-24 flex flex-col items-center">
         <CassetteSVG isAnimated={false} />
-        <h1 className="text-3xl sm:text-4xl font-bold text-amber-900 dark:text-amber-100 text-center mb-4 drop-shadow-sm">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-900 dark:text-amber-100 text-center mb-3 sm:mb-4 drop-shadow-sm">
           {mixtape.name}
         </h1>
         {mixtape.intro_text && (
-          <p className="text-lg text-amber-800 dark:text-amber-200 text-center mb-8 whitespace-pre-line font-medium" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
+          <p className="text-base sm:text-lg text-amber-800 dark:text-amber-200 text-center mb-6 sm:mb-8 whitespace-pre-line font-medium px-2" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
             {mixtape.intro_text}
           </p>
         )}
         <button
           onClick={handleNext}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-20 bg-amber-700 hover:bg-amber-800 text-white rounded-full shadow-lg px-8 py-4 flex items-center gap-2 text-lg font-semibold transition-all duration-200 active:scale-95"
+          className="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 bg-amber-700 hover:bg-amber-800 text-white rounded-full shadow-lg px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-2 text-base sm:text-lg font-semibold transition-all duration-200 active:scale-95"
           style={{boxShadow: '0 4px 24px #bfa76a33'}}
         >
           <span>Next</span>
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="sm:w-7 sm:h-7">
             <circle cx="14" cy="14" r="14" fill="#fff" fillOpacity="0.18" />
             <polygon points="10,8 20,14 10,20" fill="#fff" />
           </svg>

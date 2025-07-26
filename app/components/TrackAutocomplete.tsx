@@ -197,14 +197,14 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
   };
 
   const renderTrackItem = (track: TrackSearchResult, isSelected: boolean) => (
-    <div className="flex items-center space-x-3">
+    <div className="flex items-center space-x-2 sm:space-x-3">
       <img
         src={track.album.images[0]?.url || '/placeholder-album.png'}
         alt={track.album.name}
-        className="w-12 h-12 rounded object-cover"
+        className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover flex-shrink-0"
       />
       <div className="flex-1 min-w-0">
-        <div className={`text-sm font-medium truncate ${
+        <div className={`text-xs sm:text-sm font-medium truncate ${
           theme === 'dark' ? 'text-neutral-100' : 'text-amber-900'
         }`}>
           {track.name}
