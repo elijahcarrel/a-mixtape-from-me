@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Formik, Form, Field } from 'formik';
 import TrackAutocomplete from './TrackAutocomplete';
 import TrackList from './TrackList';
@@ -19,8 +19,156 @@ interface MixtapeEditorProps {
   onMixtapeClaimed?: () => void;
 }
 
+interface FormValues {
+  name: string;
+  intro_text: string;
+  is_public: boolean;
+  tracks: (MixtapeTrackResponse | MixtapeTrackRequest)[];
+}
+
+interface MixtapeEditorFormProps {
+  mixtape: MixtapeResponse;
+  values: FormValues;
+  setFieldValue: (field: string, value: any) => void;
+  handleSave: (values: FormValues, immediate: boolean) => void;
+}
+
+function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }: MixtapeEditorFormProps) {
+  const { theme } = useTheme();
+
+  const addTrack = (spotifyUri: string, trackData: TrackDetails) => {
+    const newTrack: MixtapeTrackRequest | MixtapeTrackResponse = {
+      track_position: values.tracks.length + 1,
+      track_text: undefined,
+      track: trackData,
+      spotify_uri: trackData.uri,
+    };
+    
+    const updatedValues = {
+      ...values,
+      tracks: [...values.tracks, newTrack]
+    };
+    
+    // Update all form fields with the new values
+    setFieldValue('tracks', updatedValues.tracks);
+    handleSave(updatedValues, true); // Immediate save for track changes
+  };
+
+  const editTrackText = (position: number, newText: string) => {
+    const updatedTracks = values.tracks.map((track: MixtapeTrackResponse | MixtapeTrackRequest) =>
+      track.track_position === position ? { ...track, track_text: newText } : track
+    );
+    
+    const updatedValues = {
+      ...values,
+      tracks: updatedTracks
+    };
+    
+    setFieldValue('tracks', updatedTracks);
+    handleSave(updatedValues, true); // Immediate save for track changes
+  };
+
+  const removeTrack = (position: number) => {
+    const updatedTracks = values.tracks
+      .filter((track: MixtapeTrackResponse | MixtapeTrackRequest) => track.track_position !== position)
+      .map((track: MixtapeTrackResponse | MixtapeTrackRequest, index: number) => ({
+        ...track,
+        track_position: index + 1
+      }));
+    
+    const updatedValues = {
+      ...values,
+      tracks: updatedTracks
+    };
+    
+    setFieldValue('tracks', updatedTracks);
+    handleSave(updatedValues, true); // Immediate save for track changes
+  };
+
+  return (
+    <div className="space-y-6">
+      <Form className="space-y-6">
+        {/* Mixtape Title */}
+        <div>
+          <Field
+            name="name"
+            type="text"
+            placeholder="Enter mixtape title..."
+            className={`w-full text-3xl font-bold bg-transparent border-b-2 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${
+              theme === 'dark'
+                ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
+                : 'border-amber-300 text-neutral-900 focus:border-amber-600'
+            }`}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setFieldValue('name', e.target.value);
+              handleSave({ ...values, name: e.target.value }, false); // Debounced save for text changes
+            }}
+          />
+        </div>
+
+        {/* Intro Text */}
+        <div>
+          <Field
+            name="intro_text"
+            as="textarea"
+            placeholder="Add some intro text for your mixtape..."
+            rows={3}
+            className={`w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none ${
+              theme === 'dark'
+                ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
+                : 'border-amber-300 text-neutral-900 focus:border-amber-600'
+            }`}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+              setFieldValue('intro_text', e.target.value);
+              handleSave({ ...values, intro_text: e.target.value }, false); // Debounced save for text changes
+            }}
+          />
+        </div>
+
+        {/* Public/Private Toggle */}
+        <div className="flex items-center space-x-3">
+          <Field
+            name="is_public"
+            type="checkbox"
+            id="is_public"
+            className={`w-4 h-4 bg-transparent border rounded focus:ring-2 focus:ring-offset-0 ${
+              theme === 'dark'
+                ? 'text-amber-400 border-amber-600 focus:ring-amber-500'
+                : 'text-amber-600 border-amber-300 focus:ring-amber-500'
+            }`}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setFieldValue('is_public', e.target.checked);
+              handleSave({ ...values, is_public: e.target.checked }, false); // Debounced save for text changes
+            }}
+          />
+          <label htmlFor="is_public" className={theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}>
+            Make this mixtape public
+          </label>
+        </div>
+      </Form>
+
+      {/* Track Autocomplete */}
+      <div className="space-y-4">
+        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>Add Tracks</h2>
+        <TrackAutocomplete onTrackSelect={addTrack} />
+      </div>
+
+      {/* Track List */}
+      <div className="space-y-4">
+        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
+          Tracks ({values.tracks.length})
+        </h2>
+        <TrackList 
+          tracks={values.tracks.map(normalizeTrackToResponse)} 
+          onRemoveTrack={removeTrack} 
+          onEditTrackText={editTrackText} 
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEditorProps) {
-  const [tracks, setTracks] = useState<(MixtapeTrackResponse | MixtapeTrackRequest)[]>(mixtape.tracks);
   const [isSaving, setIsSaving] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
@@ -52,16 +200,18 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     }
   };
 
-  // Debounced save function that always uses the latest tracks
+  // Debounced save function for text changes
   const debouncedSave = useCallback(
-    debounce(async (values: any, tracksOverride: (MixtapeTrackResponse | MixtapeTrackRequest)[]) => {
+    debounce(async (values: FormValues) => {
       setIsSaving(true);
       try {
         await makeRequest(`/api/mixtape/${mixtape.public_id}`, {
           method: 'PUT',
           body: {
-            ...values,
-            tracks: tracksOverride.map(normalizeTrackToRequest)
+            name: values.name,
+            intro_text: values.intro_text,
+            is_public: values.is_public,
+            tracks: values.tracks.map(normalizeTrackToRequest)
           }
         });
       } catch (error) {
@@ -73,47 +223,34 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     [mixtape.public_id, makeRequest]
   );
 
-  // Update tracks when mixtape changes.
-  useEffect(() => {
-    setTracks(mixtape.tracks);
-  }, [mixtape.tracks]);
+  // Immediate save function for track changes
+  const immediateSave = useCallback(async (values: FormValues) => {
+    setIsSaving(true);
+    try {
+      await makeRequest(`/api/mixtape/${mixtape.public_id}`, {
+        method: 'PUT',
+        body: {
+          name: values.name,
+          intro_text: values.intro_text,
+          is_public: values.is_public,
+          tracks: values.tracks.map(normalizeTrackToRequest)
+        }
+      });
+    } catch (error) {
+      console.error('Error saving mixtape:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [mixtape.public_id, makeRequest]);
 
-  const handleFormChange = (values: any) => {
-    debouncedSave(values, tracks);
-  };
-
-  const addTrack = (spotifyUri: string, trackData: TrackDetails) => {
-    const newTrack: MixtapeTrackRequest | MixtapeTrackResponse = {
-      track_position: tracks.length + 1,
-      // TODO: Add UI for editing track_text (personal message) in the future
-      track_text: undefined,
-      track: trackData,
-      spotify_uri: trackData.uri,
-    };
-    const updatedTracks = [...tracks, newTrack];
-    setTracks(updatedTracks);
-    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
-  };
-
-  const editTrackText = (position: number, newText: string) => {
-    const updatedTracks = tracks.map(track =>
-      track.track_position === position ? { ...track, track_text: newText } : track
-    );
-    setTracks(updatedTracks);
-    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
-  };
-
-  const removeTrack = (position: number) => {
-    const updatedTracks = tracks
-      .filter(track => track.track_position !== position)
-      .map((track, index) => ({
-        ...track,
-        track_position: index + 1
-      }));
-    setTracks(updatedTracks);
-    // Trigger save with updated tracks.
-    debouncedSave({ name: mixtape.name, intro_text: mixtape.intro_text, is_public: mixtape.is_public }, updatedTracks);
-  };
+  // Unified save handler
+  const handleSave = useCallback(async (values: FormValues, immediate: boolean = false) => {
+    if (immediate) {
+      await immediateSave(values);
+    } else {
+      debouncedSave(values);
+    }
+  }, [immediateSave, debouncedSave]);
 
   return (
     <div className="space-y-6 relative">
@@ -177,86 +314,21 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         initialValues={{
           name: mixtape.name,
           intro_text: mixtape.intro_text || '',
-          is_public: mixtape.is_public
+          is_public: mixtape.is_public,
+          tracks: mixtape.tracks
         }}
-        onSubmit={() => {}} // We handle saving via debounced function
+        enableReinitialize={true}
+        onSubmit={() => {}} // We handle saving via our custom handlers
       >
         {({ values, setFieldValue }) => (
-          <Form className="space-y-6">
-            {/* Mixtape Title */}
-            <div>
-              <Field
-                name="name"
-                type="text"
-                placeholder="Enter mixtape title..."
-                className={`w-full text-3xl font-bold bg-transparent border-b-2 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${
-                  theme === 'dark'
-                    ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
-                    : 'border-amber-300 text-neutral-900 focus:border-amber-600'
-                }`}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setFieldValue('name', e.target.value);
-                  handleFormChange({ ...values, name: e.target.value });
-                }}
-              />
-            </div>
-
-            {/* Intro Text */}
-            <div>
-              <Field
-                name="intro_text"
-                as="textarea"
-                placeholder="Add some intro text for your mixtape..."
-                rows={3}
-                className={`w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none ${
-                  theme === 'dark'
-                    ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
-                    : 'border-amber-300 text-neutral-900 focus:border-amber-600'
-                }`}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  setFieldValue('intro_text', e.target.value);
-                  handleFormChange({ ...values, intro_text: e.target.value });
-                }}
-              />
-            </div>
-
-            {/* Public/Private Toggle */}
-            <div className="flex items-center space-x-3">
-              <Field
-                name="is_public"
-                type="checkbox"
-                id="is_public"
-                className={`w-4 h-4 bg-transparent border rounded focus:ring-2 focus:ring-offset-0 ${
-                  theme === 'dark'
-                    ? 'text-amber-400 border-amber-600 focus:ring-amber-500'
-                    : 'text-amber-600 border-amber-300 focus:ring-amber-500'
-                }`}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setFieldValue('is_public', e.target.checked);
-                  handleFormChange({ ...values, is_public: e.target.checked });
-                }}
-              />
-              <label htmlFor="is_public" className={theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}>
-                Make this mixtape public
-              </label>
-            </div>
-          </Form>
+          <MixtapeEditorForm
+            mixtape={mixtape}
+            values={values}
+            setFieldValue={setFieldValue}
+            handleSave={handleSave}
+          />
         )}
       </Formik>
-
-      {/* Track Autocomplete */}
-      <div className="space-y-4">
-        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>Add Tracks</h2>
-        <TrackAutocomplete onTrackSelect={addTrack} />
-      </div>
-
-      {/* Track List */}
-      <div className="space-y-4">
-        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
-          Tracks ({tracks.length})
-        </h2>
-        <TrackList tracks={tracks.map(normalizeTrackToResponse)} onRemoveTrack={removeTrack} onEditTrackText={editTrackText} />
-      </div>
 
       {/* Preview Button - floating bottom right */}
       <PreviewButton mixtape={mixtape} />
