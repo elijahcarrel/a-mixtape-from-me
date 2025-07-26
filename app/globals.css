@@ -25,15 +25,6 @@ html.dark body {
   color: #F4EDE4;
 }
 
-/* Make sure all containers use the card background */
-.main-container, .content-pane {
-  background: var(--card-bg);
-}
-
-html.dark .main-container, html.dark .content-pane {
-  background: #23201c;
-}
-
 /* Light mode only: fix Stack popover dropdown background and menu item hover/focus */
 html:not(.dark) .stack-scope.bg-popover,
 html:not(.dark) .stack-scope .bg-popover {

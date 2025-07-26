@@ -73,13 +73,11 @@ export default function RootLayout({
           <ThemeProvider>
             <DynamicTheme theme={vintageTheme}>
               <MainContainer>
-                <ContentPane>
-                  <HeaderContainer>
-                    <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
-                    <UserButtonHeader />
-                  </HeaderContainer>
-                  {children}
-                </ContentPane>
+                <HeaderContainer>
+                  <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
+                  <UserButtonHeader />
+                </HeaderContainer>
+                {children}
               </MainContainer>
             </DynamicTheme>
           </ThemeProvider>

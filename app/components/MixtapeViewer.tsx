@@ -18,7 +18,7 @@ export default function MixtapeViewer({ mixtape }: MixtapeViewerProps) {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-start bg-amber-50 dark:bg-amber-950 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
       <EditButton mixtape={mixtape} />
       {/* Grain overlay */}
       <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
