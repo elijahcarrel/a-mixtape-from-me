@@ -10,3 +10,5 @@ else
     echo "✅ - Build can proceed"
     exit 1; # Exit with 1 to trigger the build
 fi
+
+# Fake comment to trigger a build.
