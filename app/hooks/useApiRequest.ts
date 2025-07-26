@@ -19,7 +19,6 @@ interface UseApiRequestReturn<T = any> {
   refetch: () => void;
 }
 
-// Shared request logic
 async function makeAuthenticatedRequest<T = any>(
   url: string,
   options: {
@@ -67,7 +66,11 @@ async function makeAuthenticatedRequest<T = any>(
   return response.json();
 }
 
-// Hook for making one-off authenticated API requests
+// useAuthenticatedRequest:
+// - Returns a makeRequest function for one-off API calls
+// - Used for imperative operations (like saving, claiming, searching)
+// - Returns a Promise directly
+// - Used in components that need to trigger API calls in response to user actions
 export function useAuthenticatedRequest() {
   const user = useUser();
   const router = useRouter();
@@ -86,6 +89,11 @@ export function useAuthenticatedRequest() {
   return { makeRequest };
 }
 
+// useApiRequest:
+// - Returns state (data, loading, error, refetch) for reactive data fetching
+// - Used for declarative data fetching that automatically runs on mount
+// - Manages loading/error states internally
+// - Used in pages/components that need to display data from the API
 export function useApiRequest<T = any>({
   url,
   method = 'GET',
