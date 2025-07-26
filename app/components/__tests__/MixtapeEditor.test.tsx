@@ -267,12 +267,7 @@ describe('MixtapeEditor', () => {
     const editNoteButton = screen.getByTestId('edit-track-text-1');
     fireEvent.click(editNoteButton);
     
-    // Fast-forward debounce timer
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
-    
-    // Should call save API with updated track text
+    // Should call save API immediately (no debounce for track changes)
     await waitFor(() => {
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
         method: 'PUT',
@@ -332,11 +327,7 @@ describe('MixtapeEditor', () => {
     const addTrackButton = screen.getByTestId('add-track-button');
     fireEvent.click(addTrackButton);
     
-    // Fast-forward debounce timer
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
-    
+    // Should call save API immediately (no debounce for track changes)
     await waitFor(() => {
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
         method: 'PUT',
@@ -375,11 +366,7 @@ describe('MixtapeEditor', () => {
     const removeButton = screen.getByTestId('remove-track-1');
     fireEvent.click(removeButton);
     
-    // Fast-forward debounce timer
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
-    
+    // Should call save API immediately (no debounce for track changes)
     await waitFor(() => {
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
         method: 'PUT',
@@ -451,6 +438,271 @@ describe('MixtapeEditor', () => {
     const previewButton = screen.getByTestId('preview-button');
     fireEvent.click(previewButton);
     expect(mockPush).toHaveBeenCalledWith('/mixtape/test-mixtape-123');
+  });
+
+  // NEW TESTS: Testing the bug fix and new functionality
+
+  describe('Form Value Persistence', () => {
+    it('preserves form values when tracks are added', async () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // First, change the form values
+      const nameInput = screen.getByDisplayValue('Test Mixtape');
+      const introInput = screen.getByDisplayValue('A test mixtape');
+      
+      fireEvent.change(nameInput, { target: { value: 'My Updated Mixtape' } });
+      fireEvent.change(introInput, { target: { value: 'This is my updated intro text' } });
+      
+      // Wait for debounced save to be called
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      // Clear the mock to verify the next call
+      mockMakeRequest.mockClear();
+      
+      // Now add a track
+      const addTrackButton = screen.getByTestId('add-track-button');
+      fireEvent.click(addTrackButton);
+      
+      // Verify that the save includes the updated form values, not the original ones
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
+          method: 'PUT',
+          body: {
+            name: 'My Updated Mixtape',
+            intro_text: 'This is my updated intro text',
+            is_public: false,
+            tracks: [
+              {
+                track_position: 1,
+                track_text: 'This song always reminds me of our road trip to Big Sur!',
+                spotify_uri: 'spotify:track:123',
+              },
+              {
+                track_position: 2,
+                track_text: undefined,
+                spotify_uri: 'spotify:track:456',
+              },
+            ],
+          },
+        });
+      });
+    });
+
+    it('preserves form values when tracks are removed', async () => {
+      const mixtapeWithMultipleTracks = {
+        ...mockMixtapeData,
+        tracks: [
+          { track_position: 1, track_text: 'Track 1', track: mockTrackDetails },
+          { track_position: 2, track_text: 'Track 2', track: mockTrackDetails2 },
+        ],
+      };
+      
+      render(<MixtapeEditor mixtape={mixtapeWithMultipleTracks} />);
+      
+      // First, change the form values
+      const nameInput = screen.getByDisplayValue('Test Mixtape');
+      const introInput = screen.getByDisplayValue('A test mixtape');
+      
+      fireEvent.change(nameInput, { target: { value: 'My Updated Mixtape' } });
+      fireEvent.change(introInput, { target: { value: 'This is my updated intro text' } });
+      
+      // Wait for debounced save to be called
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      // Clear the mock to verify the next call
+      mockMakeRequest.mockClear();
+      
+      // Now remove a track
+      const removeButton = screen.getByTestId('remove-track-1');
+      fireEvent.click(removeButton);
+      
+      // Verify that the save includes the updated form values, not the original ones
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
+          method: 'PUT',
+          body: {
+            name: 'My Updated Mixtape',
+            intro_text: 'This is my updated intro text',
+            is_public: false,
+            tracks: [
+              {
+                track_position: 1,
+                track_text: 'Track 2',
+                spotify_uri: mockTrackDetails2.uri,
+              },
+            ],
+          },
+        });
+      });
+    });
+
+    it('preserves form values when track text is edited', async () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // First, change the form values
+      const nameInput = screen.getByDisplayValue('Test Mixtape');
+      const introInput = screen.getByDisplayValue('A test mixtape');
+      
+      fireEvent.change(nameInput, { target: { value: 'My Updated Mixtape' } });
+      fireEvent.change(introInput, { target: { value: 'This is my updated intro text' } });
+      
+      // Wait for debounced save to be called
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      // Clear the mock to verify the next call
+      mockMakeRequest.mockClear();
+      
+      // Now edit track text
+      const editNoteButton = screen.getByTestId('edit-track-text-1');
+      fireEvent.click(editNoteButton);
+      
+      // Verify that the save includes the updated form values, not the original ones
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
+          method: 'PUT',
+          body: {
+            name: 'My Updated Mixtape',
+            intro_text: 'This is my updated intro text',
+            is_public: false,
+            tracks: [
+              {
+                track_position: 1,
+                track_text: 'Updated note for track 1',
+                spotify_uri: 'spotify:track:123',
+              },
+            ],
+          },
+        });
+      });
+    });
+  });
+
+  describe('Save Timing', () => {
+    it('uses immediate save for track operations', async () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // Add a track
+      const addTrackButton = screen.getByTestId('add-track-button');
+      fireEvent.click(addTrackButton);
+      
+      // Should save immediately without waiting for debounce
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalled();
+      });
+      
+      // Verify no debounce was used (should be called immediately)
+      expect(mockMakeRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses debounced save for text field changes', async () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // Change the name
+      const nameInput = screen.getByDisplayValue('Test Mixtape');
+      fireEvent.change(nameInput, { target: { value: 'Updated Name' } });
+      
+      // Should not save immediately
+      expect(mockMakeRequest).not.toHaveBeenCalled();
+      
+      // Should save after debounce
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalled();
+      });
+    });
+
+    it('uses debounced save for intro text changes', async () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // Change the intro text
+      const introInput = screen.getByDisplayValue('A test mixtape');
+      fireEvent.change(introInput, { target: { value: 'Updated intro' } });
+      
+      // Should not save immediately
+      expect(mockMakeRequest).not.toHaveBeenCalled();
+      
+      // Should save after debounce
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalled();
+      });
+    });
+
+    it('uses debounced save for public/private toggle', async () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // Toggle public/private
+      const publicToggle = screen.getByRole('checkbox');
+      fireEvent.click(publicToggle);
+      
+      // Should not save immediately
+      expect(mockMakeRequest).not.toHaveBeenCalled();
+      
+      // Should save after debounce
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Form State Management', () => {
+    it('updates form when mixtape prop changes', () => {
+      const { rerender } = render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // Verify initial values
+      expect(screen.getByDisplayValue('Test Mixtape')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('A test mixtape')).toBeInTheDocument();
+      
+      // Create updated mixtape data
+      const updatedMixtapeData = {
+        ...mockMixtapeData,
+        name: 'Updated Mixtape Name',
+        intro_text: 'Updated intro text',
+        is_public: true,
+      };
+      
+      // Rerender with new data
+      rerender(<MixtapeEditor mixtape={updatedMixtapeData} />);
+      
+      // Verify form values are updated
+      expect(screen.getByDisplayValue('Updated Mixtape Name')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Updated intro text')).toBeInTheDocument();
+      expect(screen.getByRole('checkbox')).toBeChecked();
+    });
+
+    it('maintains form state during track operations', async () => {
+      render(<MixtapeEditor mixtape={mockMixtapeData} />);
+      
+      // Change form values
+      const nameInput = screen.getByDisplayValue('Test Mixtape');
+      fireEvent.change(nameInput, { target: { value: 'Modified Title' } });
+      
+      // Verify the change is reflected in the input
+      expect(screen.getByDisplayValue('Modified Title')).toBeInTheDocument();
+      
+      // Add a track
+      const addTrackButton = screen.getByTestId('add-track-button');
+      fireEvent.click(addTrackButton);
+      
+      // Verify the form value is still there after track operation
+      expect(screen.getByDisplayValue('Modified Title')).toBeInTheDocument();
+    });
   });
 
   describe('Anonymous Mixtape Warning', () => {
