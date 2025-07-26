@@ -1,6 +1,7 @@
 # This script is called by Vercel to determine if the build should be skipped.
-# It is used to skip the build for Dependabot PRs.
 # We configure this script to be called in the Vercel project settings.
+
+# It is used to skip the build for Dependabot PRs.
 
 if [ "$VERCEL_GIT_COMMIT_AUTHOR_LOGIN" == "dependabot[bot]" ]; then
     echo "🛑 - Build cancelled for Dependabot PR"
