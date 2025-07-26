@@ -19,7 +19,58 @@ interface UseApiRequestReturn<T = any> {
   refetch: () => void;
 }
 
-// Hook for making one-off authenticated API requests
+async function makeAuthenticatedRequest<T = any>(
+  url: string,
+  options: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    body?: any;
+    headers?: Record<string, string>;
+  } = {},
+  user: any,
+  router: any
+): Promise<T> {
+  const { method = 'GET', body, headers = {} } = options;
+  
+  // Get auth headers
+  const authHeaders = await getAuthHeaders(user);
+  const requestHeaders = {
+    'Content-Type': 'application/json',
+    ...authHeaders,
+    ...headers,
+  };
+
+  const requestOptions: RequestInit = {
+    method,
+    headers: requestHeaders,
+  };
+
+  if (body && method !== 'GET') {
+    requestOptions.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, requestOptions);
+
+  if (response.status === 401) {
+    // Redirect to login with current page as next parameter
+    const currentPath = window.location.pathname + window.location.search;
+    const loginUrl = `/handler/signup?next=${encodeURIComponent(currentPath)}`;
+    router.replace(loginUrl);
+    throw new Error('Authentication required');
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+// useAuthenticatedRequest:
+// - Returns a makeRequest function for one-off API calls
+// - Used for imperative operations (like saving, claiming, searching)
+// - Returns a Promise directly
+// - Used in components that need to trigger API calls in response to user actions
 export function useAuthenticatedRequest() {
   const user = useUser();
   const router = useRouter();
@@ -32,46 +83,17 @@ export function useAuthenticatedRequest() {
       headers?: Record<string, string>;
     } = {}
   ): Promise<T> => {
-    const { method = 'GET', body, headers = {} } = options;
-    
-    // Get auth headers
-    const authHeaders = await getAuthHeaders(user);
-    const requestHeaders = {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-      ...headers,
-    };
-
-    const requestOptions: RequestInit = {
-      method,
-      headers: requestHeaders,
-    };
-
-    if (body && method !== 'GET') {
-      requestOptions.body = JSON.stringify(body);
-    }
-
-    const response = await fetch(url, requestOptions);
-
-    if (response.status === 401) {
-      // Redirect to login with current page as next parameter
-      const currentPath = window.location.pathname + window.location.search;
-      const loginUrl = `/handler/signup?next=${encodeURIComponent(currentPath)}`;
-      router.replace(loginUrl);
-      throw new Error('Authentication required');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
+    return makeAuthenticatedRequest(url, options, user, router);
   };
 
   return { makeRequest };
 }
 
+// useApiRequest:
+// - Returns state (data, loading, error, refetch) for reactive data fetching
+// - Used for declarative data fetching that automatically runs on mount
+// - Manages loading/error states internally
+// - Used in pages/components that need to display data from the API
 export function useApiRequest<T = any>({
   url,
   method = 'GET',
@@ -91,39 +113,7 @@ export function useApiRequest<T = any>({
     setError(null);
     
     try {
-      // Get auth headers using shared logic
-      const authHeaders = await getAuthHeaders(user);
-      const requestHeaders = {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...headers,
-      };
-
-      const requestOptions: RequestInit = {
-        method,
-        headers: requestHeaders,
-      };
-
-      if (body && method !== 'GET') {
-        requestOptions.body = JSON.stringify(body);
-      }
-
-      const response = await fetch(url, requestOptions);
-
-      if (response.status === 401) {
-        // Redirect to login with current page as next parameter
-        const currentPath = window.location.pathname + window.location.search;
-        const loginUrl = `/handler/signup?next=${encodeURIComponent(currentPath)}`;
-        router.replace(loginUrl);
-        return;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `HTTP error! status: ${response.status}`);
-      }
-
-      const responseData = await response.json();
+      const responseData = await makeAuthenticatedRequest(url, { method, body, headers }, user, router);
       setData(responseData as T);
       onSuccess?.(responseData as T);
     } catch (err: any) {
