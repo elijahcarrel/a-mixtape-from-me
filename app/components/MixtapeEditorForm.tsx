@@ -72,15 +72,15 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
   };
 
   return (
-    <div className="space-y-6">
-      <Form className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      <Form className="space-y-4 sm:space-y-6">
         {/* Mixtape Title */}
         <div>
           <Field
             name="name"
             type="text"
             placeholder="Enter mixtape title..."
-            className={`w-full text-3xl font-bold bg-transparent border-b-2 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${theme === 'dark'
+            className={`w-full text-xl sm:text-2xl md:text-3xl font-bold bg-transparent border-b-2 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${theme === 'dark'
                 ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
                 : 'border-amber-300 text-neutral-900 focus:border-amber-600'}`}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +96,7 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             as="textarea"
             placeholder="Add some intro text for your mixtape..."
             rows={3}
-            className={`w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none ${theme === 'dark'
+            className={`w-full bg-transparent border rounded-lg p-2 sm:p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none text-sm sm:text-base ${theme === 'dark'
                 ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
                 : 'border-amber-300 text-neutral-900 focus:border-amber-600'}`}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -118,21 +118,21 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
               setFieldValue('is_public', e.target.checked);
               handleSave({ ...values, is_public: e.target.checked }, false); // Debounced save for text changes
             } } />
-          <label htmlFor="is_public" className={theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}>
+          <label htmlFor="is_public" className={`text-sm sm:text-base ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
             Make this mixtape public
           </label>
         </div>
       </Form>
 
       {/* Track Autocomplete */}
-      <div className="space-y-4">
-        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>Add Tracks</h2>
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>Add Tracks</h2>
         <TrackAutocomplete onTrackSelect={addTrack} />
       </div>
 
       {/* Track List */}
-      <div className="space-y-4">
-        <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
           Tracks ({values.tracks.length})
         </h2>
         <TrackList

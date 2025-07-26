@@ -25,15 +25,6 @@ html.dark body {
   color: #F4EDE4;
 }
 
-/* Make sure all containers use the card background */
-.main-container, .content-pane {
-  background: var(--card-bg);
-}
-
-html.dark .main-container, html.dark .content-pane {
-  background: #23201c;
-}
-
 /* Light mode only: fix Stack popover dropdown background and menu item hover/focus */
 html:not(.dark) .stack-scope.bg-popover,
 html:not(.dark) .stack-scope .bg-popover {
@@ -52,4 +43,27 @@ html:not(.dark) .stack-scope .focus\:text-accent-foreground:focus,
 html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-state="open"],
 html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-highlighted] {
   color: #2D2D2D;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Ensure minimum touch target size */
+  button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve text readability on small screens */
+  input, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Better spacing for mobile */
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
 }

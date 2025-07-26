@@ -8,7 +8,7 @@ interface CassetteSVGProps {
 export default function CassetteSVG({ isAnimated }: CassetteSVGProps) {
   // Add spinning animation class to spools if isAnimated is true
   return (
-    <svg viewBox="0 0 400 220" width="100%" height="180" className="mx-auto mb-6 drop-shadow-lg" aria-label="Cassette tape">
+    <svg viewBox="0 0 400 220" width="100%" height="180" className="mx-auto mb-6" aria-label="Cassette tape">
       {/* Outer black body */}
       <rect x="8" y="8" width="384" height="204" rx="12" fill="#232323" stroke="#111" strokeWidth="4" />
       {/* Screws */}
@@ -25,7 +25,7 @@ export default function CassetteSVG({ isAnimated }: CassetteSVGProps) {
       {/* Colored stripes */}
       <rect x="32" y="84" width="336" height="14" fill="#e74c3c" />
       <rect x="32" y="98" width="336" height="14" fill="#f39c12" />
-      <rect x="32" y="112" width="336" height="14" fill="#f7d358" />
+      <rect x="32" y="112" width="336" height="14" fill="#e67e22" />
       {/* Spools (animated if isAnimated) */}
       <g>
         <g className={isAnimated ? styles.cassetteSpoolSpin : ''} style={{ transformOrigin: '120px 140px' }}>
