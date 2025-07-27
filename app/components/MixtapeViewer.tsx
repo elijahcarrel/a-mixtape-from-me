@@ -17,16 +17,23 @@ export default function MixtapeViewer({ mixtape }: MixtapeViewerProps) {
     }
   };
 
+  // Prepare label text for the cassette
+  const labelText = {
+    line1: mixtape.name,
+    line2: mixtape.intro_text ? mixtape.intro_text.split('\n')[0] : undefined,
+    line3: mixtape.intro_text && mixtape.intro_text.split('\n').length > 1 
+      ? mixtape.intro_text.split('\n')[1] : undefined,
+    line4: mixtape.intro_text && mixtape.intro_text.split('\n').length > 2 
+      ? mixtape.intro_text.split('\n')[2] : undefined,
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
       <EditButton mixtape={mixtape} />
       {/* Grain overlay */}
       <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
       <div className="relative z-10 w-full max-w-md px-4 sm:px-6 pt-4 sm:pt-8 pb-20 sm:pb-24 flex flex-col items-center">
-        <CassetteSVG isAnimated={false} />
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-900 dark:text-amber-100 text-center mb-3 sm:mb-4 drop-shadow-sm">
-          {mixtape.name}
-        </h1>
+        <CassetteSVG isAnimated={false} labelText={labelText} />
         {mixtape.intro_text && (
           <p className="text-base sm:text-lg text-amber-800 dark:text-amber-200 text-center mb-6 sm:mb-8 whitespace-pre-line font-medium px-2" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
             {mixtape.intro_text}
