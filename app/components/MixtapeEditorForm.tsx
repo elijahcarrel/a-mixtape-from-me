@@ -8,6 +8,7 @@ import TrackList from './TrackList';
 export interface FormValues {
   name: string;
   intro_text: string;
+  cassette_text: string;
   is_public: boolean;
   tracks: (MixtapeTrackResponse | MixtapeTrackRequest)[];
 }
@@ -86,6 +87,22 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setFieldValue('name', e.target.value);
               handleSave({ ...values, name: e.target.value }, false); // Debounced save for text changes
+            } } />
+        </div>
+
+        {/* Cassette Text */}
+        <div>
+          <Field
+            name="cassette_text"
+            as="textarea"
+            placeholder="Add some cassette text for your mixtape..."
+            rows={3}
+            className={`w-full bg-transparent border rounded-lg p-2 sm:p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none text-sm sm:text-base ${theme === 'dark'
+                ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
+                : 'border-amber-300 text-neutral-900 focus:border-amber-600'}`}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+              setFieldValue('cassette_text', e.target.value);
+              handleSave({ ...values, cassette_text: e.target.value }, false); // Debounced save for text changes
             } } />
         </div>
 

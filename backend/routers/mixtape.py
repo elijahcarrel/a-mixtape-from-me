@@ -26,6 +26,7 @@ class MixtapeTrackResponse(BaseModel):
 class MixtapeRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the mixtape")
     intro_text: Optional[str] = Field(None, description="Optional intro text")
+    cassette_text: Optional[str] = Field(None, description="Optional cassette text")
     is_public: bool = Field(False, description="Whether the mixtape is public")
     tracks: List[MixtapeTrackRequest] = Field(..., description="List of tracks in the mixtape")
 
@@ -41,6 +42,7 @@ class MixtapeResponse(BaseModel):
     public_id: str
     name: str
     intro_text: Optional[str]
+    cassette_text: Optional[str]
     is_public: bool
     create_time: str
     last_modified_time: str
@@ -73,7 +75,7 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dic
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
     # For anonymous mixtapes, stack_auth_user_id will be None
     try:
-        public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.is_public, enriched_tracks)
+        public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.cassette_text, request.is_public, enriched_tracks)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
@@ -181,7 +183,7 @@ def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request
         if stack_auth_user_id != mixtape["stack_auth_user_id"]:
             raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
     try:
-        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.is_public, enriched_tracks)
+        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.cassette_text, request.is_public, enriched_tracks)
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
     except Exception as e:

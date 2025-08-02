@@ -14,6 +14,7 @@ class Mixtape(SQLModel, table=True):
     public_id: str = Field(unique=True, index=True)
     name: str = Field(max_length=255)
     intro_text: Optional[str] = Field(default=None)
+    cassette_text: Optional[str] = Field(default=None)
     is_public: bool = Field(default=False)
     create_time: datetime = Field(default_factory=datetime.utcnow)
     last_modified_time: datetime = Field(default_factory=datetime.utcnow)
@@ -33,6 +34,7 @@ class MixtapeAudit(SQLModel, table=True):
     public_id: str = Field(index=True)
     name: str = Field(max_length=255)
     intro_text: Optional[str] = Field(default=None)
+    cassette_text: Optional[str] = Field(default=None)
     is_public: bool = Field(default=False)
     create_time: datetime
     last_modified_time: datetime
