@@ -19,116 +19,116 @@ export default function CassetteSVG({ isAnimated, labelText }: CassetteSVGProps)
   };
 
   return (
-    <svg viewBox="0 0 400 280" width="100%" height="220" className="mx-auto mb-6" aria-label="Cassette tape">
+    <svg viewBox="0 0 500 350" width="100%" height="280" className="mx-auto mb-6" aria-label="Cassette tape">
       {/* Outer black body */}
-      <rect x="8" y="8" width="384" height="264" rx="12" fill="#232323" stroke="#111" strokeWidth="4" />
+      <rect x="10" y="10" width="480" height="330" rx="15" fill="#232323" stroke="#111" strokeWidth="5" />
       {/* Screws */}
-      <circle cx="24" cy="24" r="4" fill="#bbb" stroke="#888" strokeWidth="1.5" />
-      <circle cx="376" cy="24" r="4" fill="#bbb" stroke="#888" strokeWidth="1.5" />
-      <circle cx="24" cy="256" r="4" fill="#bbb" stroke="#888" strokeWidth="1.5" />
-      <circle cx="376" cy="256" r="4" fill="#bbb" stroke="#888" strokeWidth="1.5" />
+      <circle cx="30" cy="30" r="5" fill="#bbb" stroke="#888" strokeWidth="2" />
+      <circle cx="470" cy="30" r="5" fill="#bbb" stroke="#888" strokeWidth="2" />
+      <circle cx="30" cy="320" r="5" fill="#bbb" stroke="#888" strokeWidth="2" />
+      <circle cx="470" cy="320" r="5" fill="#bbb" stroke="#888" strokeWidth="2" />
       
       {/* Label area */}
-      <rect x="32" y="24" width="336" height="100" rx="4" fill="#e6e6d6" stroke="#bfa76a" strokeWidth="2" />
+      <rect x="40" y="30" width="420" height="125" rx="5" fill="#e6e6d6" stroke="#bfa76a" strokeWidth="2.5" />
       
       {/* Label lines */}
-      <line x1="48" y1="44" x2="352" y2="44" stroke="#bfa76a" strokeWidth="1" />
-      <line x1="48" y1="64" x2="352" y2="64" stroke="#bfa76a" strokeWidth="1" />
-      <line x1="48" y1="84" x2="352" y2="84" stroke="#bfa76a" strokeWidth="1" />
-      <line x1="48" y1="104" x2="352" y2="104" stroke="#bfa76a" strokeWidth="1" />
+      <line x1="60" y1="55" x2="440" y2="55" stroke="#bfa76a" strokeWidth="1.5" />
+      <line x1="60" y1="80" x2="440" y2="80" stroke="#bfa76a" strokeWidth="1.5" />
+      <line x1="60" y1="105" x2="440" y2="105" stroke="#bfa76a" strokeWidth="1.5" />
+      <line x1="60" y1="130" x2="440" y2="130" stroke="#bfa76a" strokeWidth="1.5" />
       
       {/* Label text using handwritten font */}
       {labelText?.line1 && (
         <text 
-          x="200" y="38" 
+          x="250" y="48" 
           textAnchor="middle" 
-          fontSize="14" 
+          fontSize="18" 
           fontWeight="bold" 
           fill="#6b3e26" 
           fontFamily="var(--font-caveat), cursive"
           style={{ fontVariationSettings: '"wght" 600' }}
         >
-          {truncateText(labelText.line1, 30)}
+          {truncateText(labelText.line1, 35)}
         </text>
       )}
       {labelText?.line2 && (
         <text 
-          x="200" y="58" 
+          x="250" y="73" 
           textAnchor="middle" 
-          fontSize="12" 
+          fontSize="16" 
           fill="#6b3e26" 
           fontFamily="var(--font-caveat), cursive"
         >
-          {truncateText(labelText.line2, 35)}
+          {truncateText(labelText.line2, 40)}
         </text>
       )}
       {labelText?.line3 && (
         <text 
-          x="200" y="78" 
+          x="250" y="98" 
           textAnchor="middle" 
-          fontSize="12" 
+          fontSize="16" 
           fill="#6b3e26" 
           fontFamily="var(--font-caveat), cursive"
         >
-          {truncateText(labelText.line3, 35)}
+          {truncateText(labelText.line3, 40)}
         </text>
       )}
       {labelText?.line4 && (
         <text 
-          x="200" y="98" 
+          x="250" y="123" 
           textAnchor="middle" 
-          fontSize="11" 
+          fontSize="14" 
           fill="#6b3e26" 
           fontFamily="var(--font-caveat), cursive"
         >
-          {truncateText(labelText.line4, 40)}
+          {truncateText(labelText.line4, 45)}
         </text>
       )}
       
       {/* Colored stripes */}
-      <rect x="32" y="124" width="336" height="14" fill="#e74c3c" />
-      <rect x="32" y="138" width="336" height="14" fill="#f39c12" />
-      <rect x="32" y="152" width="336" height="14" fill="#e67e22" />
+      <rect x="40" y="155" width="420" height="18" fill="#e74c3c" />
+      <rect x="40" y="173" width="420" height="18" fill="#f39c12" />
+      <rect x="40" y="191" width="420" height="18" fill="#e67e22" />
       
       {/* Spools (animated if isAnimated) */}
       <g>
-        <g className={isAnimated ? styles.cassetteSpoolSpin : ''} style={{ transformOrigin: '120px 180px' }}>
-          <circle cx="120" cy="180" r="32" fill="#fff" stroke="#bfa76a" strokeWidth="4" />
+        <g className={isAnimated ? styles.cassetteSpoolSpin : ''} style={{ transformOrigin: '150px 225px' }}>
+          <circle cx="150" cy="225" r="40" fill="#fff" stroke="#bfa76a" strokeWidth="5" />
           {[...Array(8)].map((_, i) => {
             const angle = (i * Math.PI) / 4;
-            const x1 = 120 + Math.cos(angle) * 12;
-            const y1 = 180 + Math.sin(angle) * 12;
-            const x2 = 120 + Math.cos(angle) * 20;
-            const y2 = 180 + Math.sin(angle) * 20;
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#bfa76a" strokeWidth="2" />;
+            const x1 = 150 + Math.cos(angle) * 15;
+            const y1 = 225 + Math.sin(angle) * 15;
+            const x2 = 150 + Math.cos(angle) * 25;
+            const y2 = 225 + Math.sin(angle) * 25;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#bfa76a" strokeWidth="2.5" />;
           })}
-          <circle cx="120" cy="180" r="10" fill="#bfa76a" />
+          <circle cx="150" cy="225" r="12" fill="#bfa76a" />
         </g>
-        <g className={isAnimated ? styles.cassetteSpoolSpin : ''} style={{ transformOrigin: '280px 180px' }}>
-          <circle cx="280" cy="180" r="32" fill="#fff" stroke="#bfa76a" strokeWidth="4" />
+        <g className={isAnimated ? styles.cassetteSpoolSpin : ''} style={{ transformOrigin: '350px 225px' }}>
+          <circle cx="350" cy="225" r="40" fill="#fff" stroke="#bfa76a" strokeWidth="5" />
           {[...Array(8)].map((_, i) => {
             const angle = (i * Math.PI) / 4;
-            const x1 = 280 + Math.cos(angle) * 12;
-            const y1 = 180 + Math.sin(angle) * 12;
-            const x2 = 280 + Math.cos(angle) * 20;
-            const y2 = 180 + Math.sin(angle) * 20;
-            return <line key={i+8} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#bfa76a" strokeWidth="2" />;
+            const x1 = 350 + Math.cos(angle) * 15;
+            const y1 = 225 + Math.sin(angle) * 15;
+            const x2 = 350 + Math.cos(angle) * 25;
+            const y2 = 225 + Math.sin(angle) * 25;
+            return <line key={i+8} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#bfa76a" strokeWidth="2.5" />;
           })}
-          <circle cx="280" cy="180" r="10" fill="#bfa76a" />
+          <circle cx="350" cy="225" r="12" fill="#bfa76a" />
         </g>
       </g>
       
       {/* Tape between spools */}
-      <rect x="152" y="174" width="96" height="12" rx="6" fill="#7c4a03" />
+      <rect x="190" y="218" width="120" height="14" rx="7" fill="#7c4a03" />
       
       {/* Bottom holes */}
-      <rect x="60" y="232" width="24" height="10" rx="2" fill="#bbb" />
-      <rect x="316" y="232" width="24" height="10" rx="2" fill="#bbb" />
-      <rect x="192" y="232" width="16" height="10" rx="2" fill="#bbb" />
+      <rect x="75" y="290" width="30" height="12" rx="3" fill="#bbb" />
+      <rect x="395" y="290" width="30" height="12" rx="3" fill="#bbb" />
+      <rect x="235" y="290" width="20" height="12" rx="3" fill="#bbb" />
       
       {/* Side A label */}
-      <rect x="40" y="36" width="24" height="24" rx="3" fill="#6b3e26" />
-      <text x="52" y="54" textAnchor="middle" fontSize="18" fontWeight="bold" fill="#fff" fontFamily="monospace">A</text>
+      <rect x="50" y="45" width="30" height="30" rx="4" fill="#6b3e26" />
+      <text x="65" y="67" textAnchor="middle" fontSize="22" fontWeight="bold" fill="#fff" fontFamily="monospace">A</text>
     </svg>
   );
 } 
