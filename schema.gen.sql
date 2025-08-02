@@ -6,6 +6,7 @@ CREATE TABLE "Mixtape" (
 	public_id VARCHAR NOT NULL, 
 	name VARCHAR(255) NOT NULL, 
 	intro_text VARCHAR, 
+	cassette_text VARCHAR, 
 	is_public BOOLEAN NOT NULL, 
 	create_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	last_modified_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
@@ -13,11 +14,11 @@ CREATE TABLE "Mixtape" (
 	PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX "ix_Mixtape_public_id" ON "Mixtape" (public_id);
+CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON "Mixtape" (stack_auth_user_id, last_modified_time);
 
 CREATE INDEX "ix_Mixtape_stack_auth_user_id" ON "Mixtape" (stack_auth_user_id);
 
-CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON "Mixtape" (stack_auth_user_id, last_modified_time);
+CREATE UNIQUE INDEX "ix_Mixtape_public_id" ON "Mixtape" (public_id);
 
 CREATE TABLE "MixtapeAudit" (
 	id SERIAL NOT NULL, 
@@ -25,6 +26,7 @@ CREATE TABLE "MixtapeAudit" (
 	public_id VARCHAR NOT NULL, 
 	name VARCHAR(255) NOT NULL, 
 	intro_text VARCHAR, 
+	cassette_text VARCHAR, 
 	is_public BOOLEAN NOT NULL, 
 	create_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	last_modified_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 

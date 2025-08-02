@@ -28,6 +28,7 @@ const mockMixtape = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
+  cassette_text: 'Some subtitle',
   is_public: true,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',

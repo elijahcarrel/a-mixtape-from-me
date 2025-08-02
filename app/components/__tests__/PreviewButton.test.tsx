@@ -14,6 +14,7 @@ describe('PreviewButton', () => {
     stack_auth_user_id: 'user1',
     name: 'Test',
     intro_text: '',
+    cassette_text: '',
     is_public: true,
     create_time: '',
     last_modified_time: '',

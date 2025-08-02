@@ -20,11 +20,11 @@ export default function MixtapeViewer({ mixtape }: MixtapeViewerProps) {
   // Prepare label text for the cassette
   const labelText = {
     line1: mixtape.name,
-    line2: mixtape.intro_text ? mixtape.intro_text.split('\n')[0] : undefined,
-    line3: mixtape.intro_text && mixtape.intro_text.split('\n').length > 1 
-      ? mixtape.intro_text.split('\n')[1] : undefined,
-    line4: mixtape.intro_text && mixtape.intro_text.split('\n').length > 2 
-      ? mixtape.intro_text.split('\n')[2] : undefined,
+    line2: mixtape.cassette_text ? mixtape.cassette_text.split('\n')[0] : undefined,
+    line3: mixtape.cassette_text && mixtape.cassette_text.split('\n').length > 1 
+      ? mixtape.cassette_text.split('\n')[1] : undefined,
+    line4: mixtape.cassette_text && mixtape.cassette_text.split('\n').length > 2 
+      ? mixtape.cassette_text.split('\n')[2] : undefined,
   };
 
   return (

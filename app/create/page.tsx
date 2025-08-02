@@ -24,6 +24,7 @@ export default function CreateMixtapePage() {
     body: {
       name: 'Untitled Mixtape',
       intro_text: null,
+      cassette_text: null,
       is_public: isPublic,
       tracks: []
     },

@@ -60,6 +60,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         body: {
           name: values.name,
           intro_text: values.intro_text,
+          cassette_text: values.cassette_text,
           is_public: values.is_public,
           tracks: values.tracks.map(normalizeTrackToRequest)
         }
@@ -150,6 +151,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         initialValues={{
           name: mixtape.name,
           intro_text: mixtape.intro_text || '',
+          cassette_text: mixtape.cassette_text || '',
           is_public: mixtape.is_public,
           tracks: mixtape.tracks
         }}

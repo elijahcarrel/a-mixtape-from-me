@@ -565,6 +565,18 @@
                         "title": "Intro Text",
                         "description": "Optional intro text"
                     },
+                    "cassette_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Cassette Text",
+                        "description": "Optional cassette text"
+                    },
                     "is_public": {
                         "type": "boolean",
                         "title": "Is Public",
@@ -608,6 +620,17 @@
                         ],
                         "title": "Intro Text"
                     },
+                    "cassette_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Cassette Text"
+                    },
                     "is_public": {
                         "type": "boolean",
                         "title": "Is Public"
@@ -644,6 +667,7 @@
                     "public_id",
                     "name",
                     "intro_text",
+                    "cassette_text",
                     "is_public",
                     "create_time",
                     "last_modified_time",
