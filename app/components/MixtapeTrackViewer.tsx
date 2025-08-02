@@ -12,19 +12,21 @@ interface MixtapeTrackViewerProps {
 }
 
 export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrevTrack, onNextTrack }: MixtapeTrackViewerProps) {
+  // Prepare label text for the cassette
+  const labelText = {
+    line1: mixtape.name,
+    line2: `Track ${trackNumber} of ${mixtape.tracks.length}`,
+    line3: track.track.name,
+    line4: track.track.artists.map(a => a.name).join(', '),
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-between overflow-hidden pb-40">
       <EditButton mixtape={mixtape} />
       {/* Grain overlay */}
       <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
-      <div className="relative z-10 w-full max-w-md px-4 pt-8 flex flex-col items-center">
-        <CassetteSVG isAnimated={true} />
-        <div className="w-full text-center mb-4">
-          <h2 className="text-2xl font-bold text-amber-900 dark:text-amber-100 mb-1 truncate">{mixtape.name}</h2>
-          <div className="text-sm text-amber-700 dark:text-amber-200 mb-2">Track {trackNumber} of {mixtape.tracks.length}</div>
-          <div className="text-xl font-semibold text-amber-800 dark:text-amber-100 mb-2 truncate">{track.track.name}</div>
-          <div className="text-base text-amber-700 dark:text-amber-200 mb-2 truncate">{track.track.artists.map(a => a.name).join(', ')}</div>
-        </div>
+      <div className="relative z-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl px-4 pt-8 flex flex-col items-center">
+        <CassetteSVG isAnimated={true} labelText={labelText} />
         {track.track_text && (
           <div className="w-full bg-amber-100/70 dark:bg-amber-900/40 rounded-lg p-4 mb-6 text-amber-900 dark:text-amber-100 text-base shadow-inner whitespace-pre-line" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
             {track.track_text}

@@ -1,7 +1,7 @@
 import "./globals.css";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "../stack";
-import { Inter } from "next/font/google";
+import { Inter, Caveat } from "next/font/google";
 import Link from "next/link";
 import UserButtonHeader from "./components/UserButtonHeader";
 import MainContainer from "./components/layout/MainContainer";
@@ -12,6 +12,10 @@ import ThemeProvider from "./components/ThemeProvider";
 import DynamicTheme from "./components/DynamicTheme";
 
 const inter = Inter({ subsets: ["latin"] });
+const caveat = Caveat({ 
+  subsets: ["latin"],
+  variable: "--font-caveat",
+});
 
 export const metadata = {
   title: 'A Mixtape From Me',
@@ -68,7 +72,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${caveat.variable}`}>
         <StackProvider app={stackServerApp}>
           <ThemeProvider>
             <DynamicTheme theme={vintageTheme}>
