@@ -25,6 +25,11 @@ export type MixtapeRequest = {
      */
     intro_text?: string | null;
     /**
+     * Cassette Text
+     * Optional cassette text
+     */
+    cassette_text?: string | null;
+    /**
      * Is Public
      * Whether the mixtape is public
      */
@@ -52,6 +57,10 @@ export type MixtapeResponse = {
      * Intro Text
      */
     intro_text: string | null;
+    /**
+     * Cassette Text
+     */
+    cassette_text: string | null;
     /**
      * Is Public
      */
