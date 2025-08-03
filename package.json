@@ -27,7 +27,7 @@
     "eslint-config-next": "15.4.4",
     "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
-    "next": "^15.4.4",
+    "next": "^15.4.5",
     "postcss": "^8.5.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
