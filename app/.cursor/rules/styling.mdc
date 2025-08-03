@@ -1,0 +1,25 @@
+# Frontend Styling
+
+## CSS Framework
+- **Primary**: Tailwind CSS for all styling
+- **Secondary**: SCSS modules only when Tailwind insufficient
+- **Global**: Minimal CSS in `app/globals.css` for theme variables
+
+## SCSS Modules
+- File naming: `ComponentName.module.scss`
+- Import: `import styles from './ComponentName.module.scss'`
+- Use camelCase for class names
+
+## Theme System
+- CSS custom properties in `app/globals.css`
+- Light/dark mode via `html.dark` class
+- Use `useTheme()` hook for theme-aware components
+
+## Mobile-First
+- Start with mobile styles, add responsive prefixes (`sm:`, `md:`, `lg:`)
+- Minimum 44px touch targets on mobile
+- Test on various screen sizes
+description:
+globs:
+alwaysApply: false
+---

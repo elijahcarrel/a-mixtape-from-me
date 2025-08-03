@@ -1,0 +1,32 @@
+# Auto-Generation Workflow
+
+## Pipeline
+SQLModel → Database Schema → FastAPI → OpenAPI → TypeScript Types
+
+## Commands
+```bash
+npm run gen-all                    # Generate all artifacts
+npm run gen-db-schema-from-sqlmodels    # SQLModel → SQL
+npm run gen-openapi-from-fastapi        # FastAPI → OpenAPI  
+npm run gen-ts-from-openapi             # OpenAPI → TypeScript
+```
+
+## Generated Files (Never Edit)
+- `schema.gen.sql` - PostgreSQL schema from SQLModel
+- `openapi.gen.json` - OpenAPI 3.1.0 spec from FastAPI
+- `app/client/` - TypeScript types and SDK
+
+## Workflow
+1. Update SQLModel models in `backend/db_models.py`
+2. Update FastAPI routers and Pydantic models
+3. Run `npm run gen-all`
+4. Commit generated files
+
+## TypeScript Usage
+```typescript
+import { MixtapeResponse, MixtapeTrackRequest } from '../client';
+```
+description:
+globs:
+alwaysApply: false
+---

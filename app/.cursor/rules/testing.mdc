@@ -1,0 +1,24 @@
+# Frontend Testing
+
+## Test Organization
+```
+app/components/__tests__/
+├── ComponentName.test.tsx
+├── test-utils.tsx          # Shared utilities
+└── __mocks__/             # Mock files
+```
+
+## Testing Patterns
+- Use `@testing-library/react` and `@testing-library/user-event`
+- Test user behavior, not implementation details
+- Use semantic queries (getByRole, getByLabelText) over test IDs
+- Mock external APIs and authentication state
+
+## Mock Patterns
+- Use `jest.mock()` for module mocking
+- Create mock data that matches real API responses
+- Mock authentication state for protected components
+description:
+globs:
+alwaysApply: false
+---

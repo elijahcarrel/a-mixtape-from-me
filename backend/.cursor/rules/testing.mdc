@@ -1,0 +1,24 @@
+# Backend Testing
+
+## Test Organization
+```
+backend/tests/
+├── test_mixtape_api.py
+├── test_spotify_api.py
+└── conftest.py            # Shared fixtures
+```
+
+## Testing Patterns
+- Use pytest for all backend tests
+- Use dependency overrides with explicit pre-defined general-purpose mock clients (not monkeypatches specific to each unit test)
+- Use temporary PostgreSQL database for integration tests
+- Test both success and error scenarios
+
+## Mock Patterns
+- Use dependency overrides for external services (Spotify client)
+- Mock Spotify API responses
+- Use pytest fixtures for reusable mocks
+description:
+globs:
+alwaysApply: false
+---
