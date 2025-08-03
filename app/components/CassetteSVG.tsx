@@ -150,60 +150,6 @@ export default function CassetteSVG({
               {truncateText(labelText.line4, 45)}
             </text>
           )}
-          
-          {/* Character count indicators */}
-          {showCharacterCounts && (
-            <>
-              {labelText.line1 && (
-                <text 
-                  x="440" y="58" 
-                  textAnchor="end" 
-                  fontSize="10" 
-                  fill={labelText.line1.length > 35 ? "#e74c3c" : "#6b3e26"}
-                  fontFamily="monospace"
-                  data-testid="count-0"
-                >
-                  {labelText.line1.length}/35
-                </text>
-              )}
-              {labelText.line2 && (
-                <text 
-                  x="440" y="88" 
-                  textAnchor="end" 
-                  fontSize="10" 
-                  fill={labelText.line2.length > 40 ? "#e74c3c" : "#6b3e26"}
-                  fontFamily="monospace"
-                  data-testid="count-1"
-                >
-                  {labelText.line2.length}/40
-                </text>
-              )}
-              {labelText.line3 && (
-                <text 
-                  x="440" y="118" 
-                  textAnchor="end" 
-                  fontSize="10" 
-                  fill={labelText.line3.length > 40 ? "#e74c3c" : "#6b3e26"}
-                  fontFamily="monospace"
-                  data-testid="count-2"
-                >
-                  {labelText.line3.length}/40
-                </text>
-              )}
-              {labelText.line4 && (
-                <text 
-                  x="440" y="148" 
-                  textAnchor="end" 
-                  fontSize="10" 
-                  fill={labelText.line4.length > 45 ? "#e74c3c" : "#6b3e26"}
-                  fontFamily="monospace"
-                  data-testid="count-3"
-                >
-                  {labelText.line4.length}/45
-                </text>
-              )}
-            </>
-          )}
         </>
       )}
       
