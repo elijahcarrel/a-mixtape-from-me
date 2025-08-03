@@ -4,6 +4,7 @@ import { normalizeTrackToResponse } from '../util/track-util';
 import { useTheme } from './ThemeProvider';
 import TrackAutocomplete from './TrackAutocomplete';
 import TrackList from './TrackList';
+import InteractiveCassetteEditor from './InteractiveCassetteEditor';
 
 export interface FormValues {
   name: string;
@@ -72,6 +73,11 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
     handleSave(updatedValues, true); // Immediate save for track changes
   };
 
+  const handleCassetteTextChange = (newText: string) => {
+    setFieldValue('cassette_text', newText);
+    handleSave({ ...values, cassette_text: newText }, false);
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <Form className="space-y-4 sm:space-y-6">
@@ -90,20 +96,19 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             } } />
         </div>
 
-        {/* Cassette Text */}
-        <div>
-          <Field
-            name="cassette_text"
-            as="textarea"
-            placeholder="Add some cassette text for your mixtape..."
-            rows={3}
-            className={`w-full bg-transparent border rounded-lg p-2 sm:p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none text-sm sm:text-base ${theme === 'dark'
-                ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
-                : 'border-amber-300 text-neutral-900 focus:border-amber-600'}`}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-              setFieldValue('cassette_text', e.target.value);
-              handleSave({ ...values, cassette_text: e.target.value }, false); // Debounced save for text changes
-            } } />
+        {/* Interactive Cassette Editor */}
+        <div className="space-y-3">
+          <label className={`text-sm sm:text-base font-medium ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
+            Cassette Label Text
+          </label>
+          <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-neutral-400' : 'text-neutral-600'}`}>
+            Click on the label lines below to edit your cassette text. You can add up to 3 lines with ~40 characters each.
+          </p>
+          <InteractiveCassetteEditor
+            value={values.cassette_text || ''}
+            onChange={handleCassetteTextChange}
+            theme={theme}
+          />
         </div>
 
         {/* Intro Text */}

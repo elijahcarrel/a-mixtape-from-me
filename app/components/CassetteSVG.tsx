@@ -9,9 +9,20 @@ interface CassetteSVGProps {
     line3?: string;
     line4?: string;
   };
+  isInteractive?: boolean;
+  onLineClick?: (lineIndex: number) => void;
+  editingLine?: number | null;
+  showCharacterCounts?: boolean;
 }
 
-export default function CassetteSVG({ isAnimated, labelText }: CassetteSVGProps) {
+export default function CassetteSVG({ 
+  isAnimated, 
+  labelText, 
+  isInteractive = false, 
+  onLineClick, 
+  editingLine = null,
+  showCharacterCounts = false 
+}: CassetteSVGProps) {
   // Helper function to truncate text to fit on cassette label
   const truncateText = (text: string, maxLength: number = 25) => {
     if (!text) return '';
@@ -37,52 +48,146 @@ export default function CassetteSVG({ isAnimated, labelText }: CassetteSVGProps)
       <line x1="60" y1="105" x2="440" y2="105" stroke="#bfa76a" strokeWidth="1.5" />
       <line x1="60" y1="130" x2="440" y2="130" stroke="#bfa76a" strokeWidth="1.5" />
       
-      {/* Label text using handwritten font */}
-      {labelText?.line1 && (
-        <text 
-          x="250" y="48" 
-          textAnchor="middle" 
-          fontSize="18" 
-          fontWeight="bold" 
-          fill="#6b3e26" 
-          fontFamily="var(--font-caveat), cursive"
-          style={{ fontVariationSettings: '"wght" 600' }}
-        >
-          {truncateText(labelText.line1, 35)}
-        </text>
-      )}
-      {labelText?.line2 && (
-        <text 
-          x="250" y="73" 
-          textAnchor="middle" 
-          fontSize="16" 
-          fill="#6b3e26" 
-          fontFamily="var(--font-caveat), cursive"
-        >
-          {truncateText(labelText.line2, 40)}
-        </text>
-      )}
-      {labelText?.line3 && (
-        <text 
-          x="250" y="98" 
-          textAnchor="middle" 
-          fontSize="16" 
-          fill="#6b3e26" 
-          fontFamily="var(--font-caveat), cursive"
-        >
-          {truncateText(labelText.line3, 40)}
-        </text>
-      )}
-      {labelText?.line4 && (
-        <text 
-          x="250" y="123" 
-          textAnchor="middle" 
-          fontSize="14" 
-          fill="#6b3e26" 
-          fontFamily="var(--font-caveat), cursive"
-        >
-          {truncateText(labelText.line4, 45)}
-        </text>
+      {/* Interactive label text */}
+      {labelText && (
+        <>
+          {/* Clickable backgrounds for interactive mode */}
+          {isInteractive && (
+            <>
+              <rect 
+                x="60" y="45" width="380" height="20" 
+                fill="transparent" 
+                className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
+                onClick={() => onLineClick?.(0)}
+                data-testid="line-0"
+              />
+              <rect 
+                x="60" y="70" width="380" height="20" 
+                fill="transparent" 
+                className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
+                onClick={() => onLineClick?.(1)}
+                data-testid="line-1"
+              />
+              <rect 
+                x="60" y="95" width="380" height="20" 
+                fill="transparent" 
+                className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
+                onClick={() => onLineClick?.(2)}
+                data-testid="line-2"
+              />
+            </>
+          )}
+          
+          {/* Label text using handwritten font */}
+          {labelText.line1 && (
+            <text 
+              x="250" y="48" 
+              textAnchor="middle" 
+              fontSize="18" 
+              fontWeight="bold" 
+              fill="#6b3e26" 
+              fontFamily="var(--font-caveat), cursive"
+              style={{ fontVariationSettings: '"wght" 600' }}
+              className={editingLine === 0 ? 'hidden' : ''}
+              data-testid="text-0"
+            >
+              {truncateText(labelText.line1, 35)}
+            </text>
+          )}
+          {labelText.line2 && (
+            <text 
+              x="250" y="73" 
+              textAnchor="middle" 
+              fontSize="16" 
+              fill="#6b3e26" 
+              fontFamily="var(--font-caveat), cursive"
+              className={editingLine === 1 ? 'hidden' : ''}
+              data-testid="text-1"
+            >
+              {truncateText(labelText.line2, 40)}
+            </text>
+          )}
+          {labelText.line3 && (
+            <text 
+              x="250" y="98" 
+              textAnchor="middle" 
+              fontSize="16" 
+              fill="#6b3e26" 
+              fontFamily="var(--font-caveat), cursive"
+              className={editingLine === 2 ? 'hidden' : ''}
+              data-testid="text-2"
+            >
+              {truncateText(labelText.line3, 40)}
+            </text>
+          )}
+          {labelText.line4 && (
+            <text 
+              x="250" y="123" 
+              textAnchor="middle" 
+              fontSize="14" 
+              fill="#6b3e26" 
+              fontFamily="var(--font-caveat), cursive"
+              className={editingLine === 3 ? 'hidden' : ''}
+              data-testid="text-3"
+            >
+              {truncateText(labelText.line4, 45)}
+            </text>
+          )}
+          
+          {/* Character count indicators */}
+          {showCharacterCounts && (
+            <>
+              {labelText.line1 && (
+                <text 
+                  x="440" y="48" 
+                  textAnchor="end" 
+                  fontSize="10" 
+                  fill={labelText.line1.length > 35 ? "#e74c3c" : "#6b3e26"}
+                  fontFamily="monospace"
+                  data-testid="count-0"
+                >
+                  {labelText.line1.length}/35
+                </text>
+              )}
+              {labelText.line2 && (
+                <text 
+                  x="440" y="73" 
+                  textAnchor="end" 
+                  fontSize="10" 
+                  fill={labelText.line2.length > 40 ? "#e74c3c" : "#6b3e26"}
+                  fontFamily="monospace"
+                  data-testid="count-1"
+                >
+                  {labelText.line2.length}/40
+                </text>
+              )}
+              {labelText.line3 && (
+                <text 
+                  x="440" y="98" 
+                  textAnchor="end" 
+                  fontSize="10" 
+                  fill={labelText.line3.length > 40 ? "#e74c3c" : "#6b3e26"}
+                  fontFamily="monospace"
+                  data-testid="count-2"
+                >
+                  {labelText.line3.length}/40
+                </text>
+              )}
+              {labelText.line4 && (
+                <text 
+                  x="440" y="123" 
+                  textAnchor="end" 
+                  fontSize="10" 
+                  fill={labelText.line4.length > 45 ? "#e74c3c" : "#6b3e26"}
+                  fontFamily="monospace"
+                  data-testid="count-3"
+                >
+                  {labelText.line4.length}/45
+                </text>
+              )}
+            </>
+          )}
+        </>
       )}
       
       {/* Colored stripes */}
