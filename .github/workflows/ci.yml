@@ -63,7 +63,7 @@ jobs:
       #   run: flake8 backend/ 
 
   validate-db-schema:
-    name: Validate schema.sql Up-To-Date
+    name: Validate schema.gen.sql Up-To-Date
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -81,24 +81,24 @@ jobs:
         run: |
           curl -sSf https://atlasgo.sh | sh
           echo "export PATH=\"$HOME/.atlas/bin:$PATH\"" >> $GITHUB_ENV
-      - name: Generate new schema.sql
+      - name: Generate new schema.gen.sql
         run: |
           mkdir -p tmp
-          python scripts/generate_schema.py --output tmp/generated_schema.sql
-      - name: Compare checked-in schema.sql to generated schema.sql
+          python scripts/generate_schema.py --output tmp/generated_schema.gen.sql
+      - name: Compare checked-in schema.gen.sql to generated schema.gen.sql
         run: |
           output=$(atlas schema diff \
-            --from file://$(pwd)/schema.sql \
-            --to file://$(pwd)/tmp/generated_schema.sql \
+            --from file://$(pwd)/schema.gen.sql \
+            --to file://$(pwd)/tmp/generated_schema.gen.sql \
             --dev-url "docker://postgres/15/dev")
           if [ "$output" != "Schemas are synced, no changes to be made." ]; then
-            echo 'schema.sql is not up to date with the models. Please run scripts/generate_schema.py and commit the result.'
+            echo 'schema.gen.sql is not up to date with the models. Please run scripts/generate_schema.py and commit the result.'
             echo "$output"
             exit 1
           fi 
 
   validate-openapi-schema:
-    name: Validate openapi.json Up-To-Date
+    name: Validate openapi.gen.json Up-To-Date
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -112,14 +112,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install fastapi
-      - name: Generate new openapi.json
+      - name: Generate new openapi.gen.json
         run: |
           mkdir -p tmp
-          python scripts/generate_openapi_spec.py --output tmp/openapi.json --format json --strip-modern-openapi-incompatibilities
+          python scripts/generate_openapi_spec.py --output tmp/openapi.gen.json --format json --strip-modern-openapi-incompatibilities
       - name: Strip OpenAPI 3.1.0 incompatibilities from both files
         run: |
-          python scripts/strip_openapi_incompatibilities.py openapi.json tmp/openapi_clean.json
-          python scripts/strip_openapi_incompatibilities.py tmp/openapi.json tmp/openapi_generated_clean.json
+          python scripts/strip_openapi_incompatibilities.py openapi.gen.json tmp/openapi_clean.json
+          python scripts/strip_openapi_incompatibilities.py tmp/openapi.gen.json tmp/openapi_generated_clean.json
       - name: Run OpenAPI spec diff action
         uses: oasdiff/oasdiff-action/diff@main
         with:
@@ -130,7 +130,7 @@ jobs:
       - name: Check if diff has contents
         run: |
           if [ -s diff.txt ] && [ "$(cat diff.txt)" != "No changes" ]; then
-            echo 'openapi.json is not up to date with the OpenAPI specification. Please run scripts/generate_openapi_spec.py and commit the result.'
+            echo 'openapi.gen.json is not up to date with the OpenAPI specification. Please run scripts/generate_openapi_spec.py and commit the result.'
             cat diff.txt
             exit 1
           fi

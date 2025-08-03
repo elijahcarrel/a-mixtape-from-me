@@ -1,0 +1,66 @@
+# Auto-Generation Workflow and Best Practices
+
+## Overview
+This project uses a sophisticated auto-generation system to maintain type safety and consistency across the full stack. The system generates database schemas, OpenAPI specifications, and TypeScript types automatically from source models.
+
+## Generation Pipeline
+```
+SQLModel Models (backend/db_models.py)
+    ↓ generate_schema.py
+Database Schema (schema.gen.sql)
+    ↓
+FastAPI Routers + Pydantic Models
+    ↓ generate_openapi_spec.py
+OpenAPI Specification (openapi.gen.json)
+    ↓ openapi-ts
+TypeScript Types (app/client/)
+```
+
+## Commands
+```bash
+# Generate all artifacts
+npm run gen-all
+
+# Individual generation steps
+npm run gen-db-schema-from-sqlmodels    # SQLModel → SQL
+npm run gen-openapi-from-fastapi        # FastAPI → OpenAPI
+npm run gen-ts-from-openapi             # OpenAPI → TypeScript
+```
+
+## When to Regenerate
+- After modifying SQLModel models in `backend/db_models.py`
+- After adding/removing FastAPI endpoints
+- After changing Pydantic request/response models
+- After updating field types or validation rules
+- Before committing changes that affect the API contract
+
+## Generated Files (Never Edit Directly)
+- `schema.gen.sql` - PostgreSQL schema from SQLModel
+- `openapi.gen.json` - OpenAPI 3.1.0 spec from FastAPI
+- `app/client/types.gen.ts` - TypeScript interfaces
+- `app/client/sdk.gen.ts` - TypeScript SDK client
+
+## Best Practices
+
+### Database Changes
+1. Update models in `backend/db_models.py`
+2. Run `npm run gen-db-schema-from-sqlmodels`
+3. Review generated schema
+4. Apply schema changes to database
+5. Test with real data
+
+### API Changes
+1. Update FastAPI routers and Pydantic models
+2. Run `npm run gen-openapi-from-fastapi`
+3. Review generated OpenAPI spec
+4. Run `npm run gen-ts-from-openapi`
+5. Update frontend code to use new types
+
+### Frontend Integration
+1. Import types from `app/client`
+2. Use generated SDK for API calls
+3. Leverage TypeScript for type safety
+description:
+globs:
+alwaysApply: false
+---

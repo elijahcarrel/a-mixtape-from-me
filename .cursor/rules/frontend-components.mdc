@@ -1,0 +1,67 @@
+# Frontend Component Patterns
+
+## Component Structure
+- Use functional components with hooks
+- Export components as default exports
+- Use TypeScript interfaces for props
+- Keep components focused and single-purpose
+
+## File Organization
+```
+app/components/
+├── layout/          # Layout components
+├── __tests__/       # Component tests
+└── ComponentName.tsx
+```
+
+## Component Naming
+- Use PascalCase for component names
+- Use descriptive, semantic names
+- Group related components in subdirectories
+- Test files: `ComponentName.test.tsx`
+
+## Props Interface Pattern
+```typescript
+interface ComponentProps {
+  // Required props first
+  title: string;
+  // Optional props with defaults
+  variant?: 'primary' | 'secondary';
+  // Event handlers
+  onSave?: (data: FormData) => void;
+}
+
+export default function ComponentName({ 
+  title, 
+  variant = 'primary', 
+  onSave 
+}: ComponentProps) {
+  // Component implementation
+}
+```
+
+## State Management
+- Use custom hooks for reusable logic
+- Prefer controlled components over uncontrolled
+
+## Styling Patterns
+- Use Tailwind classes for styling
+- Use SCSS modules only when Tailwind is insufficient
+- Use theme-aware styling with `useTheme()` hook
+- Follow mobile-first responsive design
+
+## Testing Patterns
+- Use React Testing Library for component tests
+- Test user interactions, not implementation details
+- Use `@testing-library/user-event` for user actions
+- Test accessibility with screen readers
+
+## Error Handling
+- Use error boundaries for component error handling
+- Display user-friendly error messages
+- Log errors for debugging
+- Provide fallback UI for error states
+description:
+globs:
+alwaysApply: false
+---

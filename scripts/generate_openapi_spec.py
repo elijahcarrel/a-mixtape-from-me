@@ -14,7 +14,7 @@ from scripts.openapi_utils import strip_openapi_31_incompatibilities
 app = create_app()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--output', default='openapi.json', help='Output file for generated OpenAPI schema')
+parser.add_argument('--output', default='openapi.gen.json', help='Output file for generated OpenAPI schema')
 parser.add_argument('--format', default='json', help='Output format for generated OpenAPI schema', choices=['yaml', 'json'])
 parser.add_argument('--strip-modern-openapi-incompatibilities', action='store_true', 
                     help='Strip OpenAPI 3.1.0 incompatibilities for better tool compatibility')

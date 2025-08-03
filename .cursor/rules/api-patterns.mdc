@@ -1,0 +1,72 @@
+# API Design Patterns and Conventions
+
+## REST API Structure
+- Use RESTful principles for endpoint design
+- Use HTTP methods appropriately (GET, POST, PUT, DELETE)
+- Use consistent URL patterns
+- Return appropriate HTTP status codes
+
+## Endpoint Patterns
+```
+GET    /api/mixtape              # List resources
+POST   /api/mixtape              # Create resource
+GET    /api/mixtape/{id}         # Get specific resource
+PUT    /api/mixtape/{id}         # Update resource
+DELETE /api/mixtape/{id}         # Delete resource
+```
+
+## Request/Response Models
+- Define Pydantic models for all requests and responses
+- Use descriptive field names and types
+- Include proper validation rules
+- Document models with clear descriptions
+
+## Error Handling
+- Use specific HTTP status codes
+- Return structured error responses
+- Include meaningful error messages
+- Log errors for debugging
+
+## Authentication
+- Use Stack Auth for user authentication
+- Protect sensitive endpoints with `get_current_user` dependency
+- Allow optional authentication with `get_optional_user`
+- Handle anonymous users appropriately
+
+## Response Patterns
+```python
+# Success responses
+@router.post("", response_model=dict, status_code=201)
+def create_mixtape(request: MixtapeRequest):
+    # Implementation
+    return {"public_id": public_id}
+
+# Error responses
+@router.get("/{public_id}", response_model=MixtapeResponse)
+def get_mixtape(public_id: str):
+    if not mixtape:
+        raise HTTPException(status_code=404, detail="Mixtape not found")
+    return mixtape
+```
+
+## Query Parameters
+- Use consistent parameter naming
+- Provide default values where appropriate
+- Include parameter validation
+- Document parameter purposes
+
+## Pagination
+- Use `limit` and `offset` parameters
+- Provide reasonable defaults
+- Include total count in responses
+- Use consistent pagination patterns
+
+## External API Integration
+- Use dependency injection for external clients by defining explicit general-purpose mock clients and using those in tests
+- Handle API failures gracefully
+- Cache responses when appropriate
+- Validate external API responses
+description:
+globs:
+alwaysApply: false
+---

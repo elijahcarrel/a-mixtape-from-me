@@ -10,7 +10,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "openapi-ts": "openapi-ts"
+    "gen-db-schema-from-sqlmodels": "python3 scripts/generate_schema.py",
+    "gen-openapi-from-fastapi": "python3 scripts/generate_openapi_spec.py",
+    "gen-ts-from-openapi": "openapi-ts",
+    "gen-all": "npm run gen-db-schema-from-sqlmodels && npm run gen-openapi-from-fastapi && npm run gen-ts-from-openapi"
   },
   "dependencies": {
     "@stackframe/stack": "^2.8.27",

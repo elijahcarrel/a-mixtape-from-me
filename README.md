@@ -23,18 +23,21 @@ Live at: [https://amixtapefrom.me](https://amixtapefrom.me)
 
 ### Frontend
 - **Next.js 14** (React, TypeScript, SSR)
-- **Tailwind CSS** for styling
+- **Tailwind CSS** for styling (with SCSS modules when needed)
 - **Stack Auth** for authentication
 - **Spotify API** for track search and metadata
+- **Auto-generated TypeScript types** from OpenAPI spec
 
 ### Backend
-- **FastAPI** (Python 3.12+)
+- **FastAPI** (Python 3.12+) with Pydantic V2
 - **PostgreSQL** (via [Neon](https://neon.tech/) for cloud DB)
-- **Pydantic** for data validation
+- **SQLModel** for database models and auto-generated schema
+- **Auto-generated OpenAPI spec** from FastAPI
 
 ### DevOps & Hosting
 - **Vercel** for frontend and serverless backend deployment
 - **GitHub Actions** for CI/CD (build, lint, test)
+- **Auto-generation workflow** for types, schemas, and API specs
 
 ---
 
@@ -117,10 +120,31 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## Development Workflow
+
+### Auto-Generation System
+This project uses an auto-generation system to maintain type safety across the full stack:
+
+```bash
+# Generate all artifacts (database schema, OpenAPI spec, TypeScript types)
+npm run gen-all
+
+# Individual generation commands
+npm run gen-db-schema-from-sqlmodels    # SQLModel → Database schema
+npm run gen-openapi-from-fastapi        # FastAPI → OpenAPI spec
+npm run gen-ts-from-openapi             # OpenAPI → TypeScript types
+```
+
+### Code Generation Workflow
+1. Update SQLModel models in `backend/db_models.py`
+2. Update FastAPI routers and Pydantic models
+3. Run `npm run gen-all` to regenerate all artifacts
+4. Commit generated files (`schema.gen.sql`, `openapi.gen.json`, `app/client/`)
+
 ## Testing
 
-- **Backend:** Uses `pytest` (see `backend/tests/`).
-- **Frontend:** Uses `Jest` and `React Testing Library` (see `app/components/__tests__/`).
+- **Backend:** Uses `pytest` with dependency overrides for external services (see `backend/tests/`)
+- **Frontend:** Uses `Jest` and `React Testing Library` (see `app/components/__tests__/`)
 
 To run all tests:
 
@@ -140,6 +164,8 @@ Contributions are welcome! Please:
 - Fork the repo and create a feature branch.
 - Submit PRs against `main`.
 - Ensure your code passes linting and tests (CI will check automatically).
+- Follow the project's coding conventions (see `.cursor/rules/` for detailed guidelines).
+- Run `npm run gen-all` after making backend changes to regenerate artifacts.
 - Be kind and constructive in code reviews.
 
 ---

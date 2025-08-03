@@ -554,5 +554,5 @@ export type DebugApiDebugGetResponses = {
 };
 
 export type ClientOptions = {
-    baseUrl: `${string}://openapi.json` | (string & {});
+    baseUrl: `${string}://openapi.gen.json` | (string & {});
 };

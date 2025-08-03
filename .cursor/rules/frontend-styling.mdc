@@ -1,0 +1,50 @@
+# Frontend Styling Guidelines
+
+## CSS Framework
+- **Primary**: Use Tailwind CSS for all styling when possible
+- **Secondary**: Use SCSS modules (`.module.scss`) only when Tailwind classes are insufficient
+- **Global**: Minimal global CSS in `app/globals.css` for theme variables and overrides
+
+## Tailwind Usage
+- Prefer utility classes over custom CSS
+- Use responsive prefixes (`sm:`, `md:`, `lg:`) for mobile-first design
+- Leverage Tailwind's color system and spacing scale
+- Use semantic class names and avoid arbitrary values when possible
+
+## SCSS Modules
+- Only use SCSS modules when Tailwind utilities are insufficient
+- File naming: `ComponentName.module.scss`
+- Import as: `import styles from './ComponentName.module.scss'`
+- Use camelCase for class names in SCSS files
+
+## Theme System
+- Use CSS custom properties for theme variables
+- Light/dark mode support via `html.dark` class
+- Theme variables defined in `app/globals.css`
+- Use `useTheme()` hook for theme-aware components
+
+## Component Styling Examples
+```tsx
+// Good - Tailwind utilities
+<div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+
+// Good - SCSS module when needed
+import styles from './CassetteSVG.module.scss';
+<div className={styles.cassetteContainer}>
+```
+
+## Mobile-First Design
+- Start with mobile styles, then add responsive breakpoints
+- Use `sm:`, `md:`, `lg:` prefixes for larger screens
+- Ensure minimum 44px touch targets on mobile
+- Test on various screen sizes
+
+## Accessibility
+- Maintain proper color contrast ratios
+- Use semantic HTML elements
+- Ensure keyboard navigation works
+- Test with screen readers
+description:
+globs:
+alwaysApply: false
+---

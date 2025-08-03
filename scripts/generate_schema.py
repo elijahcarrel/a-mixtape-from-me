@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--output', default='schema.sql', help='Output file for generated schema')
+parser.add_argument('--output', default='schema.gen.sql', help='Output file for generated schema')
 args = parser.parse_args()
 
 with open(args.output, 'w') as f:
