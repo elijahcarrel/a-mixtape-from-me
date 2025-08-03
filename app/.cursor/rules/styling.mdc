@@ -19,6 +19,11 @@
 - Start with mobile styles, add responsive prefixes (`sm:`, `md:`, `lg:`)
 - Minimum 44px touch targets on mobile
 - Test on various screen sizes
+
+## Aesthetics & Design Principles
+- Uncluttered
+- Vintage (i.e. sepia)
+- Mobile-first
 description:
 globs:
 alwaysApply: false
