@@ -22,7 +22,7 @@
 ## Error Handling
 - Use specific HTTP status codes (400, 401, 404, 422, 500)
 - Return structured error responses with meaningful messages
-description:
-globs:
+description: Backend development patterns for FastAPI, Pydantic V2, and SQLModel
+globs: ["backend/**/*.py", "scripts/**/*.py"]
 alwaysApply: true
 ---

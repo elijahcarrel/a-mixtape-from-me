@@ -26,7 +26,7 @@ npm run gen-ts-from-openapi             # OpenAPI → TypeScript
 ```typescript
 import { MixtapeResponse, MixtapeTrackRequest } from '../client';
 ```
-description:
-globs:
+description: Auto-generation workflow for maintaining type safety across the full stack
+globs: ["backend/db_models.py", "backend/routers/**/*.py", "scripts/**/*.py", "openapi.gen.json", "schema.gen.sql", "app/client/**/*"]
 alwaysApply: false
 ---

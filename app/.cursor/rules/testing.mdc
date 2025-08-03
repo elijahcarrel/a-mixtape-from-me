@@ -18,7 +18,7 @@ app/components/__tests__/
 - Use `jest.mock()` for module mocking
 - Create mock data that matches real API responses
 - Mock authentication state for protected components
-description:
-globs:
+description: Frontend testing patterns using Jest and React Testing Library
+globs: ["app/**/*.test.tsx", "app/**/*.test.ts", "app/__tests__/**/*"]
 alwaysApply: false
 ---

@@ -24,7 +24,7 @@
 - Uncluttered
 - Vintage (i.e. sepia)
 - Mobile-first
-description:
-globs:
+description: Frontend styling conventions using Tailwind CSS with SCSS modules when needed
+globs: ["app/**/*.tsx", "app/**/*.scss", "app/**/*.css"]
 alwaysApply: false
 ---
