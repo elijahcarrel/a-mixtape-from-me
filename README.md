@@ -9,13 +9,13 @@
 
 ## What is "A Mixtape From Me"?
 
-**A Mixtape From Me** is a web app for making and sharing digital mixtapes with your own personal notes—just like the mixtapes we used to make for friends and loved ones. Add tracks, write your thoughts and feelings for each song, and share a unique, heartfelt playlist. No ads, no fees, just pure nostalgia and connection.
+**A Mixtape From Me** is a web app for making and sharing digital mixtapes with your own personal notes— just like the mixtapes we used to make for friends and loved ones. Add tracks, write your thoughts and feelings for each song, and share a unique, heartfelt playlist.
 
 - **Create and curate mixtapes** for anyone, with your own commentary and stories.
 - **Share easily** with a simple link.
-- **Completely free, ad-free, and open source.**
+- **Completely free**, ad-free, and open-source.
 
-Live at: [https://amixtapefrom.me](https://amixtapefrom.me)
+Live at: [amixtapefrom.me](https://amixtapefrom.me).
 
 ---
 
@@ -23,18 +23,21 @@ Live at: [https://amixtapefrom.me](https://amixtapefrom.me)
 
 ### Frontend
 - **Next.js 14** (React, TypeScript, SSR)
-- **Tailwind CSS** for styling
+- **Tailwind CSS** for styling (with SCSS modules when needed)
 - **Stack Auth** for authentication
 - **Spotify API** for track search and metadata
+- **Auto-generated TypeScript types** from OpenAPI spec
 
 ### Backend
-- **FastAPI** (Python 3.12+)
-- **PostgreSQL** (via [Neon](https://neon.tech/) for cloud DB)
-- **Pydantic** for data validation
+- **FastAPI** (Python 3.12+) with Pydantic V2
+- **PostgreSQL** (via [Neon](https://neon.tech/))
+- **SQLModel** for database models and auto-generated schema
+- **Auto-generated OpenAPI spec** from FastAPI
 
 ### DevOps & Hosting
 - **Vercel** for frontend and serverless backend deployment
 - **GitHub Actions** for CI/CD (build, lint, test)
+- **Auto-generation workflow** for types, schemas, and API specs
 
 ---
 
@@ -89,24 +92,26 @@ pip3 install -r requirements.txt
 
 ### 4. Running the App Locally
 
-#### Option 1: Run Both Frontend & Backend Together
+#### Option 1: Run Both Backend & Frontend Together
 
 ```bash
 # (Recommended) Start your Python virtual environment first
 source venv/bin/activate
 npm run dev
 ```
-- This will start both the Next.js frontend and the FastAPI backend (on port 8000).
+- This will start the Next.js frontend (on port 3000) and the FastAPI backend (on port 8000) concurrently.
 
-#### Option 2: Run Backend Manually
+#### Option 2: Run Backend & Frontend Separately
 
+##### Backend
 ```bash
 source venv/bin/activate
 pip3 install -r requirements.txt
 python3 -m uvicorn api.main:app --reload
 ```
-- Then, in another terminal, run the frontend:
 
+##### Frontend
+In another terminal, run the frontend:
 ```bash
 npm run dev
 ```
@@ -117,10 +122,31 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## Development Workflow
+
+### Auto-Generation System
+This project uses an auto-generation system to maintain type safety across the full stack:
+
+```bash
+# Generate all artifacts (database schema, OpenAPI spec, TypeScript types)
+npm run gen-all
+
+# Individual generation commands
+npm run gen-db-schema-from-sqlmodels # SQLModel → Database schema
+npm run gen-openapi-from-fastapi     # FastAPI → OpenAPI spec
+npm run gen-ts-from-openapi          # OpenAPI → TypeScript types
+```
+
+### Code Generation Workflow
+1. Update SQLModel models in `backend/db_models.py`
+2. Update FastAPI routers and Pydantic models
+3. Run `npm run gen-all` to regenerate all artifacts
+4. Commit generated files (`schema.gen.sql`, `openapi.gen.json`, `app/client/`)
+
 ## Testing
 
-- **Backend:** Uses `pytest` (see `backend/tests/`).
-- **Frontend:** Uses `Jest` and `React Testing Library` (see `app/components/__tests__/`).
+- **Backend:** Uses `pytest` with dependency overrides for external services (see `backend/tests/`)
+- **Frontend:** Uses Jest and React Testing Library (see `app/components/__tests__/`)
 
 To run all tests:
 
@@ -140,6 +166,8 @@ Contributions are welcome! Please:
 - Fork the repo and create a feature branch.
 - Submit PRs against `main`.
 - Ensure your code passes linting and tests (CI will check automatically).
+- Follow the project's coding conventions (see `.cursor/rules/` for detailed guidelines).
+- Run `npm run gen-all` after making backend changes to regenerate artifacts.
 - Be kind and constructive in code reviews.
 
 ---
@@ -157,7 +185,3 @@ Contributions are welcome! Please:
 - [Spotify for Developers](https://developer.spotify.com/)
 - [Neon](https://neon.tech/)
 - [Stack Auth](https://www.stack-auth.com/)
-
----
-
-> _"A mixtape is a love letter in song form. This app brings that magic to the digital age."_
