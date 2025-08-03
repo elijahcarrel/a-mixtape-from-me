@@ -207,9 +207,16 @@ describe('MixtapeEditor', () => {
     
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
     
-    // Trigger a save by changing the name
-    const nameInput = screen.getByDisplayValue('Test Mixtape');
-    fireEvent.change(nameInput, { target: { value: 'Updated Mixtape' } });
+    // Trigger a save by changing the title in the cassette editor
+    const firstLine = screen.getByTestId('line-0');
+    fireEvent.click(firstLine);
+    
+    await waitFor(() => {
+      const inputs = screen.getAllByDisplayValue('Test Mixtape');
+      const input = inputs[1]; // The second one is the cassette editor input
+      fireEvent.change(input, { target: { value: 'Updated Mixtape' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+    });
     
     // Fast-forward debounce timer
     await act(async () => {
@@ -224,8 +231,16 @@ describe('MixtapeEditor', () => {
   it('calls save API when form values change', async () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
     
-    const nameInput = screen.getByDisplayValue('Test Mixtape');
-    fireEvent.change(nameInput, { target: { value: 'Updated Mixtape' } });
+    // Change the title in the cassette editor
+    const firstLine = screen.getByTestId('line-0');
+    fireEvent.click(firstLine);
+    
+    await waitFor(() => {
+      const inputs = screen.getAllByDisplayValue('Test Mixtape');
+      const input = inputs[1]; // The second one is the cassette editor input
+      fireEvent.change(input, { target: { value: 'Updated Mixtape' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+    });
     
     // Fast-forward debounce timer
     await act(async () => {
@@ -238,7 +253,7 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Updated Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Some subtitle',
+          cassette_text: 'Updated Mixtape\nSome subtitle',
           is_public: false,
           tracks: mockMixtapeData.tracks.map(track => ({
             track_position: track.track_position,
@@ -277,7 +292,7 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Some subtitle',
+          cassette_text: 'Test Mixtape\nSome subtitle',
           is_public: false,
           tracks: [
             {
@@ -338,7 +353,7 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Some subtitle',
+          cassette_text: 'Test Mixtape\nSome subtitle',
           is_public: false,
           tracks: [
             {
@@ -378,7 +393,7 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Some subtitle',
+          cassette_text: 'Test Mixtape\nSome subtitle',
           is_public: false,
           tracks: [
             {
@@ -409,7 +424,7 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Some subtitle',
+          cassette_text: 'Test Mixtape\nSome subtitle',
           is_public: true,
           tracks: mockMixtapeData.tracks.map(track => ({
             track_position: track.track_position,
@@ -454,10 +469,19 @@ describe('MixtapeEditor', () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
       // First, change the form values
-      const nameInput = screen.getByDisplayValue('Test Mixtape');
       const introInput = screen.getByDisplayValue('A test mixtape');
       
-      fireEvent.change(nameInput, { target: { value: 'My Updated Mixtape' } });
+      // Change the title by editing the first line of the cassette
+      const firstLine = screen.getByTestId('line-0');
+      fireEvent.click(firstLine);
+      
+      await waitFor(() => {
+        const inputs = screen.getAllByDisplayValue('Test Mixtape');
+        const input = inputs[1]; // The second one is the cassette editor input
+        fireEvent.change(input, { target: { value: 'My Updated Mixtape' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+      });
+      
       fireEvent.change(introInput, { target: { value: 'This is my updated intro text' } });
       
       // Wait for debounced save to be called
@@ -479,7 +503,7 @@ describe('MixtapeEditor', () => {
           body: {
             name: 'My Updated Mixtape',
             intro_text: 'This is my updated intro text',
-            cassette_text: 'Some subtitle',
+            cassette_text: 'My Updated Mixtape\nSome subtitle',
             is_public: false,
             tracks: [
               {
@@ -510,10 +534,19 @@ describe('MixtapeEditor', () => {
       render(<MixtapeEditor mixtape={mixtapeWithMultipleTracks} />);
       
       // First, change the form values
-      const nameInput = screen.getByDisplayValue('Test Mixtape');
       const introInput = screen.getByDisplayValue('A test mixtape');
       
-      fireEvent.change(nameInput, { target: { value: 'My Updated Mixtape' } });
+      // Change the title by editing the first line of the cassette
+      const firstLine = screen.getByTestId('line-0');
+      fireEvent.click(firstLine);
+      
+      await waitFor(() => {
+        const inputs = screen.getAllByDisplayValue('Test Mixtape');
+        const input = inputs[1]; // The second one is the cassette editor input
+        fireEvent.change(input, { target: { value: 'My Updated Mixtape' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+      });
+      
       fireEvent.change(introInput, { target: { value: 'This is my updated intro text' } });
       
       // Wait for debounced save to be called
@@ -535,7 +568,7 @@ describe('MixtapeEditor', () => {
           body: {
             name: 'My Updated Mixtape',
             intro_text: 'This is my updated intro text',
-            cassette_text: 'Some subtitle',
+            cassette_text: 'My Updated Mixtape\nSome subtitle',
             is_public: false,
             tracks: [
               {
@@ -553,10 +586,19 @@ describe('MixtapeEditor', () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
       // First, change the form values
-      const nameInput = screen.getByDisplayValue('Test Mixtape');
       const introInput = screen.getByDisplayValue('A test mixtape');
       
-      fireEvent.change(nameInput, { target: { value: 'My Updated Mixtape' } });
+      // Change the title by editing the first line of the cassette
+      const firstLine = screen.getByTestId('line-0');
+      fireEvent.click(firstLine);
+      
+      await waitFor(() => {
+        const inputs = screen.getAllByDisplayValue('Test Mixtape');
+        const input = inputs[1]; // The second one is the cassette editor input
+        fireEvent.change(input, { target: { value: 'My Updated Mixtape' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+      });
+      
       fireEvent.change(introInput, { target: { value: 'This is my updated intro text' } });
       
       // Wait for debounced save to be called
@@ -578,7 +620,7 @@ describe('MixtapeEditor', () => {
           body: {
             name: 'My Updated Mixtape',
             intro_text: 'This is my updated intro text',
-            cassette_text: 'Some subtitle',
+            cassette_text: 'My Updated Mixtape\nSome subtitle',
             is_public: false,
             tracks: [
               {
@@ -613,9 +655,17 @@ describe('MixtapeEditor', () => {
     it('uses debounced save for text field changes', async () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
-      // Change the name
-      const nameInput = screen.getByDisplayValue('Test Mixtape');
-      fireEvent.change(nameInput, { target: { value: 'Updated Name' } });
+      // Change the name by editing the first line of the cassette
+      const firstLine = screen.getByTestId('line-0');
+      fireEvent.click(firstLine);
+      
+      // Wait for the editor to appear and edit the title
+      await waitFor(() => {
+        const inputs = screen.getAllByDisplayValue('Test Mixtape');
+        const input = inputs[1]; // The second one is the cassette editor input
+        fireEvent.change(input, { target: { value: 'Updated Name' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+      });
       
       // Should not save immediately
       expect(mockMakeRequest).not.toHaveBeenCalled();
@@ -701,19 +751,26 @@ describe('MixtapeEditor', () => {
     it('maintains form state during track operations', async () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
-      // Change form values
-      const nameInput = screen.getByDisplayValue('Test Mixtape');
-      fireEvent.change(nameInput, { target: { value: 'Modified Title' } });
+      // Change form values by editing the cassette
+      const firstLine = screen.getByTestId('line-0');
+      fireEvent.click(firstLine);
       
-      // Verify the change is reflected in the input
-      expect(screen.getByDisplayValue('Modified Title')).toBeInTheDocument();
+      await waitFor(() => {
+        const inputs = screen.getAllByDisplayValue('Test Mixtape');
+        const input = inputs[1]; // The second one is the cassette editor input
+        fireEvent.change(input, { target: { value: 'Modified Title' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+      });
+      
+      // Verify the change is reflected in the cassette
+      expect(screen.getByText('Modified Title')).toBeInTheDocument();
       
       // Add a track
       const addTrackButton = screen.getByTestId('add-track-button');
       fireEvent.click(addTrackButton);
       
       // Verify the form value is still there after track operation
-      expect(screen.getByDisplayValue('Modified Title')).toBeInTheDocument();
+      expect(screen.getByText('Modified Title')).toBeInTheDocument();
     });
   });
 

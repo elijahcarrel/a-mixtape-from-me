@@ -14,18 +14,13 @@ export default function InteractiveCassetteEditor({ value, onChange, theme }: In
   // Parse the current value into lines
   const lines = value.split('\n');
   const labelText = {
-    line1: lines[0] || '',
-    line2: lines[1] || '',
-    line3: lines[2] || '',
-    line4: lines[3] || ''
+    line1: lines[0] || '', // Title (first line)
+    line2: lines[1] || '', // Cassette text line 1
+    line3: lines[2] || '', // Cassette text line 2
+    line4: lines[3] || ''  // Cassette text line 3
   };
 
-  const handleLineClick = (lineIndex: number) => {
-    setEditingLine(lineIndex);
-    const lines = value.split('\n');
-    setEditValue(lines[lineIndex] || '');
-  };
-
+  // Update the title field when the first line changes
   const handleLineEdit = (lineIndex: number, newText: string) => {
     const lines = value.split('\n');
     lines[lineIndex] = newText;
@@ -33,6 +28,12 @@ export default function InteractiveCassetteEditor({ value, onChange, theme }: In
     // Convert back to string with newlines
     const newValue = lines.join('\n');
     onChange(newValue);
+  };
+
+  const handleLineClick = (lineIndex: number) => {
+    setEditingLine(lineIndex);
+    const lines = value.split('\n');
+    setEditValue(lines[lineIndex] || '');
   };
 
   const handleEditSave = () => {
@@ -123,12 +124,7 @@ export default function InteractiveCassetteEditor({ value, onChange, theme }: In
         </div>
       )}
 
-      {/* Instructions */}
-      <div className="mt-3 text-center">
-        <p className={`text-xs ${theme === 'dark' ? 'text-neutral-400' : 'text-neutral-600'}`}>
-          Click on any line to edit • Press Enter to save • Press Esc to cancel
-        </p>
-      </div>
+
     </div>
   );
 } 

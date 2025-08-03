@@ -74,36 +74,29 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
   };
 
   const handleCassetteTextChange = (newText: string) => {
+    const lines = newText.split('\n');
+    const title = lines[0] || '';
+    const cassetteText = lines.slice(1).join('\n');
+    
+    setFieldValue('name', title);
     setFieldValue('cassette_text', newText);
-    handleSave({ ...values, cassette_text: newText }, false);
+    handleSave({ ...values, name: title, cassette_text: newText }, false);
   };
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <Form className="space-y-4 sm:space-y-6">
-        {/* Mixtape Title */}
-        <div>
-          <Field
-            name="name"
-            type="text"
-            placeholder="Enter mixtape title..."
-            className={`w-full text-xl sm:text-2xl md:text-3xl font-bold bg-transparent border-b-2 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${theme === 'dark'
-                ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
-                : 'border-amber-300 text-neutral-900 focus:border-amber-600'}`}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setFieldValue('name', e.target.value);
-              handleSave({ ...values, name: e.target.value }, false); // Debounced save for text changes
-            } } />
-        </div>
+        {/* Mixtape Title - Hidden field, title is now part of cassette text */}
+        <Field
+          name="name"
+          type="hidden"
+        />
 
         {/* Interactive Cassette Editor */}
         <div className="space-y-3">
           <label className={`text-sm sm:text-base font-medium ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
-            Cassette Label Text
+            Cassette Label
           </label>
-          <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-neutral-400' : 'text-neutral-600'}`}>
-            Click on the label lines below to edit your cassette text. You can add up to 3 lines with ~40 characters each.
-          </p>
           <InteractiveCassetteEditor
             value={values.cassette_text || ''}
             onChange={handleCassetteTextChange}

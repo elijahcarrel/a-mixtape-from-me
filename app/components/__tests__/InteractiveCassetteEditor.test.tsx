@@ -119,17 +119,5 @@ describe('InteractiveCassetteEditor', () => {
     expect(mockOnChange).not.toHaveBeenCalled();
   });
 
-  it('shows instructions to the user', () => {
-    render(
-      <InteractiveCassetteEditor
-        value=""
-        onChange={mockOnChange}
-        theme={mockTheme}
-      />
-    );
 
-    expect(screen.getByText(/Click on any line to edit/)).toBeInTheDocument();
-    expect(screen.getByText(/Press Enter to save/)).toBeInTheDocument();
-    expect(screen.getByText(/Press Esc to cancel/)).toBeInTheDocument();
-  });
 }); 

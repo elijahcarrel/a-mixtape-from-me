@@ -151,7 +151,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         initialValues={{
           name: mixtape.name,
           intro_text: mixtape.intro_text || '',
-          cassette_text: mixtape.cassette_text || '',
+          cassette_text: `${mixtape.name}\n${mixtape.cassette_text || ''}`,
           is_public: mixtape.is_public,
           tracks: mixtape.tracks
         }}
