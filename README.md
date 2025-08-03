@@ -9,13 +9,13 @@
 
 ## What is "A Mixtape From Me"?
 
-**A Mixtape From Me** is a web app for making and sharing digital mixtapes with your own personal notes—just like the mixtapes we used to make for friends and loved ones. Add tracks, write your thoughts and feelings for each song, and share a unique, heartfelt playlist. No ads, no fees, just pure nostalgia and connection.
+**A Mixtape From Me** is a web app for making and sharing digital mixtapes with your own personal notes— just like the mixtapes we used to make for friends and loved ones. Add tracks, write your thoughts and feelings for each song, and share a unique, heartfelt playlist.
 
 - **Create and curate mixtapes** for anyone, with your own commentary and stories.
 - **Share easily** with a simple link.
-- **Completely free, ad-free, and open source.**
+- **Completely free**, ad-free, and open-source.
 
-Live at: [https://amixtapefrom.me](https://amixtapefrom.me)
+Live at: [amixtapefrom.me](https://amixtapefrom.me).
 
 ---
 
@@ -30,7 +30,7 @@ Live at: [https://amixtapefrom.me](https://amixtapefrom.me)
 
 ### Backend
 - **FastAPI** (Python 3.12+) with Pydantic V2
-- **PostgreSQL** (via [Neon](https://neon.tech/) for cloud DB)
+- **PostgreSQL** (via [Neon](https://neon.tech/))
 - **SQLModel** for database models and auto-generated schema
 - **Auto-generated OpenAPI spec** from FastAPI
 
@@ -92,24 +92,26 @@ pip3 install -r requirements.txt
 
 ### 4. Running the App Locally
 
-#### Option 1: Run Both Frontend & Backend Together
+#### Option 1: Run Both Backend & Frontend Together
 
 ```bash
 # (Recommended) Start your Python virtual environment first
 source venv/bin/activate
 npm run dev
 ```
-- This will start both the Next.js frontend and the FastAPI backend (on port 8000).
+- This will start the Next.js frontend (on port 3000) and the FastAPI backend (on port 8000) concurrently.
 
-#### Option 2: Run Backend Manually
+#### Option 2: Run Backend & Frontend Separately
 
+##### Backend
 ```bash
 source venv/bin/activate
 pip3 install -r requirements.txt
 python3 -m uvicorn api.main:app --reload
 ```
-- Then, in another terminal, run the frontend:
 
+##### Frontend
+In another terminal, run the frontend:
 ```bash
 npm run dev
 ```
@@ -130,9 +132,9 @@ This project uses an auto-generation system to maintain type safety across the f
 npm run gen-all
 
 # Individual generation commands
-npm run gen-db-schema-from-sqlmodels    # SQLModel → Database schema
-npm run gen-openapi-from-fastapi        # FastAPI → OpenAPI spec
-npm run gen-ts-from-openapi             # OpenAPI → TypeScript types
+npm run gen-db-schema-from-sqlmodels # SQLModel → Database schema
+npm run gen-openapi-from-fastapi     # FastAPI → OpenAPI spec
+npm run gen-ts-from-openapi          # OpenAPI → TypeScript types
 ```
 
 ### Code Generation Workflow
@@ -144,7 +146,7 @@ npm run gen-ts-from-openapi             # OpenAPI → TypeScript types
 ## Testing
 
 - **Backend:** Uses `pytest` with dependency overrides for external services (see `backend/tests/`)
-- **Frontend:** Uses `Jest` and `React Testing Library` (see `app/components/__tests__/`)
+- **Frontend:** Uses Jest and React Testing Library (see `app/components/__tests__/`)
 
 To run all tests:
 
@@ -183,7 +185,3 @@ Contributions are welcome! Please:
 - [Spotify for Developers](https://developer.spotify.com/)
 - [Neon](https://neon.tech/)
 - [Stack Auth](https://www.stack-auth.com/)
-
----
-
-> _"A mixtape is a love letter in song form. This app brings that magic to the digital age."_
