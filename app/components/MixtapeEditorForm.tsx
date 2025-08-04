@@ -9,7 +9,9 @@ import InteractiveCassetteEditor from './InteractiveCassetteEditor';
 export interface FormValues {
   name: string;
   intro_text: string;
-  cassette_text: string;
+  subtitle1: string;
+  subtitle2: string;
+  subtitle3: string;
   is_public: boolean;
   tracks: (MixtapeTrackResponse | MixtapeTrackRequest)[];
 }
@@ -76,11 +78,20 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
   const handleCassetteTextChange = (newText: string) => {
     const lines = newText.split('\n');
     const title = lines[0] || '';
-    const cassetteText = lines.slice(1).join('\n');
+    const subtitle1 = lines[1] || '';
+    const subtitle2 = lines[2] || '';
+    const subtitle3 = lines[3] || '';
     
     setFieldValue('name', title);
-    setFieldValue('cassette_text', newText);
-    handleSave({ ...values, name: title, cassette_text: newText }, false);
+    setFieldValue('subtitle1', subtitle1);
+    setFieldValue('subtitle2', subtitle2);
+    setFieldValue('subtitle3', subtitle3);
+    handleSave({ ...values, name: title, subtitle1, subtitle2, subtitle3 }, false);
+  };
+
+  // Convert subtitle fields back to cassette text format for the editor
+  const getCassetteText = () => {
+    return [values.name, values.subtitle1, values.subtitle2, values.subtitle3].join('\n');
   };
 
   return (
@@ -98,7 +109,7 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             Cassette Label
           </label>
           <InteractiveCassetteEditor
-            value={values.cassette_text || ''}
+            value={getCassetteText()}
             onChange={handleCassetteTextChange}
             theme={theme}
           />

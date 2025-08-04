@@ -7,15 +7,17 @@ from sqlalchemy import desc
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 class MixtapeEntity:
-    def __init__(self, name: str, intro_text: Optional[str], cassette_text: Optional[str], is_public: bool, tracks: List[dict]):
+    def __init__(self, name: str, intro_text: Optional[str], subtitle1: Optional[str], subtitle2: Optional[str], subtitle3: Optional[str], is_public: bool, tracks: List[dict]):
         self.name = name
         self.intro_text = intro_text
-        self.cassette_text = cassette_text
+        self.subtitle1 = subtitle1
+        self.subtitle2 = subtitle2
+        self.subtitle3 = subtitle3
         self.is_public = is_public
         self.tracks = tracks  # List of dicts with track_position, track_text, spotify_uri
 
     @staticmethod
-    def create_in_db(session: Session, stack_auth_user_id: Optional[str], name: str, intro_text: Optional[str], cassette_text: Optional[str], is_public: bool, tracks: List[dict]) -> str:
+    def create_in_db(session: Session, stack_auth_user_id: Optional[str], name: str, intro_text: Optional[str], subtitle1: Optional[str], subtitle2: Optional[str], subtitle3: Optional[str], is_public: bool, tracks: List[dict]) -> str:
         """
         Create a new mixtape, its tracks, and audit records in a transaction. Returns the public_id.
         stack_auth_user_id can be None for anonymous mixtapes.
@@ -30,7 +32,9 @@ class MixtapeEntity:
             public_id=public_id,
             name=name,
             intro_text=intro_text,
-            cassette_text=cassette_text,
+            subtitle1=subtitle1,
+            subtitle2=subtitle2,
+            subtitle3=subtitle3,
             is_public=is_public,
             create_time=now,
             last_modified_time=now,
@@ -47,7 +51,9 @@ class MixtapeEntity:
             public_id=public_id,
             name=name,
             intro_text=intro_text,
-            cassette_text=cassette_text,
+            subtitle1=subtitle1,
+            subtitle2=subtitle2,
+            subtitle3=subtitle3,
             is_public=is_public,
             create_time=now,
             last_modified_time=now,
@@ -96,7 +102,9 @@ class MixtapeEntity:
             "public_id": mixtape.public_id,
             "name": mixtape.name,
             "intro_text": mixtape.intro_text,
-            "cassette_text": mixtape.cassette_text,
+            "subtitle1": mixtape.subtitle1,
+            "subtitle2": mixtape.subtitle2,
+            "subtitle3": mixtape.subtitle3,
             "is_public": mixtape.is_public,
             "create_time": mixtape.create_time.isoformat(),
             "last_modified_time": mixtape.last_modified_time.isoformat(),
@@ -113,7 +121,7 @@ class MixtapeEntity:
         return result
 
     @staticmethod
-    def update_in_db(session: Session, public_id: str, name: str, intro_text: Optional[str], cassette_text: Optional[str], is_public: bool, tracks: List[dict]) -> int:
+    def update_in_db(session: Session, public_id: str, name: str, intro_text: Optional[str], subtitle1: Optional[str], subtitle2: Optional[str], subtitle3: Optional[str], is_public: bool, tracks: List[dict]) -> int:
         """
         Update a mixtape and its tracks, create new audit records, and increment version. Returns new version.
         """
@@ -129,7 +137,9 @@ class MixtapeEntity:
         # Update mixtape
         mixtape.name = name
         mixtape.intro_text = intro_text
-        mixtape.cassette_text = cassette_text
+        mixtape.subtitle1 = subtitle1
+        mixtape.subtitle2 = subtitle2
+        mixtape.subtitle3 = subtitle3
         mixtape.is_public = is_public
         mixtape.last_modified_time = now
         mixtape.version += 1
@@ -140,7 +150,9 @@ class MixtapeEntity:
             public_id=public_id,
             name=name,
             intro_text=intro_text,
-            cassette_text=cassette_text,
+            subtitle1=subtitle1,
+            subtitle2=subtitle2,
+            subtitle3=subtitle3,
             is_public=is_public,
             create_time=mixtape.create_time,
             last_modified_time=now,
@@ -207,7 +219,9 @@ class MixtapeEntity:
             public_id=public_id,
             name=mixtape.name,
             intro_text=mixtape.intro_text,
-            cassette_text=mixtape.cassette_text,
+            subtitle1=mixtape.subtitle1,
+            subtitle2=mixtape.subtitle2,
+            subtitle3=mixtape.subtitle3,
             is_public=mixtape.is_public,
             create_time=mixtape.create_time,
             last_modified_time=now,

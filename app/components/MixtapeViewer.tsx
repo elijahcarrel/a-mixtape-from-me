@@ -17,14 +17,12 @@ export default function MixtapeViewer({ mixtape }: MixtapeViewerProps) {
     }
   };
 
-  // Prepare label text for the cassette
+  // Prepare label text for the cassette using the new subtitle fields
   const labelText = {
     line1: mixtape.name,
-    line2: mixtape.cassette_text ? mixtape.cassette_text.split('\n')[0] : undefined,
-    line3: mixtape.cassette_text && mixtape.cassette_text.split('\n').length > 1 
-      ? mixtape.cassette_text.split('\n')[1] : undefined,
-    line4: mixtape.cassette_text && mixtape.cassette_text.split('\n').length > 2 
-      ? mixtape.cassette_text.split('\n')[2] : undefined,
+    line2: mixtape.subtitle1 || undefined,
+    line3: mixtape.subtitle2 || undefined,
+    line4: mixtape.subtitle3 || undefined,
   };
 
   return (

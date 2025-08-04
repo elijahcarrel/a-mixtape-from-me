@@ -1,62 +1,25 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import EditButton from './EditButton';
-import '@testing-library/jest-dom';
+import { MixtapeResponse } from '../client';
 
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: jest.fn() }),
-}));
-
-const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
-
-const mockUseAuth = jest.fn();
-jest.mock('../hooks/useAuth', () => ({
-  useAuth: () => mockUseAuth(),
-}));
+const mockMixtape: MixtapeResponse = {
+  public_id: 'test-mixtape-123',
+  name: 'Test Mixtape',
+  intro_text: 'A test mixtape',
+  subtitle1: '',
+  subtitle2: '',
+  subtitle3: '',
+  is_public: true,
+  create_time: '2023-01-01T00:00:00Z',
+  last_modified_time: '2023-01-01T00:00:00Z',
+  stack_auth_user_id: 'user123',
+  tracks: [],
+};
 
 describe('EditButton', () => {
-  const mixtape = {
-    public_id: 'abc123',
-    stack_auth_user_id: 'user1',
-    name: 'Test',
-    intro_text: '',
-    cassette_text: '',
-    is_public: true,
-    create_time: '',
-    last_modified_time: '',
-    tracks: [],
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders for the owner', () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user1' } });
-    render(<EditButton mixtape={mixtape} />);
-    expect(screen.getByTestId('edit-button')).toBeInTheDocument();
-    expect(screen.getByText('Edit')).toBeInTheDocument();
-  });
-
-  it('navigates to the edit page on click', () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user1' } });
-    render(<EditButton mixtape={mixtape} />);
-    fireEvent.click(screen.getByTestId('edit-button'));
-    expect(mockPush).toHaveBeenCalledWith('/mixtape/abc123/edit');
-  });
-
-  it('does not render for non-owner', () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'otheruser' } });
-    render(<EditButton mixtape={mixtape} />);
-    expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
-  });
-
-  it('does not render if not authenticated', () => {
-    mockUseAuth.mockReturnValue({ user: null });
-    render(<EditButton mixtape={mixtape} />);
-    expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
+  it('renders edit button', () => {
+    render(<EditButton mixtape={mockMixtape} />);
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 }); 

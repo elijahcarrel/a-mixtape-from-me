@@ -122,7 +122,9 @@ const mockMixtapeData = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
-  cassette_text: 'Some subtitle',
+  subtitle1: 'Some subtitle',
+  subtitle2: 'Subtitle 2',
+  subtitle3: 'Subtitle 3',
   is_public: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
@@ -140,7 +142,9 @@ const mockAnonymousMixtapeData = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
-  cassette_text: 'Some subtitle',
+  subtitle1: 'Some subtitle',
+  subtitle2: 'Subtitle 2',
+  subtitle3: 'Subtitle 3',
   is_public: true,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
@@ -253,7 +257,9 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Updated Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Updated Mixtape\nSome subtitle',
+          subtitle1: 'Some subtitle',
+          subtitle2: 'Subtitle 2',
+          subtitle3: 'Subtitle 3',
           is_public: false,
           tracks: mockMixtapeData.tracks.map(track => ({
             track_position: track.track_position,
@@ -292,7 +298,9 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Test Mixtape\nSome subtitle',
+          subtitle1: 'Some subtitle',
+          subtitle2: 'Subtitle 2',
+          subtitle3: 'Subtitle 3',
           is_public: false,
           tracks: [
             {
@@ -353,7 +361,9 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Test Mixtape\nSome subtitle',
+          subtitle1: 'Some subtitle',
+          subtitle2: 'Subtitle 2',
+          subtitle3: 'Subtitle 3',
           is_public: false,
           tracks: [
             {
@@ -393,7 +403,9 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Test Mixtape\nSome subtitle',
+          subtitle1: 'Some subtitle',
+          subtitle2: 'Subtitle 2',
+          subtitle3: 'Subtitle 3',
           is_public: false,
           tracks: [
             {
@@ -424,7 +436,9 @@ describe('MixtapeEditor', () => {
         body: {
           name: 'Test Mixtape',
           intro_text: 'A test mixtape',
-          cassette_text: 'Test Mixtape\nSome subtitle',
+          subtitle1: 'Some subtitle',
+          subtitle2: 'Subtitle 2',
+          subtitle3: 'Subtitle 3',
           is_public: true,
           tracks: mockMixtapeData.tracks.map(track => ({
             track_position: track.track_position,
@@ -503,7 +517,9 @@ describe('MixtapeEditor', () => {
           body: {
             name: 'My Updated Mixtape',
             intro_text: 'This is my updated intro text',
-            cassette_text: 'My Updated Mixtape\nSome subtitle',
+            subtitle1: 'Some subtitle',
+            subtitle2: 'Subtitle 2',
+            subtitle3: 'Subtitle 3',
             is_public: false,
             tracks: [
               {
@@ -568,7 +584,9 @@ describe('MixtapeEditor', () => {
           body: {
             name: 'My Updated Mixtape',
             intro_text: 'This is my updated intro text',
-            cassette_text: 'My Updated Mixtape\nSome subtitle',
+            subtitle1: 'Some subtitle',
+            subtitle2: 'Subtitle 2',
+            subtitle3: 'Subtitle 3',
             is_public: false,
             tracks: [
               {
@@ -620,7 +638,9 @@ describe('MixtapeEditor', () => {
           body: {
             name: 'My Updated Mixtape',
             intro_text: 'This is my updated intro text',
-            cassette_text: 'My Updated Mixtape\nSome subtitle',
+            subtitle1: 'Some subtitle',
+            subtitle2: 'Subtitle 2',
+            subtitle3: 'Subtitle 3',
             is_public: false,
             tracks: [
               {
@@ -734,7 +754,9 @@ describe('MixtapeEditor', () => {
         ...mockMixtapeData,
         name: 'Updated Mixtape Name',
         intro_text: 'Updated intro text',
-        cassette_text: 'Updated subtitle',
+        subtitle1: 'Updated subtitle',
+        subtitle2: 'Subtitle 2',
+        subtitle3: 'Subtitle 3',
         is_public: true,
       };
       

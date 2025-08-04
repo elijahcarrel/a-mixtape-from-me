@@ -3,6 +3,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditMixtapePage from '../mixtape/[publicId]/edit/page';
+import { useRouter } from 'next/navigation';
+import MixtapeEditor from '../components/MixtapeEditor';
+import { MixtapeResponse } from '../client';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -96,7 +99,9 @@ const mockMixtapeData = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
-  cassette_text: 'Some subtitle',
+  subtitle1: 'Some subtitle',
+  subtitle2: 'Subtitle 2',
+  subtitle3: 'Subtitle 3',
   is_public: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',

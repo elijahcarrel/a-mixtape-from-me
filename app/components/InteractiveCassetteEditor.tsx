@@ -15,9 +15,9 @@ export default function InteractiveCassetteEditor({ value, onChange, theme }: In
   const lines = value.split('\n');
   const labelText = {
     line1: lines[0] || '', // Title (first line)
-    line2: lines[1] || '', // Cassette text line 1
-    line3: lines[2] || '', // Cassette text line 2
-    line4: lines[3] || ''  // Cassette text line 3
+    line2: lines[1] || '', // Subtitle 1
+    line3: lines[2] || '', // Subtitle 2
+    line4: lines[3] || ''  // Subtitle 3
   };
 
   // Update the title field when the first line changes
@@ -60,13 +60,8 @@ export default function InteractiveCassetteEditor({ value, onChange, theme }: In
   };
 
   const getMaxLength = (lineIndex: number) => {
-    switch (lineIndex) {
-      case 0: return 35;
-      case 1: return 40;
-      case 2: return 40;
-      case 3: return 45;
-      default: return 40;
-    }
+    // All subtitle lines have a 60 character limit
+    return 60;
   };
 
   return (
