@@ -127,7 +127,7 @@ def list_my_mixtapes(
     return mixtapes
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
-def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def get_mixtape(public_id: str, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     try:
@@ -158,7 +158,7 @@ def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
-def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Validate and enrich tracks
     enriched_tracks = []
     for track in request.tracks:

@@ -101,7 +101,6 @@ export default function InteractiveCassetteEditor({
           labelText={labelText}
           onLineClick={handleLineClick}
           editingLine={editingLine}
-          showCharacterCounts={true}
         />
       </div>
 

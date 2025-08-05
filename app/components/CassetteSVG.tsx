@@ -12,7 +12,6 @@ interface CassetteSVGProps {
   isInteractive?: boolean;
   onLineClick?: (lineIndex: number) => void;
   editingLine?: number | null;
-  showCharacterCounts?: boolean;
 }
 
 export default function CassetteSVG({ 
@@ -21,7 +20,6 @@ export default function CassetteSVG({
   isInteractive = false, 
   onLineClick, 
   editingLine = null,
-  showCharacterCounts = false 
 }: CassetteSVGProps) {
   // Helper function to truncate text to fit on cassette label
   const truncateText = (text: string, maxLength: number = 25) => {
