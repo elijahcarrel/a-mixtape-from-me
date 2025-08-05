@@ -3,6 +3,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditMixtapePage from '../mixtape/[publicId]/edit/page';
 import { MixtapeEditorProps } from '../components/MixtapeEditor';
+import MixtapeTrackPage from '../mixtape/[publicId]/track/[track_number]/page';
+import { MixtapeTrackResponse } from '../client';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -45,7 +47,7 @@ jest.mock('../components/MixtapeEditor', () => {
     };
     
     const removeTrack = (position: number) => {
-      setTracks(tracks.filter(t => t.track_position !== position));
+      setTracks(tracks.filter((t: MixtapeTrackResponse) => t.track_position !== position));
     };
     
     const updateName = (newName: string) => {
