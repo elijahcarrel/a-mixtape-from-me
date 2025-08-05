@@ -47,28 +47,28 @@ export default function CassetteSVG({
           {isInteractive && (
             <>
               <rect 
-                x="60" y="55" width="380" height="25" 
+                x="60" y="42" width="380" height="24" 
                 fill="transparent" 
                 className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
                 onClick={() => onLineClick?.(0)}
                 data-testid="line-0"
               />
               <rect 
-                x="60" y="85" width="380" height="20" 
+                x="60" y="72" width="380" height="24" 
                 fill="transparent" 
                 className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
                 onClick={() => onLineClick?.(1)}
                 data-testid="line-1"
               />
               <rect 
-                x="60" y="115" width="380" height="20" 
+                x="60" y="102" width="380" height="24" 
                 fill="transparent" 
                 className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
                 onClick={() => onLineClick?.(2)}
                 data-testid="line-2"
               />
               <rect 
-                x="60" y="145" width="380" height="20" 
+                x="60" y="132" width="380" height="24" 
                 fill="transparent" 
                 className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
                 onClick={() => onLineClick?.(3)}
