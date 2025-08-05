@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './CassetteSVG.module.scss';
 
 interface CassetteSVGProps {
@@ -21,6 +21,7 @@ export default function CassetteSVG({
   onLineClick, 
   editingLine = null,
 }: CassetteSVGProps) {
+  const [hoveredLine, setHoveredLine] = useState<number | null>(null);
   return (
     <svg viewBox="0 0 500 400" width="100%" height="320" className="mx-auto mb-6" aria-label="Cassette tape">
       {/* Outer black body */}
@@ -34,11 +35,6 @@ export default function CassetteSVG({
       {/* Label area */}
       <rect x="40" y="30" width="420" height="175" rx="5" fill="#e6e6d6" stroke="#bfa76a" strokeWidth="2.5" />
       
-      {/* Label lines */}
-      <line x1="60" y1="65" x2="440" y2="65" stroke="#bfa76a" strokeWidth="1.5" />
-      <line x1="60" y1="95" x2="440" y2="95" stroke="#bfa76a" strokeWidth="1.5" />
-      <line x1="60" y1="125" x2="440" y2="125" stroke="#bfa76a" strokeWidth="1.5" />
-      <line x1="60" y1="155" x2="440" y2="155" stroke="#bfa76a" strokeWidth="1.5" />
       
       {/* Interactive label text */}
       {labelText && (
@@ -47,30 +43,34 @@ export default function CassetteSVG({
           {isInteractive && (
             <>
               <rect 
-                x="60" y="42" width="380" height="24" 
-                fill="transparent" 
-                className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
+                x="60" y="36" width="380" height="30" 
+                fill={hoveredLine === 0 ? "#fef3c7" : "transparent"}
+                fillOpacity={hoveredLine === 0 ? 1 : 0}
+                className="cursor-pointer"
                 onClick={() => onLineClick?.(0)}
                 data-testid="line-0"
               />
               <rect 
-                x="60" y="72" width="380" height="24" 
-                fill="transparent" 
-                className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
+                x="60" y="66" width="380" height="30" 
+                fill={hoveredLine === 1 ? "#fef3c7" : "transparent"}
+                fillOpacity={hoveredLine === 1 ? 1 : 0}
+                className="cursor-pointer"
                 onClick={() => onLineClick?.(1)}
                 data-testid="line-1"
               />
               <rect 
-                x="60" y="102" width="380" height="24" 
-                fill="transparent" 
-                className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
+                x="60" y="96" width="380" height="30" 
+                fill={hoveredLine === 2 ? "#fef3c7" : "transparent"}
+                fillOpacity={hoveredLine === 2 ? 1 : 0}
+                className="cursor-pointer"
                 onClick={() => onLineClick?.(2)}
                 data-testid="line-2"
               />
               <rect 
-                x="60" y="132" width="380" height="24" 
-                fill="transparent" 
-                className="cursor-pointer hover:fill-amber-100 hover:fill-opacity-20"
+                x="60" y="126" width="380" height="30" 
+                fill={hoveredLine === 3 ? "#fef3c7" : "transparent"}
+                fillOpacity={hoveredLine === 3 ? 1 : 0}
+                className="cursor-pointer"
                 onClick={() => onLineClick?.(3)}
                 data-testid="line-3"
               />
@@ -142,6 +142,46 @@ export default function CassetteSVG({
               {labelText.line4}
             </text>
           )}
+        </>
+      )}
+      
+      {/* Label lines */}
+      <line x1="60" y1="65" x2="440" y2="65" stroke="#bfa76a" strokeWidth="1.5" />
+      <line x1="60" y1="95" x2="440" y2="95" stroke="#bfa76a" strokeWidth="1.5" />
+      <line x1="60" y1="125" x2="440" y2="125" stroke="#bfa76a" strokeWidth="1.5" />
+      <line x1="60" y1="155" x2="440" y2="155" stroke="#bfa76a" strokeWidth="1.5" />
+
+      {/* Transparent hover overlays for interactive mode */}
+      {isInteractive && (
+        <>
+          <rect 
+            x="60" y="42" width="380" height="24" 
+            fill="transparent" 
+            onMouseEnter={() => setHoveredLine(0)}
+            onMouseLeave={() => setHoveredLine(null)}
+            style={{ cursor: 'pointer' }}
+          />
+          <rect 
+            x="60" y="72" width="380" height="24" 
+            fill="transparent" 
+            onMouseEnter={() => setHoveredLine(1)}
+            onMouseLeave={() => setHoveredLine(null)}
+            style={{ cursor: 'pointer' }}
+          />
+          <rect 
+            x="60" y="102" width="380" height="24" 
+            fill="transparent" 
+            onMouseEnter={() => setHoveredLine(2)}
+            onMouseLeave={() => setHoveredLine(null)}
+            style={{ cursor: 'pointer' }}
+          />
+          <rect 
+            x="60" y="132" width="380" height="24" 
+            fill="transparent" 
+            onMouseEnter={() => setHoveredLine(3)}
+            onMouseLeave={() => setHoveredLine(null)}
+            style={{ cursor: 'pointer' }}
+          />
         </>
       )}
       
