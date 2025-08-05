@@ -47,7 +47,7 @@ describe('InteractiveCassetteEditor', () => {
       />
     );
 
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
 
     // Should show the editor overlay
@@ -69,7 +69,7 @@ describe('InteractiveCassetteEditor', () => {
       />
     );
 
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
 
     const input = screen.getByRole('textbox');
@@ -96,7 +96,7 @@ describe('InteractiveCassetteEditor', () => {
       />
     );
 
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
 
     const input = screen.getByRole('textbox');
@@ -122,7 +122,7 @@ describe('InteractiveCassetteEditor', () => {
       />
     );
 
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
 
     const input = screen.getByRole('textbox');
@@ -151,7 +151,7 @@ describe('InteractiveCassetteEditor', () => {
       />
     );
 
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
 
     const input = screen.getByRole('textbox');
@@ -179,7 +179,7 @@ describe('InteractiveCassetteEditor', () => {
       />
     );
 
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
 
     const input = screen.getByRole('textbox');
@@ -202,7 +202,7 @@ describe('InteractiveCassetteEditor', () => {
     );
 
     // Test title line (line 0)
-    const titleLine = screen.getByTestId('line-0');
+    const titleLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(titleLine);
     const titleInput = screen.getByRole('textbox');
     fireEvent.change(titleInput, { target: { value: 'Updated title' } });
@@ -213,7 +213,7 @@ describe('InteractiveCassetteEditor', () => {
     });
 
     // Test subtitle1 line (line 1)
-    const subtitle1Line = screen.getByTestId('line-1');
+    const subtitle1Line = screen.getByTestId('line-1-clickable-overlay');
     fireEvent.click(subtitle1Line);
     const subtitle1Input = screen.getByRole('textbox');
     fireEvent.change(subtitle1Input, { target: { value: 'Updated subtitle1' } });
@@ -224,7 +224,7 @@ describe('InteractiveCassetteEditor', () => {
     });
 
     // Test subtitle2 line (line 2)
-    const subtitle2Line = screen.getByTestId('line-2');
+    const subtitle2Line = screen.getByTestId('line-2-clickable-overlay');
     fireEvent.click(subtitle2Line);
     const subtitle2Input = screen.getByRole('textbox');
     fireEvent.change(subtitle2Input, { target: { value: 'Updated subtitle2' } });
@@ -235,7 +235,7 @@ describe('InteractiveCassetteEditor', () => {
     });
 
     // Test subtitle3 line (line 3)
-    const subtitle3Line = screen.getByTestId('line-3');
+    const subtitle3Line = screen.getByTestId('line-3-clickable-overlay');
     fireEvent.click(subtitle3Line);
     const subtitle3Input = screen.getByRole('textbox');
     fireEvent.change(subtitle3Input, { target: { value: 'Updated subtitle3' } });

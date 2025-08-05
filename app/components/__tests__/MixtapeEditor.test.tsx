@@ -210,7 +210,7 @@ describe('MixtapeEditor', () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
     
     // Trigger a save by changing the title in the cassette editor
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
     
     await waitFor(() => {
@@ -234,7 +234,7 @@ describe('MixtapeEditor', () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
     
     // Change the title in the cassette editor
-    const firstLine = screen.getByTestId('line-0');
+    const firstLine = screen.getByTestId('line-0-clickable-overlay');
     fireEvent.click(firstLine);
     
     await waitFor(() => {
@@ -484,7 +484,7 @@ describe('MixtapeEditor', () => {
       const introInput = screen.getByDisplayValue('A test mixtape');
       
       // Change the title by editing the first line of the cassette
-      const firstLine = screen.getByTestId('line-0');
+      const firstLine = screen.getByTestId('line-0-clickable-overlay');
       fireEvent.click(firstLine);
       
       await waitFor(() => {
@@ -551,7 +551,7 @@ describe('MixtapeEditor', () => {
       const introInput = screen.getByDisplayValue('A test mixtape');
       
       // Change the title by editing the first line of the cassette
-      const firstLine = screen.getByTestId('line-0');
+      const firstLine = screen.getByTestId('line-0-clickable-overlay');
       fireEvent.click(firstLine);
       
       await waitFor(() => {
@@ -605,7 +605,7 @@ describe('MixtapeEditor', () => {
       const introInput = screen.getByDisplayValue('A test mixtape');
       
       // Change the title by editing the first line of the cassette
-      const firstLine = screen.getByTestId('line-0');
+      const firstLine = screen.getByTestId('line-0-clickable-overlay');
       fireEvent.click(firstLine);
       
       await waitFor(() => {
@@ -674,7 +674,7 @@ describe('MixtapeEditor', () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
       // Change the name by editing the first line of the cassette
-      const firstLine = screen.getByTestId('line-0');
+      const firstLine = screen.getByTestId('line-0-clickable-overlay');
       fireEvent.click(firstLine);
       
       // Wait for the editor to appear and edit the title
@@ -772,7 +772,7 @@ describe('MixtapeEditor', () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
       // Change form values by editing the cassette
-      const firstLine = screen.getByTestId('line-0');
+      const firstLine = screen.getByTestId('line-0-clickable-overlay');
       fireEvent.click(firstLine);
       
       await waitFor(() => {
