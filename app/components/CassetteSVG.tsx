@@ -47,7 +47,6 @@ export default function CassetteSVG({
                 fill={hoveredLine === 0 ? "#fef3c7" : "transparent"}
                 fillOpacity={hoveredLine === 0 ? 1 : 0}
                 className="cursor-pointer"
-                onClick={() => onLineClick?.(0)}
                 data-testid="line-0"
               />
               <rect 
@@ -55,7 +54,6 @@ export default function CassetteSVG({
                 fill={hoveredLine === 1 ? "#fef3c7" : "transparent"}
                 fillOpacity={hoveredLine === 1 ? 1 : 0}
                 className="cursor-pointer"
-                onClick={() => onLineClick?.(1)}
                 data-testid="line-1"
               />
               <rect 
@@ -63,7 +61,6 @@ export default function CassetteSVG({
                 fill={hoveredLine === 2 ? "#fef3c7" : "transparent"}
                 fillOpacity={hoveredLine === 2 ? 1 : 0}
                 className="cursor-pointer"
-                onClick={() => onLineClick?.(2)}
                 data-testid="line-2"
               />
               <rect 
@@ -71,7 +68,6 @@ export default function CassetteSVG({
                 fill={hoveredLine === 3 ? "#fef3c7" : "transparent"}
                 fillOpacity={hoveredLine === 3 ? 1 : 0}
                 className="cursor-pointer"
-                onClick={() => onLineClick?.(3)}
                 data-testid="line-3"
               />
             </>
@@ -151,7 +147,7 @@ export default function CassetteSVG({
       <line x1="60" y1="125" x2="440" y2="125" stroke="#bfa76a" strokeWidth="1.5" />
       <line x1="60" y1="155" x2="440" y2="155" stroke="#bfa76a" strokeWidth="1.5" />
 
-      {/* Transparent hover overlays for interactive mode */}
+      {/* Clickable transparent hover overlays for interactive mode */}
       {isInteractive && (
         <>
           <rect 
@@ -159,6 +155,7 @@ export default function CassetteSVG({
             fill="transparent" 
             onMouseEnter={() => setHoveredLine(0)}
             onMouseLeave={() => setHoveredLine(null)}
+            onClick={() => onLineClick?.(0)}
             style={{ cursor: 'pointer' }}
           />
           <rect 
@@ -166,6 +163,7 @@ export default function CassetteSVG({
             fill="transparent" 
             onMouseEnter={() => setHoveredLine(1)}
             onMouseLeave={() => setHoveredLine(null)}
+            onClick={() => onLineClick?.(1)}
             style={{ cursor: 'pointer' }}
           />
           <rect 
@@ -173,6 +171,7 @@ export default function CassetteSVG({
             fill="transparent" 
             onMouseEnter={() => setHoveredLine(2)}
             onMouseLeave={() => setHoveredLine(null)}
+            onClick={() => onLineClick?.(2)}
             style={{ cursor: 'pointer' }}
           />
           <rect 
@@ -180,6 +179,7 @@ export default function CassetteSVG({
             fill="transparent" 
             onMouseEnter={() => setHoveredLine(3)}
             onMouseLeave={() => setHoveredLine(null)}
+            onClick={() => onLineClick?.(3)}
             style={{ cursor: 'pointer' }}
           />
         </>
