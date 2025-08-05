@@ -21,12 +21,6 @@ export default function CassetteSVG({
   onLineClick, 
   editingLine = null,
 }: CassetteSVGProps) {
-  // Helper function to truncate text to fit on cassette label
-  const truncateText = (text: string, maxLength: number = 25) => {
-    if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
-  };
-
   return (
     <svg viewBox="0 0 500 400" width="100%" height="320" className="mx-auto mb-6" aria-label="Cassette tape">
       {/* Outer black body */}
@@ -100,14 +94,14 @@ export default function CassetteSVG({
               data-testid="text-0"
               onClick={isInteractive ? () => onLineClick?.(0) : undefined}
             >
-              {truncateText(labelText.line1, 35)}
+              {labelText.line1}
             </text>
           )}
           {labelText.line2 && (
             <text 
               x="250" y="88" 
               textAnchor="middle" 
-              fontSize="16" 
+              fontSize="18" 
               fill="#6b3e26" 
               fontFamily="var(--font-caveat), cursive"
               className={editingLine === 1 ? 'hidden' : ''}
@@ -115,14 +109,14 @@ export default function CassetteSVG({
               onClick={isInteractive ? () => onLineClick?.(1) : undefined}
               style={{ cursor: isInteractive ? 'pointer' : 'default' }}
             >
-              {truncateText(labelText.line2, 40)}
+              {labelText.line2}
             </text>
           )}
           {labelText.line3 && (
             <text 
               x="250" y="118" 
               textAnchor="middle" 
-              fontSize="16" 
+              fontSize="18" 
               fill="#6b3e26" 
               fontFamily="var(--font-caveat), cursive"
               className={editingLine === 2 ? 'hidden' : ''}
@@ -130,14 +124,14 @@ export default function CassetteSVG({
               onClick={isInteractive ? () => onLineClick?.(2) : undefined}
               style={{ cursor: isInteractive ? 'pointer' : 'default' }}
             >
-              {truncateText(labelText.line3, 40)}
+              {labelText.line3}
             </text>
           )}
           {labelText.line4 && (
             <text 
               x="250" y="148" 
               textAnchor="middle" 
-              fontSize="14" 
+              fontSize="18" 
               fill="#6b3e26" 
               fontFamily="var(--font-caveat), cursive"
               className={editingLine === 3 ? 'hidden' : ''}
@@ -145,7 +139,7 @@ export default function CassetteSVG({
               onClick={isInteractive ? () => onLineClick?.(3) : undefined}
               style={{ cursor: isInteractive ? 'pointer' : 'default' }}
             >
-              {truncateText(labelText.line4, 45)}
+              {labelText.line4}
             </text>
           )}
         </>
