@@ -17,7 +17,7 @@ export default function MixtapeViewer({ mixtape }: MixtapeViewerProps) {
     }
   };
 
-  // Prepare label text for the cassette using the new subtitle fields
+  // Prepare label text for the cassette.
   const labelText = {
     line1: mixtape.name,
     line2: mixtape.subtitle1 || undefined,

@@ -88,9 +88,6 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
 
         {/* Interactive Cassette Editor */}
         <div className="space-y-3">
-          <label className={`text-sm sm:text-base font-medium ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
-            Cassette Label
-          </label>
           <InteractiveCassetteEditor
             title={values.name}
             subtitle1={values.subtitle1}

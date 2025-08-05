@@ -204,9 +204,9 @@ describe('InteractiveCassetteEditor', () => {
     // Test title line (line 0)
     const titleLine = screen.getByTestId('line-0');
     fireEvent.click(titleLine);
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'Updated title' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    const titleInput = screen.getByRole('textbox');
+    fireEvent.change(titleInput, { target: { value: 'Updated title' } });
+    fireEvent.keyDown(titleInput, { key: 'Enter' });
 
     await waitFor(() => {
       expect(mockOnTitleChange).toHaveBeenCalledWith('Updated title');
@@ -215,12 +215,34 @@ describe('InteractiveCassetteEditor', () => {
     // Test subtitle1 line (line 1)
     const subtitle1Line = screen.getByTestId('line-1');
     fireEvent.click(subtitle1Line);
-    const input2 = screen.getByRole('textbox');
-    fireEvent.change(input2, { target: { value: 'Updated subtitle1' } });
-    fireEvent.keyDown(input2, { key: 'Enter' });
+    const subtitle1Input = screen.getByRole('textbox');
+    fireEvent.change(subtitle1Input, { target: { value: 'Updated subtitle1' } });
+    fireEvent.keyDown(subtitle1Input, { key: 'Enter' });
 
     await waitFor(() => {
       expect(mockOnSubtitle1Change).toHaveBeenCalledWith('Updated subtitle1');
+    });
+
+    // Test subtitle2 line (line 2)
+    const subtitle2Line = screen.getByTestId('line-2');
+    fireEvent.click(subtitle2Line);
+    const subtitle2Input = screen.getByRole('textbox');
+    fireEvent.change(subtitle2Input, { target: { value: 'Updated subtitle2' } });
+    fireEvent.keyDown(subtitle2Input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(mockOnSubtitle2Change).toHaveBeenCalledWith('Updated subtitle2');
+    });
+
+    // Test subtitle3 line (line 3)
+    const subtitle3Line = screen.getByTestId('line-3');
+    fireEvent.click(subtitle3Line);
+    const subtitle3Input = screen.getByRole('textbox');
+    fireEvent.change(subtitle3Input, { target: { value: 'Updated subtitle3' } });
+    fireEvent.keyDown(subtitle3Input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(mockOnSubtitle3Change).toHaveBeenCalledWith('Updated subtitle3');
     });
   });
 }); 
