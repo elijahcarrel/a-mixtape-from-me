@@ -27,6 +27,6 @@ describe('PreviewButton', () => {
   it('navigates to the viewer page on click', () => {
     render(<PreviewButton mixtape={mockMixtape} />);
     fireEvent.click(screen.getByTestId('preview-button'));
-    expect(mockPush).toHaveBeenCalledWith('/mixtape/abc123');
+    expect(mockPush).toHaveBeenCalledWith('/mixtape/test-mixtape-123');
   }); 
 }); 
