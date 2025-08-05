@@ -13,7 +13,7 @@ import { normalizeTrackToRequest } from '../util/track-util';
 import PreviewButton from './PreviewButton';
 import { MixtapeEditorForm, FormValues } from './MixtapeEditorForm';
 
-interface MixtapeEditorProps {
+export interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
   onMixtapeClaimed?: () => void;
 }

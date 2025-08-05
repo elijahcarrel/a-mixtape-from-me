@@ -1,11 +1,8 @@
-// @ts-nocheck
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditMixtapePage from '../mixtape/[publicId]/edit/page';
-import { useRouter } from 'next/navigation';
-import MixtapeEditor from '../components/MixtapeEditor';
-import { MixtapeResponse } from '../client';
+import { MixtapeEditorProps } from '../components/MixtapeEditor';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -34,7 +31,7 @@ const mockUseApiRequest = jest.requireMock('../hooks/useApiRequest').useApiReque
 // Mock components with more realistic behavior
 jest.mock('../components/MixtapeEditor', () => {
   const mockReact = require('react');
-  return function MockMixtapeEditor({ mixtape }: any) {
+  return function MockMixtapeEditor({ mixtape }: MixtapeEditorProps) {
     const [tracks, setTracks] = mockReact.useState(mixtape.tracks);
     const [name, setName] = mockReact.useState(mixtape.name);
     

@@ -1,7 +1,6 @@
-// @ts-nocheck
 import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, waitFor } from './test-utils';
+import { render, screen, fireEvent } from './test-utils';
 import TrackList from '../TrackList';
 
 const mockTrackDetails1 = {
@@ -147,7 +146,7 @@ describe('TrackList', () => {
       
       const textarea = screen.getByTestId('track-textarea-1');
       expect(textarea).toBeInTheDocument();
-      expect(textarea.value).toBe('This song always reminds me of our road trip to Big Sur!');
+      expect((textarea as HTMLTextAreaElement).value).toBe('This song always reminds me of our road trip to Big Sur!');
     });
 
     it('calls onEditTrackText when Save is clicked', () => {
