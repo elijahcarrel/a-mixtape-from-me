@@ -1,9 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { useApiRequest } from '../../hooks/useApiRequest';
-import { useAuth } from '../../hooks/useAuth';
 import LoadingDisplay from '../../components/LoadingDisplay';
 import ErrorDisplay from '../../components/ErrorDisplay';
 import MainContainer from '../../components/layout/MainContainer';
@@ -13,21 +11,12 @@ import { MixtapeResponse } from '../../client';
 
 export default function ViewMixtapePage() {
   const params = useParams();
-  const router = useRouter();
-  const { user } = useAuth();
   const publicId = params.publicId as string;
 
   const { data: mixtape, loading, error, refetch } = useApiRequest<MixtapeResponse>({
     url: `/api/mixtape/${publicId}`,
     method: 'GET',
   });
-
-  // Redirect to edit page if user is the owner
-  useEffect(() => {
-    if (mixtape && user && user.id === mixtape.stack_auth_user_id) {
-      router.replace(`/mixtape/${publicId}/edit`);
-    }
-  }, [mixtape, user, publicId, router]);
 
   if (loading) {
     return <LoadingDisplay message="Loading mixtape..." />;

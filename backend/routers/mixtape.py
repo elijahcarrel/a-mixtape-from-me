@@ -44,7 +44,7 @@ class MixtapeRequest(BaseModel):
     @classmethod
     def strip_newlines(cls, v):
         if v is not None:
-            return v.replace('\n', '').replace('\r', '')
+            return v.replace('\n', ' ').replace('\r', ' ')
         return v
 
 class MixtapeResponse(BaseModel):
@@ -61,7 +61,7 @@ class MixtapeResponse(BaseModel):
     tracks: List[MixtapeTrackResponse]
 
 @router.post("", response_model=dict, status_code=201)
-def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Validate and enrich tracks
     enriched_tracks = []
     for track in request.tracks:

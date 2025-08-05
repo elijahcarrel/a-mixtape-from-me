@@ -1,8 +1,13 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PreviewButton from '../PreviewButton';
 import { MixtapeResponse } from '../../client';
+
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 const mockMixtape: MixtapeResponse = {
   public_id: 'test-mixtape-123',
@@ -19,8 +24,9 @@ const mockMixtape: MixtapeResponse = {
 };
 
 describe('PreviewButton', () => {
-  it('renders preview button', () => {
+  it('navigates to the viewer page on click', () => {
     render(<PreviewButton mixtape={mockMixtape} />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
-  });
+    fireEvent.click(screen.getByTestId('preview-button'));
+    expect(mockPush).toHaveBeenCalledWith('/mixtape/abc123');
+  }); 
 }); 

@@ -1,78 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthenticatedRequest } from '../hooks/useApiRequest';
+import { useApiRequest } from '../hooks/useApiRequest';
+import MainContainer from '../components/layout/MainContainer';
+import ContentPane from '../components/layout/ContentPane';
 import { useAuth } from '../hooks/useAuth';
-import { MixtapeResponse, MixtapeTrackRequest } from '../client';
-import MixtapeEditor from '../components/MixtapeEditor';
 
 export default function CreateMixtapePage() {
-  const [mixtape, setMixtape] = useState<MixtapeResponse | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const { makeRequest } = useAuthenticatedRequest();
-  const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const [isCreating, setIsCreating] = useState(true);
+  const { isAuthenticated } = useAuth({ requireAuth: false });
 
-  const handleCreateMixtape = async () => {
-    setIsCreating(true);
-    try {
-      const response = await makeRequest('/api/mixtape', {
-        method: 'POST',
-        body: {
-          name: 'Untitled Mixtape',
-          intro_text: null,
-          subtitle1: null,
-          subtitle2: null,
-          subtitle3: null,
-          is_public: true,
-          tracks: []
-        }
-      });
-      
-      const newMixtape: MixtapeResponse = {
-        public_id: response.public_id,
-        name: 'Untitled Mixtape',
-        intro_text: null,
-        subtitle1: null,
-        subtitle2: null,
-        subtitle3: null,
-        is_public: true,
-        create_time: new Date().toISOString(),
-        last_modified_time: new Date().toISOString(),
-        stack_auth_user_id: null,
-        tracks: []
-      };
-      
-      setMixtape(newMixtape);
-    } catch (error) {
-      console.error('Error creating mixtape:', error);
-    } finally {
+  // Default mixtapes to private if the user is authenticated;
+  // everyone prefers private-by-default.
+  // However, if the user is unauthenticated, we have no choice
+  // but to make it public. Otherwise, the user will be unable
+  // to access their own mixtape.
+  const isPublic = !isAuthenticated;
+  const { data: createResponse, loading, error } = useApiRequest<{ public_id: string }>({
+    url: '/api/mixtape',
+    method: 'POST',
+    body: {
+      name: 'Untitled Mixtape',
+      intro_text: null,
+      is_public: isPublic,
+      tracks: []
+    },
+  });
+
+  useEffect(() => {
+    if (!loading) {
       setIsCreating(false);
     }
-  };
+  }, [loading]);
 
-  const handleMixtapeClaimed = () => {
-    // Refresh the page to get the updated mixtape data
-    window.location.reload();
-  };
+  useEffect(() => {
+    if (createResponse?.public_id) {
+      // Redirect to the edit page for the newly created mixtape
+      router.replace(`/mixtape/${createResponse.public_id}/edit`);
+    }
+  }, [createResponse, router]);
 
-  if (!mixtape) {
+  if (loading || isCreating) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Create a New Mixtape</h1>
-          <button
-            onClick={handleCreateMixtape}
-            disabled={isCreating}
-            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
-          >
-            {isCreating ? 'Creating...' : 'Start Creating'}
-          </button>
-        </div>
-      </div>
+      <MainContainer>
+        <ContentPane>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-800 mx-auto mb-4"></div>
+              <p className="text-lg text-amber-800">Creating your mixtape...</p>
+            </div>
+          </div>
+        </ContentPane>
+      </MainContainer>
     );
   }
 
-  return <MixtapeEditor mixtape={mixtape} onMixtapeClaimed={handleMixtapeClaimed} />;
+  if (error) {
+    return (
+      <MainContainer>
+        <ContentPane>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-800 mb-4">Error Creating Mixtape</h1>
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-amber-800 text-white px-4 py-2 rounded hover:bg-amber-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </ContentPane>
+      </MainContainer>
+    );
+  }
+
+  return null;
 } 
