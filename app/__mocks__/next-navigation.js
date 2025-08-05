@@ -21,4 +21,6 @@ export const useSearchParams = jest.fn(() => ({
 
 export const usePathname = jest.fn(() => '/');
 
+export const useParams = jest.fn(() => ({}));
+
 export const redirect = jest.fn(); 

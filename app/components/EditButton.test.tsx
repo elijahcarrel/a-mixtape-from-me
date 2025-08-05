@@ -1,5 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { render } from './__tests__/test-utils';
+import '@testing-library/jest-dom';
 import EditButton from './EditButton';
 import { MixtapeResponse } from '../client';
 
@@ -13,7 +15,7 @@ const mockMixtape: MixtapeResponse = {
   is_public: true,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
-  stack_auth_user_id: 'user123',
+  stack_auth_user_id: 'test-user-id',
   tracks: [],
 };
 

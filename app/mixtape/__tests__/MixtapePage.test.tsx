@@ -1,17 +1,19 @@
 // @ts-nocheck
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { useRouter } from 'next/navigation';
-import MixtapePage from '../page';
-import { useApiRequest } from '../../../hooks/useApiRequest';
-import { useAuth } from '../../../hooks/useAuth';
+import '@testing-library/jest-dom';
+import { useRouter, useParams } from 'next/navigation';
+import MixtapePage from '../[publicId]/page';
+import { useApiRequest } from '../../hooks/useApiRequest';
+import { useAuth } from '../../hooks/useAuth';
 
 // Mock the hooks
 jest.mock('next/navigation');
-jest.mock('../../../hooks/useApiRequest');
-jest.mock('../../../hooks/useAuth');
+jest.mock('../../hooks/useApiRequest');
+jest.mock('../../hooks/useAuth');
 
 const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
+const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseApiRequest = useApiRequest as jest.MockedFunction<typeof useApiRequest>;
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
@@ -27,6 +29,10 @@ describe('MixtapePage', () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+    } as any);
+
+    mockUseParams.mockReturnValue({
+      publicId: 'test-mixtape-id',
     } as any);
 
     mockUseAuth.mockReturnValue({
@@ -119,7 +125,7 @@ describe('MixtapePage', () => {
 
     render(<MixtapePage params={{ publicId: 'test-mixtape-id' }} />);
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Loading mixtape...')).toBeInTheDocument();
   });
 
   it('shows error state', async () => {
@@ -132,7 +138,7 @@ describe('MixtapePage', () => {
     render(<MixtapePage params={{ publicId: 'test-mixtape-id' }} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Error loading mixtape')).toBeInTheDocument();
+      expect(screen.getByText('Error')).toBeInTheDocument();
       expect(screen.getByText('Failed to load mixtape')).toBeInTheDocument();
     });
   });
