@@ -149,6 +149,9 @@ export default function CassetteSVG({
       <rect x="40" y="205" width="420" height="18" fill="#e74c3c" />
       <rect x="40" y="223" width="420" height="18" fill="#f39c12" />
       <rect x="40" y="241" width="420" height="18" fill="#e67e22" />
+            
+      {/* Tape between spools */}
+      <rect x="190" y="268" width="120" height="14" rx="7" fill="#7c4a03" />
       
       {/* Spools (animated if isAnimated) */}
       <g>
@@ -177,10 +180,7 @@ export default function CassetteSVG({
           <circle cx="350" cy="275" r="12" fill="#bfa76a" />
         </g>
       </g>
-      
-      {/* Tape between spools */}
-      <rect x="190" y="268" width="120" height="14" rx="7" fill="#7c4a03" />
-      
+
       {/* Bottom holes */}
       <rect x="75" y="340" width="30" height="12" rx="3" fill="#bbb" />
       <rect x="395" y="340" width="30" height="12" rx="3" fill="#bbb" />
