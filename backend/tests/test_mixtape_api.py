@@ -118,6 +118,9 @@ def mixtape_payload(tracks: list) -> dict:
     return {
         "name": "Test Mixtape",
         "intro_text": "Intro!",
+        "subtitle1": "Subtitle 1",
+        "subtitle2": "Subtitle 2",
+        "subtitle3": "Subtitle 3",
         "is_public": True,
         "tracks": tracks
     }
@@ -137,6 +140,9 @@ def test_create_and_get_mixtape(client: Tuple[TestClient, str, dict]) -> None:
     assert_response_success(resp)
     data = resp.json()
     assert data["name"] == "Test Mixtape"
+    assert data["subtitle1"] == "Subtitle 1"
+    assert data["subtitle2"] == "Subtitle 2"
+    assert data["subtitle3"] == "Subtitle 3"
     assert data["is_public"] is True
     assert len(data["tracks"]) == 2
     assert data["tracks"][0]["track_position"] == 1

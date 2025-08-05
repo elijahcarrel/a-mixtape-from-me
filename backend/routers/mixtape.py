@@ -26,6 +26,9 @@ class MixtapeTrackResponse(BaseModel):
 class MixtapeRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the mixtape")
     intro_text: Optional[str] = Field(None, description="Optional intro text")
+    subtitle1: Optional[str] = Field(None, max_length=60, description="First subtitle line (max 60 characters)")
+    subtitle2: Optional[str] = Field(None, max_length=60, description="Second subtitle line (max 60 characters)")
+    subtitle3: Optional[str] = Field(None, max_length=60, description="Third subtitle line (max 60 characters)")
     is_public: bool = Field(False, description="Whether the mixtape is public")
     tracks: List[MixtapeTrackRequest] = Field(..., description="List of tracks in the mixtape")
 
@@ -37,10 +40,20 @@ class MixtapeRequest(BaseModel):
             raise ValueError('Track positions must be unique within a mixtape')
         return v
 
+    @field_validator('subtitle1', 'subtitle2', 'subtitle3')
+    @classmethod
+    def strip_newlines(cls, v):
+        if v is not None:
+            return v.replace('\n', ' ').replace('\r', ' ')
+        return v
+
 class MixtapeResponse(BaseModel):
     public_id: str
     name: str
     intro_text: Optional[str]
+    subtitle1: Optional[str]
+    subtitle2: Optional[str]
+    subtitle3: Optional[str]
     is_public: bool
     create_time: str
     last_modified_time: str
@@ -48,7 +61,7 @@ class MixtapeResponse(BaseModel):
     tracks: List[MixtapeTrackResponse]
 
 @router.post("", response_model=dict, status_code=201)
-def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Validate and enrich tracks
     enriched_tracks = []
     for track in request.tracks:
@@ -73,7 +86,7 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dic
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
     # For anonymous mixtapes, stack_auth_user_id will be None
     try:
-        public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.is_public, enriched_tracks)
+        public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
@@ -114,7 +127,7 @@ def list_my_mixtapes(
     return mixtapes
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
-def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def get_mixtape(public_id: str, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Get database session from app state
     session = next(request_obj.app.state.get_db_dep())
     try:
@@ -145,7 +158,7 @@ def get_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
-def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     # Validate and enrich tracks
     enriched_tracks = []
     for track in request.tracks:
@@ -181,7 +194,7 @@ def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request
         if stack_auth_user_id != mixtape["stack_auth_user_id"]:
             raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
     try:
-        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.is_public, enriched_tracks)
+        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
     except Exception as e:

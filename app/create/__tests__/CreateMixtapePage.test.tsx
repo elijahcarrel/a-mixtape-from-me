@@ -1,6 +1,5 @@
-// @ts-nocheck
 import React from 'react';
-import { render, screen, fireEvent } from '../../components/__tests__/test-utils';
+import { render, screen } from '../../components/__tests__/test-utils';
 import '@testing-library/jest-dom';
 import CreateMixtapePage from '../page';
 

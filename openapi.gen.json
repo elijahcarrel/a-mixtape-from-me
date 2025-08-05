@@ -565,6 +565,45 @@
                         "title": "Intro Text",
                         "description": "Optional intro text"
                     },
+                    "subtitle1": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle1",
+                        "description": "First subtitle line (max 60 characters)"
+                    },
+                    "subtitle2": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle2",
+                        "description": "Second subtitle line (max 60 characters)"
+                    },
+                    "subtitle3": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle3",
+                        "description": "Third subtitle line (max 60 characters)"
+                    },
                     "is_public": {
                         "type": "boolean",
                         "title": "Is Public",
@@ -608,6 +647,39 @@
                         ],
                         "title": "Intro Text"
                     },
+                    "subtitle1": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle1"
+                    },
+                    "subtitle2": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle2"
+                    },
+                    "subtitle3": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle3"
+                    },
                     "is_public": {
                         "type": "boolean",
                         "title": "Is Public"
@@ -644,6 +716,9 @@
                     "public_id",
                     "name",
                     "intro_text",
+                    "subtitle1",
+                    "subtitle2",
+                    "subtitle3",
                     "is_public",
                     "create_time",
                     "last_modified_time",

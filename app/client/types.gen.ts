@@ -25,6 +25,21 @@ export type MixtapeRequest = {
      */
     intro_text?: string | null;
     /**
+     * Subtitle1
+     * First subtitle line (max 60 characters)
+     */
+    subtitle1?: string | null;
+    /**
+     * Subtitle2
+     * Second subtitle line (max 60 characters)
+     */
+    subtitle2?: string | null;
+    /**
+     * Subtitle3
+     * Third subtitle line (max 60 characters)
+     */
+    subtitle3?: string | null;
+    /**
      * Is Public
      * Whether the mixtape is public
      */
@@ -52,6 +67,18 @@ export type MixtapeResponse = {
      * Intro Text
      */
     intro_text: string | null;
+    /**
+     * Subtitle1
+     */
+    subtitle1: string | null;
+    /**
+     * Subtitle2
+     */
+    subtitle2: string | null;
+    /**
+     * Subtitle3
+     */
+    subtitle3: string | null;
     /**
      * Is Public
      */

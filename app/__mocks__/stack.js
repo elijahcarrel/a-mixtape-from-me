@@ -3,6 +3,9 @@ export const useUser = jest.fn(() => ({
   id: 'test-user-id',
   email: 'test@example.com',
   displayName: 'Test User',
+  getAuthJson: jest.fn().mockResolvedValue({
+    accessToken: 'mock-access-token',
+  }),
 }));
 
 export const UserButton = jest.fn(({ children, ...props }) => {

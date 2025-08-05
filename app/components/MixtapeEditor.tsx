@@ -13,7 +13,7 @@ import { normalizeTrackToRequest } from '../util/track-util';
 import PreviewButton from './PreviewButton';
 import { MixtapeEditorForm, FormValues } from './MixtapeEditorForm';
 
-interface MixtapeEditorProps {
+export interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
   onMixtapeClaimed?: () => void;
 }
@@ -60,6 +60,9 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         body: {
           name: values.name,
           intro_text: values.intro_text,
+          subtitle1: values.subtitle1,
+          subtitle2: values.subtitle2,
+          subtitle3: values.subtitle3,
           is_public: values.is_public,
           tracks: values.tracks.map(normalizeTrackToRequest)
         }
@@ -150,6 +153,9 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         initialValues={{
           name: mixtape.name,
           intro_text: mixtape.intro_text || '',
+          subtitle1: mixtape.subtitle1 || '',
+          subtitle2: mixtape.subtitle2 || '',
+          subtitle3: mixtape.subtitle3 || '',
           is_public: mixtape.is_public,
           tracks: mixtape.tracks
         }}

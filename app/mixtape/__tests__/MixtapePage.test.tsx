@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import { render, screen, waitFor } from '../../components/__tests__/test-utils';
 import '@testing-library/jest-dom';

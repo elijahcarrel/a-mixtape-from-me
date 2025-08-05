@@ -1,0 +1,8 @@
+# General Front-End Rules
+
+- Avoid using `@ts-nocheck`, `@ts-ignore`, etc. If you do need to leave those statements, leave a code comment explaining why, and explain to me in your agent response that you have added those code smells.
+
+description: General front-end coding conventions
+globs: 
+alwaysApply: true
+---

@@ -1,8 +1,10 @@
-// @ts-nocheck
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditMixtapePage from '../mixtape/[publicId]/edit/page';
+import { MixtapeEditorProps } from '../components/MixtapeEditor';
+import MixtapeTrackPage from '../mixtape/[publicId]/track/[track_number]/page';
+import { MixtapeTrackResponse } from '../client';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -31,7 +33,7 @@ const mockUseApiRequest = jest.requireMock('../hooks/useApiRequest').useApiReque
 // Mock components with more realistic behavior
 jest.mock('../components/MixtapeEditor', () => {
   const mockReact = require('react');
-  return function MockMixtapeEditor({ mixtape }: any) {
+  return function MockMixtapeEditor({ mixtape }: MixtapeEditorProps) {
     const [tracks, setTracks] = mockReact.useState(mixtape.tracks);
     const [name, setName] = mockReact.useState(mixtape.name);
     
@@ -45,7 +47,7 @@ jest.mock('../components/MixtapeEditor', () => {
     };
     
     const removeTrack = (position: number) => {
-      setTracks(tracks.filter(t => t.track_position !== position));
+      setTracks(tracks.filter((t: MixtapeTrackResponse) => t.track_position !== position));
     };
     
     const updateName = (newName: string) => {
@@ -96,6 +98,9 @@ const mockMixtapeData = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
+  subtitle1: 'Some subtitle',
+  subtitle2: 'Subtitle 2',
+  subtitle3: 'Subtitle 3',
   is_public: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',

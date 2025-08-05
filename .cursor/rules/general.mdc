@@ -1,0 +1,9 @@
+# General Rules
+
+- If you do need to do something that is a code smell (e.g. hacking around something by ignoring a type error, or something similar), leave a code comment explaining why (e.g. leave a TODO!), and explain to me in your agent response that you have made this trade-off.
+- If you see something imperfect and want to refactor it, but it's not something stated in the prompt, pause and ask before proceeding. Sometimes that's great, but sometimes I want you to focus on the task at hand rather than going off on a tangent.
+
+description: General coding conventions
+globs: 
+alwaysApply: true
+---
