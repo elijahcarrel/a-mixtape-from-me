@@ -75,24 +75,7 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
     handleSave(updatedValues, true); // Immediate save for track changes
   };
 
-  const handleCassetteTextChange = (newText: string) => {
-    const lines = newText.split('\n');
-    const title = lines[0] || '';
-    const subtitle1 = lines[1] || '';
-    const subtitle2 = lines[2] || '';
-    const subtitle3 = lines[3] || '';
-    
-    setFieldValue('name', title);
-    setFieldValue('subtitle1', subtitle1);
-    setFieldValue('subtitle2', subtitle2);
-    setFieldValue('subtitle3', subtitle3);
-    handleSave({ ...values, name: title, subtitle1, subtitle2, subtitle3 }, false);
-  };
 
-  // Convert subtitle fields back to cassette text format for the editor
-  const getCassetteText = () => {
-    return [values.name, values.subtitle1, values.subtitle2, values.subtitle3].join('\n');
-  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -109,8 +92,26 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             Cassette Label
           </label>
           <InteractiveCassetteEditor
-            value={getCassetteText()}
-            onChange={handleCassetteTextChange}
+            title={values.name}
+            subtitle1={values.subtitle1}
+            subtitle2={values.subtitle2}
+            subtitle3={values.subtitle3}
+            onTitleChange={(title) => {
+              setFieldValue('name', title);
+              handleSave({ ...values, name: title }, false);
+            }}
+            onSubtitle1Change={(subtitle1) => {
+              setFieldValue('subtitle1', subtitle1);
+              handleSave({ ...values, subtitle1 }, false);
+            }}
+            onSubtitle2Change={(subtitle2) => {
+              setFieldValue('subtitle2', subtitle2);
+              handleSave({ ...values, subtitle2 }, false);
+            }}
+            onSubtitle3Change={(subtitle3) => {
+              setFieldValue('subtitle3', subtitle3);
+              handleSave({ ...values, subtitle3 }, false);
+            }}
             theme={theme}
           />
         </div>

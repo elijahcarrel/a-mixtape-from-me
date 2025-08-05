@@ -2,38 +2,66 @@ import React, { useState } from 'react';
 import CassetteSVG from './CassetteSVG';
 
 interface InteractiveCassetteEditorProps {
-  value: string;
-  onChange: (value: string) => void;
+  title: string;
+  subtitle1: string;
+  subtitle2: string;
+  subtitle3: string;
+  onTitleChange: (title: string) => void;
+  onSubtitle1Change: (subtitle1: string) => void;
+  onSubtitle2Change: (subtitle2: string) => void;
+  onSubtitle3Change: (subtitle3: string) => void;
   theme: string;
 }
 
-export default function InteractiveCassetteEditor({ value, onChange, theme }: InteractiveCassetteEditorProps) {
+export default function InteractiveCassetteEditor({ 
+  title, 
+  subtitle1, 
+  subtitle2, 
+  subtitle3, 
+  onTitleChange, 
+  onSubtitle1Change, 
+  onSubtitle2Change, 
+  onSubtitle3Change, 
+  theme 
+}: InteractiveCassetteEditorProps) {
   const [editingLine, setEditingLine] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
 
-  // Parse the current value into lines
-  const lines = value.split('\n');
   const labelText = {
-    line1: lines[0] || '', // Title (first line)
-    line2: lines[1] || '', // Subtitle 1
-    line3: lines[2] || '', // Subtitle 2
-    line4: lines[3] || ''  // Subtitle 3
+    line1: title,
+    line2: subtitle1,
+    line3: subtitle2,
+    line4: subtitle3
   };
 
-  // Update the title field when the first line changes
+  const getChangeHandler = (lineIndex: number) => {
+    switch (lineIndex) {
+      case 0: return onTitleChange;
+      case 1: return onSubtitle1Change;
+      case 2: return onSubtitle2Change;
+      case 3: return onSubtitle3Change;
+      default: return () => {};
+    }
+  };
+
+  const getCurrentValue = (lineIndex: number) => {
+    switch (lineIndex) {
+      case 0: return title;
+      case 1: return subtitle1;
+      case 2: return subtitle2;
+      case 3: return subtitle3;
+      default: return '';
+    }
+  };
+
   const handleLineEdit = (lineIndex: number, newText: string) => {
-    const lines = value.split('\n');
-    lines[lineIndex] = newText;
-    
-    // Convert back to string with newlines
-    const newValue = lines.join('\n');
-    onChange(newValue);
+    const changeHandler = getChangeHandler(lineIndex);
+    changeHandler(newText);
   };
 
   const handleLineClick = (lineIndex: number) => {
     setEditingLine(lineIndex);
-    const lines = value.split('\n');
-    setEditValue(lines[lineIndex] || '');
+    setEditValue(getCurrentValue(lineIndex));
   };
 
   const handleEditSave = () => {
