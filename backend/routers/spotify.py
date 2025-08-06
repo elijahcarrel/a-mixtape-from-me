@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List
-from backend.util.auth_middleware import get_current_user
+from backend.util.auth_middleware import get_optional_user
 from backend.client.spotify import get_spotify_client, SpotifyClient
 
 router = APIRouter()
@@ -26,7 +26,7 @@ class TrackDetails(BaseModel):
     uri: str
 
 @router.get("/search", response_model=List[TrackDetails])
-def search_tracks(query: str, user_info: dict = Depends(get_current_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def search_tracks(query: str, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     """Search for tracks using service account credentials"""
     try:
         results = spotify_client.search_tracks(query)
@@ -36,7 +36,7 @@ def search_tracks(query: str, user_info: dict = Depends(get_current_user), spoti
         raise HTTPException(status_code=500, detail=f"Failed to search tracks: {str(e)}")
 
 @router.get("/track/{track_id}", response_model=TrackDetails)
-def get_track(track_id: str, user_info: dict = Depends(get_current_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def get_track(track_id: str, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     """Get track details using service account credentials"""
     try:
         track = spotify_client.get_track(track_id)
