@@ -1,11 +1,6 @@
-import os
-import sys
-
 import pytest
 from fastapi.testclient import TestClient
 
-# Ensure the project root is in sys.path for 'backend' imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from backend.app_factory import create_app
 from backend.client.stack_auth import MockStackAuthBackend
 from backend.routers import auth

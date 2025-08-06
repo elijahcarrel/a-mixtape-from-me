@@ -1,5 +1,3 @@
-import os
-import sys
 from collections.abc import Generator
 
 import httpx
@@ -8,15 +6,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, create_engine
 
+from backend.app_factory import create_app
 from backend.client.spotify.mock import get_mock_spotify_client
 from backend.client.stack_auth import MockStackAuthBackend
 from backend.routers import auth
 from backend.routers import spotify as spotify_router
 from backend.util import auth_middleware
-
-# Ensure the project root is in sys.path for 'api' imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from backend.app_factory import create_app
 
 # Import models to ensure they're registered with SQLModel metadata
 

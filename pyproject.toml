@@ -1,3 +1,14 @@
+[project]
+name = "a_mixtape_from_me"
+version = "0.1.0"
+
+[tool.setuptools]
+packages = ["backend"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [tool.ruff]
 target-version = "py312"
 line-length = 88
