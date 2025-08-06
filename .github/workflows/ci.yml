@@ -55,12 +55,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-postgresql
+          pip install -e .
       - name: Run Pytest
         run: pytest backend/tests
-      # - name: Run Ruff (optional Python linter)
-      #   run: ruff backend/
-      # - name: Run Flake8 (optional Python linter)
-      #   run: flake8 backend/ 
 
   backend-ruff-lint:
     name: Backend Ruff Lint (Python)
@@ -76,6 +73,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .
       - name: Run Ruff
         run: ruff check backend/
 
@@ -93,6 +91,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .
       - name: Run MyPy
         run: mypy backend/
 
