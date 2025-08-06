@@ -1,10 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from backend.app_factory import create_app
 from backend.client.spotify import MockSpotifyClient
-from backend.routers import spotify
-from backend.routers import auth
+from backend.routers import auth, spotify
 from backend.util import auth_middleware
+
 
 def assert_track_details(track):
     assert "id" in track
@@ -84,4 +85,4 @@ def test_get_track_without_auth(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["id"] == track_id
-    assert_track_details(data) 
+    assert_track_details(data)

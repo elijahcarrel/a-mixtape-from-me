@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional
-from sqlmodel import Session
+
+from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.entity import MixtapeEntity
-from backend.util.auth_middleware import get_current_user, get_optional_user
 from backend.routers.spotify import TrackDetails  # Import TrackDetails
-from backend.client.spotify import get_spotify_client, SpotifyClient
+from backend.util.auth_middleware import get_current_user, get_optional_user
 
 router = APIRouter()
 
@@ -15,22 +15,22 @@ router = APIRouter()
 
 class MixtapeTrackRequest(BaseModel):
     track_position: int = Field(..., gt=0, description="Unique position of the track within the mixtape (1-based index)")
-    track_text: Optional[str] = Field(None, description="Optional text to display next to the track")
+    track_text: str | None = Field(None, description="Optional text to display next to the track")
     spotify_uri: str = Field(..., min_length=1, max_length=255, description="Spotify URI of the track")
 
 class MixtapeTrackResponse(BaseModel):
     track_position: int = Field(..., gt=0, description="Unique position of the track within the mixtape (1-based index)")
-    track_text: Optional[str] = Field(None, description="Optional text to display next to the track")
+    track_text: str | None = Field(None, description="Optional text to display next to the track")
     track: TrackDetails = Field(..., description="Details about the track, such as name, artist, and Spotify URI.")
 
 class MixtapeRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the mixtape")
-    intro_text: Optional[str] = Field(None, description="Optional intro text")
-    subtitle1: Optional[str] = Field(None, max_length=60, description="First subtitle line (max 60 characters)")
-    subtitle2: Optional[str] = Field(None, max_length=60, description="Second subtitle line (max 60 characters)")
-    subtitle3: Optional[str] = Field(None, max_length=60, description="Third subtitle line (max 60 characters)")
+    intro_text: str | None = Field(None, description="Optional intro text")
+    subtitle1: str | None = Field(None, max_length=60, description="First subtitle line (max 60 characters)")
+    subtitle2: str | None = Field(None, max_length=60, description="Second subtitle line (max 60 characters)")
+    subtitle3: str | None = Field(None, max_length=60, description="Third subtitle line (max 60 characters)")
     is_public: bool = Field(False, description="Whether the mixtape is public")
-    tracks: List[MixtapeTrackRequest] = Field(..., description="List of tracks in the mixtape")
+    tracks: list[MixtapeTrackRequest] = Field(..., description="List of tracks in the mixtape")
 
     @field_validator('tracks')
     @classmethod
@@ -50,15 +50,15 @@ class MixtapeRequest(BaseModel):
 class MixtapeResponse(BaseModel):
     public_id: str
     name: str
-    intro_text: Optional[str]
-    subtitle1: Optional[str]
-    subtitle2: Optional[str]
-    subtitle3: Optional[str]
+    intro_text: str | None
+    subtitle1: str | None
+    subtitle2: str | None
+    subtitle3: str | None
     is_public: bool
     create_time: str
     last_modified_time: str
-    stack_auth_user_id: Optional[str]
-    tracks: List[MixtapeTrackResponse]
+    stack_auth_user_id: str | None
+    tracks: list[MixtapeTrackResponse]
 
 @router.post("", response_model=dict, status_code=201)
 def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
@@ -71,7 +71,7 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dic
             details = spotify_client.get_track(track_id)
             if not details:
                 raise Exception("Track not found")
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=400, detail=f"Invalid Spotify URI or failed lookup: {track.spotify_uri}")
         enriched_tracks.append({
             "track_position": track.track_position,
@@ -111,11 +111,11 @@ def claim_mixtape(public_id: str, request_obj: Request, user_info: dict = Depend
         raise HTTPException(status_code=400, detail=str(e))
     return {"version": new_version}
 
-@router.get("", response_model=List[dict])
+@router.get("", response_model=list[dict])
 def list_my_mixtapes(
     request_obj: Request,
     user_info: dict = Depends(get_current_user),
-    q: Optional[str] = Query(None, description="Search mixtape titles (partial match)"),
+    q: str | None = Query(None, description="Search mixtape titles (partial match)"),
     limit: int = Query(20, ge=1, le=100, description="Max results to return"),
     offset: int = Query(0, ge=0, description="Results offset for pagination"),
 ):
@@ -147,7 +147,7 @@ def get_mixtape(public_id: str, request_obj: Request, user_info: dict | None = D
             details = spotify_client.get_track(track_id)
             if not details:
                 raise Exception("Track not found")
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=500, detail=f"Failed to fetch track details for {track['spotify_uri']}")
         enriched_tracks.append({
             "track_position": track["track_position"],
@@ -168,7 +168,7 @@ def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request
             details = spotify_client.get_track(track_id)
             if not details:
                 raise Exception("Track not found")
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=400, detail=f"Invalid Spotify URI or failed lookup: {track.spotify_uri}")
         enriched_tracks.append({
             "track_position": track.track_position,
@@ -199,4 +199,4 @@ def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request
         raise HTTPException(status_code=404, detail="Mixtape not found")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return {"version": new_version} 
+    return {"version": new_version}

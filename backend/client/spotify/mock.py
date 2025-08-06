@@ -1,4 +1,12 @@
-from .client import AbstractSpotifyClient, SpotifyTrack, SpotifyArtist, SpotifyAlbum, SpotifyAlbumImage, SpotifySearchResult
+from .client import (
+    AbstractSpotifyClient,
+    SpotifyAlbum,
+    SpotifyAlbumImage,
+    SpotifyArtist,
+    SpotifySearchResult,
+    SpotifyTrack,
+)
+
 
 class MockSpotifyClient(AbstractSpotifyClient):
     def __init__(self):
@@ -72,4 +80,4 @@ class MockSpotifyClient(AbstractSpotifyClient):
         raise Exception("Track not found")
 
 def get_mock_spotify_client():
-    return MockSpotifyClient() 
+    return MockSpotifyClient()

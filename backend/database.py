@@ -1,14 +1,11 @@
-import os
-from typing import Optional
-from sqlmodel import SQLModel, create_engine, Session
-from sqlalchemy.pool import StaticPool
+from sqlmodel import Session, SQLModel, create_engine
+
 # Import models to ensure they're registered with SQLModel metadata
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 _engines = {}
-_current_db_url: Optional[str] = None
+_current_db_url: str | None = None
 
-def set_database_url(db_url: Optional[str]):
+def set_database_url(db_url: str | None):
     """Set the database URL for the current context"""
     global _current_db_url
     _current_db_url = db_url
@@ -30,7 +27,7 @@ def get_engine(db_url: str):
         else:
             # Convert from psycopg format
             engine_url = db_url.replace('postgresql://', 'postgresql+psycopg://')
-        
+
         _engines[db_url] = create_engine(
             engine_url,
             pool_pre_ping=True,
@@ -47,4 +44,4 @@ def get_db(db_url: str):
 def create_tables(db_url: str):
     """Create all tables defined in SQLModel models"""
     engine = get_engine(db_url)
-    SQLModel.metadata.create_all(engine) 
+    SQLModel.metadata.create_all(engine)

@@ -1,6 +1,8 @@
-from fastapi import Request, HTTPException, Depends
+from fastapi import Depends, HTTPException, Request
+
+from backend.client.stack_auth import StackAuthBackend, get_stack_auth_backend
 from backend.util.cache import get_cached_user_info
-from backend.client.stack_auth import get_stack_auth_backend, StackAuthBackend
+
 
 async def get_current_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
     """
@@ -9,17 +11,17 @@ async def get_current_user(request: Request, stack_auth: StackAuthBackend = Depe
     """
     # Get access token from Stack Auth header
     access_token = request.headers.get("x-stack-access-token")
-    
+
     if not access_token:
         raise HTTPException(status_code=401, detail="No access token provided")
-    
+
     # Get user info from cache (with automatic validation if needed)
     user_info = get_cached_user_info(access_token, stack_auth)
-    
+
     if not user_info:
         raise HTTPException(status_code=401, detail="Invalid or expired access token")
-    
-    return user_info 
+
+    return user_info
 
 async def get_optional_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
     """
@@ -32,4 +34,4 @@ async def get_optional_user(request: Request, stack_auth: StackAuthBackend = Dep
     user_info = get_cached_user_info(access_token, stack_auth)
     if not user_info:
         raise HTTPException(status_code=401, detail="Invalid or expired access token")
-    return user_info 
+    return user_info

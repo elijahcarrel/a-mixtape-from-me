@@ -1,11 +1,12 @@
-from typing import List, Dict, Any
 from abc import ABC, abstractmethod
+from typing import Any
+
 
 class SpotifyArtist:
     def __init__(self, name: str):
         self.name = name
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"name": self.name}
 
 class SpotifyAlbumImage:
@@ -14,29 +15,29 @@ class SpotifyAlbumImage:
         self.width = width
         self.height = height
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"url": self.url, "width": self.width, "height": self.height}
 
 class SpotifyAlbum:
-    def __init__(self, name: str, images: List[SpotifyAlbumImage]):
+    def __init__(self, name: str, images: list[SpotifyAlbumImage]):
         self.name = name
         self.images = images
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "images": [img.to_dict() for img in self.images]
         }
 
 class SpotifyTrack:
-    def __init__(self, id: str, name: str, artists: List[SpotifyArtist], album: SpotifyAlbum, uri: str):
+    def __init__(self, id: str, name: str, artists: list[SpotifyArtist], album: SpotifyAlbum, uri: str):
         self.id = id
         self.name = name
         self.artists = artists
         self.album = album
         self.uri = uri
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -46,15 +47,15 @@ class SpotifyTrack:
         }
 
 class SpotifySearchResult:
-    def __init__(self, items: List[SpotifyTrack]):
+    def __init__(self, items: list[SpotifyTrack]):
         self.items = items
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"items": [track.to_dict() for track in self.items]}
 
 class AbstractSpotifyClient(ABC):
     @abstractmethod
-    def search_tracks(self, query: str) -> Dict[str, SpotifySearchResult]:
+    def search_tracks(self, query: str) -> dict[str, SpotifySearchResult]:
         """
         Returns a dictionary with a single key 'tracks' mapping to a SpotifySearchResult.
         Example: { 'tracks': SpotifySearchResult([...]) }
@@ -66,4 +67,4 @@ class AbstractSpotifyClient(ABC):
         """
         Returns a SpotifyTrack object for the given track_id.
         """
-        pass 
+        pass

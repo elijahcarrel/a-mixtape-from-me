@@ -1,6 +1,7 @@
 import random
 import string
 
+
 class MockStackAuthBackend:
     def __init__(self):
         self.token_to_user = {}
@@ -22,4 +23,4 @@ class MockStackAuthBackend:
         return access_token in self.token_to_user
 
 def get_mock_stack_auth_backend():
-    return MockStackAuthBackend() 
+    return MockStackAuthBackend()

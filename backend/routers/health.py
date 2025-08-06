@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from sqlmodel import select, func
+from sqlmodel import func, select
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ def db(request_obj: Request):
 
     time = session.exec(select(func.now())).first()
     version = session.exec(select(func.version())).first()
-    
+
     return {
         "status": "ok",
         "time": str(time),

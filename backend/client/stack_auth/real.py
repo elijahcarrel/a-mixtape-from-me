@@ -1,5 +1,7 @@
-import requests
 import os
+
+import requests
+
 
 class StackAuthBackend:
     def __init__(self):
@@ -37,4 +39,4 @@ class StackAuthBackend:
             return False
 
 def get_stack_auth_backend():
-    return StackAuthBackend() 
+    return StackAuthBackend()

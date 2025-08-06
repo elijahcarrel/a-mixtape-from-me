@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
-from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
+from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.util.auth_middleware import get_optional_user
-from backend.client.spotify import get_spotify_client, SpotifyClient
 
 router = APIRouter()
 
@@ -16,16 +17,16 @@ class TrackAlbumImage(BaseModel):
 
 class TrackAlbum(BaseModel):
     name: str
-    images: List[TrackAlbumImage]
+    images: list[TrackAlbumImage]
 
 class TrackDetails(BaseModel):
     id: str
     name: str
-    artists: List[TrackArtist]
+    artists: list[TrackArtist]
     album: TrackAlbum
     uri: str
 
-@router.get("/search", response_model=List[TrackDetails])
+@router.get("/search", response_model=list[TrackDetails])
 def search_tracks(query: str, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
     """Search for tracks using service account credentials"""
     try:
@@ -42,4 +43,4 @@ def get_track(track_id: str, user_info: dict | None = Depends(get_optional_user)
         track = spotify_client.get_track(track_id)
         return track.to_dict()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch track: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Failed to fetch track: {str(e)}")

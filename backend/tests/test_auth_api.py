@@ -1,13 +1,15 @@
+import os
+import sys
+
 import pytest
 from fastapi.testclient import TestClient
-import sys
-import os
 
 # Ensure the project root is in sys.path for 'backend' imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from backend.app_factory import create_app
 from backend.client.stack_auth import MockStackAuthBackend
 from backend.routers import auth
+
 
 @pytest.fixture
 def client():
@@ -41,4 +43,4 @@ def test_me_unauthorized(client):
     test_client, _, _ = client
     response = test_client.get("/api/auth/me")
     assert response.status_code == 401
-    assert "No access token" in response.text 
+    assert "No access token" in response.text

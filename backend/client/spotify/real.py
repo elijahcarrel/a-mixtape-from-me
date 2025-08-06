@@ -1,9 +1,19 @@
-import os
-import requests
 import base64
-from collections import OrderedDict
+import os
 import threading
-from .client import AbstractSpotifyClient, SpotifyTrack, SpotifyArtist, SpotifyAlbum, SpotifyAlbumImage, SpotifySearchResult
+from collections import OrderedDict
+
+import requests
+
+from .client import (
+    AbstractSpotifyClient,
+    SpotifyAlbum,
+    SpotifyAlbumImage,
+    SpotifyArtist,
+    SpotifySearchResult,
+    SpotifyTrack,
+)
+
 
 class SpotifyClient(AbstractSpotifyClient):
     def __init__(self):
@@ -82,4 +92,4 @@ class SpotifyClient(AbstractSpotifyClient):
         return track
 
 def get_spotify_client():
-    return SpotifyClient() 
+    return SpotifyClient()
