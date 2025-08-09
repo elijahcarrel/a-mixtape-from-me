@@ -31,10 +31,12 @@ interface TrackListProps {
   onReorder?: (reorderedTracks: MixtapeTrackResponse[]) => void;
 }
 
-// Utility to derive a unique id for drag-and-drop
+// We purposefully choose `track_position` as the drag-and-drop id. Using the
+// track’s Spotify URI is unsafe (users can add the same song twice). `track_position`
+// is guaranteed to be unique within a mixtape and we always re-number positions
+// immediately after any reorder so ids stay stable between renders.
 const getTrackId = (track: MixtapeTrackResponse): string => {
-  // @ts-expect-error – spotify_uri may exist on request objects
-  return track.spotify_uri ?? track?.track?.uri ?? `${track.track_position}`;
+  return `${track.track_position}`;
 };
 
 export default function TrackList({ tracks, onRemoveTrack, onEditTrackText, onReorder }: TrackListProps) {
