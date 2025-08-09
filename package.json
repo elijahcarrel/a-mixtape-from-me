@@ -44,7 +44,10 @@
     "sass": "^1.89.2",
     "tailwindcss": "^4.1.11",
     "typescript": "5.9.2",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "@dnd-kit/core": "^7.0.2",
+    "@dnd-kit/sortable": "^7.0.2",
+    "@dnd-kit/utilities": "^7.0.2"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",

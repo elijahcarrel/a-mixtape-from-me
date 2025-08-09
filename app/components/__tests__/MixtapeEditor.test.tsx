@@ -54,7 +54,7 @@ jest.mock('../TrackAutocomplete', () => {
 });
 
 jest.mock('../TrackList', () => {
-  return function MockTrackList({ tracks, onRemoveTrack, onEditTrackText }: any) {
+  return function MockTrackList({ tracks, onRemoveTrack, onEditTrackText, onReorder }: any) {
     return (
       <div data-testid="track-list">
         {tracks.map((track: any) => (
@@ -70,6 +70,26 @@ jest.mock('../TrackList', () => {
             >
               Edit Note
             </button>
+            {/* Button to simulate reordering: swap first two tracks */}
+            {track.track_position === 1 && (
+              <button
+                onClick={() => {
+                  if (onReorder) {
+                    const reordered = [...tracks];
+                    const [first, second] = reordered;
+                    if (second) {
+                      reordered[0] = second;
+                      reordered[1] = { ...first, track_position: 2 };
+                      reordered[0].track_position = 1;
+                    }
+                    onReorder(reordered);
+                  }
+                }}
+                data-testid="reorder-tracks"
+              >
+                Reorder
+              </button>
+            )}
             <button
               onClick={() => onRemoveTrack(track.track_position)}
               data-testid={`remove-track-${track.track_position}`}
@@ -410,6 +430,48 @@ describe('MixtapeEditor', () => {
               track_position: 1,
               track_text: 'Track 2',
               spotify_uri: mockTrackDetails2.uri,
+            },
+          ],
+        },
+      });
+    });
+  });
+
+  it('saves mixtape when tracks are reordered', async () => {
+    const mixtapeWithTwoTracks = {
+      ...mockMixtapeData,
+      tracks: [
+        { track_position: 1, track_text: 'Track 1', track: mockTrackDetails },
+        { track_position: 2, track_text: 'Track 2', track: mockTrackDetails2 },
+      ],
+    };
+
+    render(<MixtapeEditor mixtape={mixtapeWithTwoTracks} />);
+
+    // Trigger reorder via mock button
+    const reorderBtn = screen.getByTestId('reorder-tracks');
+    fireEvent.click(reorderBtn);
+
+    await waitFor(() => {
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape/test-mixtape-123', {
+        method: 'PUT',
+        body: {
+          name: 'Test Mixtape',
+          intro_text: 'A test mixtape',
+          subtitle1: 'Some subtitle',
+          subtitle2: 'Subtitle 2',
+          subtitle3: 'Subtitle 3',
+          is_public: false,
+          tracks: [
+            {
+              track_position: 1,
+              track_text: 'Track 2',
+              spotify_uri: mockTrackDetails2.uri,
+            },
+            {
+              track_position: 2,
+              track_text: 'Track 1',
+              spotify_uri: mockTrackDetails.uri,
             },
           ],
         },
