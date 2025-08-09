@@ -2,6 +2,7 @@ import React from 'react';
 import CassetteSVG from './CassetteSVG';
 import { MixtapeResponse, MixtapeTrackResponse } from '../client';
 import EditButton from './EditButton';
+import SpotifyPlayer from './SpotifyPlayer';
 
 interface MixtapeTrackViewerProps {
   mixtape: MixtapeResponse;
@@ -12,6 +13,8 @@ interface MixtapeTrackViewerProps {
 }
 
 export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrevTrack, onNextTrack }: MixtapeTrackViewerProps) {
+  const [isPlaying, setIsPlaying] = React.useState<boolean>(false);
+
   // Prepare label text for the cassette
   const labelText = {
     line1: mixtape.name,
@@ -26,7 +29,7 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
       {/* Grain overlay */}
       <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
       <div className="relative z-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl px-4 pt-8 flex flex-col items-center">
-        <CassetteSVG isAnimated={true} labelText={labelText} />
+        <CassetteSVG isAnimated={isPlaying} labelText={labelText} />
         {track.track_text && (
           <div className="w-full bg-amber-100/70 dark:bg-amber-900/40 rounded-lg p-4 mb-6 text-amber-900 dark:text-amber-100 text-base shadow-inner whitespace-pre-line" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
             {track.track_text}
@@ -51,17 +54,13 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
       </div>
       {/* Spotify embed at the bottom */}
       <div className="fixed bottom-0 left-0 w-full z-20 flex justify-center bg-linear-to-t from-amber-100/90 dark:from-amber-950/90 to-transparent pb-2">
-        <iframe
-          data-testid="spotify-embed"
-          style={{ borderRadius: 12 }}
-          src={`https://open.spotify.com/embed/track/${track.track.uri.replace('spotify:track:', '')}?utm_source=generator`}
+        <SpotifyPlayer
+          uri={track.track.uri}
+          onIsPlayingChange={setIsPlaying}
+          onTrackEnd={onNextTrack}
+          height={152}
           width="100%"
-          height="152"
-          frameBorder="0"
-          allowFullScreen={false}
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-        ></iframe>
+        />
       </div>
     </div>
   );
