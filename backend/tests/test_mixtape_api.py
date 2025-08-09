@@ -1,24 +1,18 @@
-import os
-from typing import Generator, Tuple
-import sys
-import pytest
-import httpx
-from fastapi.testclient import TestClient
-from sqlmodel import MetaData, Session, SQLModel, create_engine, delete
-from sqlalchemy.engine import Engine
-from backend.client.stack_auth import MockStackAuthBackend
-from backend.routers import auth
-from backend.util import auth_middleware
-from unittest.mock import patch
-from backend.client import spotify as spotify_module
-from backend.client.spotify.mock import get_mock_spotify_client
-from backend.routers import spotify as spotify_router
+from collections.abc import Generator
 
-# Ensure the project root is in sys.path for 'api' imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+import httpx
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.engine import Engine
+from sqlmodel import SQLModel, create_engine
+
 from backend.app_factory import create_app
+from backend.client.spotify import MockSpotifyClient
+from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
+from backend.routers import auth, spotify
+
 # Import models to ensure they're registered with SQLModel metadata
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+
 
 # Utility functions for better test assertions
 def assert_response_success(response: httpx.Response, expected_status: int = 200) -> None:
@@ -32,16 +26,16 @@ def assert_response_success(response: httpx.Response, expected_status: int = 200
                     error_detail += f"\nError detail: {error_json['detail']}"
                 else:
                     error_detail += f"\nResponse body: {response.text}"
-            except:
+            except: # noqa: E722
                 error_detail += f"\nResponse body: {response.text}"
-        
+
         # Create a custom exception that will show the calling line
         import traceback
         # Get the caller's frame (skip this function and the wrapper function)
         caller_frame = traceback.extract_stack()[-3]  # -3 to skip this function and the wrapper
         error_detail += f"\n\nCalled from: {caller_frame.filename}:{caller_frame.lineno} in {caller_frame.name}"
         error_detail += f"\nLine: {caller_frame.line}"
-        
+
         raise AssertionError(error_detail)
 
 def assert_response_created(response: httpx.Response) -> None:
@@ -68,12 +62,12 @@ def engine(postgresql) -> Generator[Engine, None, None]:
         db_url = f"postgresql+psycopg://{postgresql.info.user}:{postgresql.info.password}@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
     else:
         db_url = f"postgresql+psycopg://{postgresql.info.user}@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
-    
+
     engine = create_engine(db_url)
     # Create tables in this test database
     print(f"Creating tables in database: {db_url}")
     SQLModel.metadata.create_all(engine)
-    print(f"Tables created successfully")
+    print("Tables created successfully")
     yield engine
     # No need to drop tables; the database will be destroyed after the test
 
@@ -102,14 +96,13 @@ def app(engine: Engine, auth_token_and_user):
     app = create_app(db_url)
     mock_auth, token, fake_user = auth_token_and_user
     # Override auth backend for all routers
-    app.dependency_overrides[auth.get_stack_auth_backend] = lambda: mock_auth
-    app.dependency_overrides[auth_middleware.get_stack_auth_backend] = lambda: mock_auth
+    app.dependency_overrides[get_stack_auth_backend] = lambda: mock_auth
     # Override spotify client with mock
-    app.dependency_overrides[spotify_router.get_spotify_client] = get_mock_spotify_client
+    app.dependency_overrides[spotify.get_spotify_client] = lambda: MockSpotifyClient()
     return app
 
 @pytest.fixture
-def client(app, auth_token_and_user) -> Tuple[TestClient, str, dict]:
+def client(app, auth_token_and_user) -> tuple[TestClient, str, dict]:
     """Create test client for the FastAPI app and provide token/user info"""
     return TestClient(app), auth_token_and_user[1], auth_token_and_user[2]
 
@@ -125,7 +118,7 @@ def mixtape_payload(tracks: list) -> dict:
         "tracks": tracks
     }
 
-def test_create_and_get_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+def test_create_and_get_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"},
@@ -149,12 +142,12 @@ def test_create_and_get_mixtape(client: Tuple[TestClient, str, dict]) -> None:
     assert data["tracks"][1]["track_position"] == 2
     # Check TrackDetails present
     expected_names = ["Mock Song One", "Another Track"]
-    for t, expected_name in zip(data["tracks"], expected_names):
+    for t, expected_name in zip(data["tracks"], expected_names, strict=False):
         assert "track" in t
         assert t["track"]["id"] == f"{t['track']['uri'].replace('spotify:track:', '')}"
         assert t["track"]["name"] == expected_name
 
-def test_edit_mixtape_add_remove_modify_tracks(client: Tuple[TestClient, str, dict]) -> None:
+def test_edit_mixtape_add_remove_modify_tracks(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     # Create
     tracks = [
@@ -185,7 +178,7 @@ def test_edit_mixtape_add_remove_modify_tracks(client: Tuple[TestClient, str, di
         assert "track" in t
         assert t["track"]["id"] == f"{t['track']['uri'].replace('spotify:track:', '')}"
 
-def test_duplicate_track_position_rejected(client: Tuple[TestClient, str, dict]) -> None:
+def test_duplicate_track_position_rejected(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:track1"},
@@ -195,12 +188,12 @@ def test_duplicate_track_position_rejected(client: Tuple[TestClient, str, dict])
     # Should not create mixtape with duplicate track positions
     assert resp.status_code in [422, 400], f"Expected 422 or 400, got {resp.status_code}. Response: {resp.text}"
 
-def test_get_nonexistent_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+def test_get_nonexistent_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     resp = test_client.get("/api/mixtape/00000000-0000-0000-0000-000000000000", headers={"x-stack-access-token": token})
-    assert_response_not_found(resp) 
+    assert_response_not_found(resp)
 
-def test_list_my_mixtapes_pagination_and_search(client: Tuple[TestClient, str, dict]) -> None:
+def test_list_my_mixtapes_pagination_and_search(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     # Create 5 mixtapes with varying names
     names = ["Mock Song One", "Another Track", "Third Song", "Fourth Track", "Fifth Track"]
@@ -237,7 +230,7 @@ def test_list_my_mixtapes_pagination_and_search(client: Tuple[TestClient, str, d
     data4 = resp4.json()
     assert data4 == []
 
-def test_public_mixtape_viewable_by_unauthenticated_user(client: Tuple[TestClient, str, dict]) -> None:
+def test_public_mixtape_viewable_by_unauthenticated_user(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -256,7 +249,7 @@ def test_public_mixtape_viewable_by_unauthenticated_user(client: Tuple[TestClien
     resp = test_client.get(f"/api/mixtape/{public_id}")
     assert resp.status_code == 401
 
-def test_only_owner_can_edit_mixtape(client: Tuple[TestClient, str, dict], app) -> None:
+def test_only_owner_can_edit_mixtape(client: tuple[TestClient, str, dict], app) -> None:
     test_client, token, user = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -274,9 +267,9 @@ def test_only_owner_can_edit_mixtape(client: Tuple[TestClient, str, dict], app) 
     assert resp.status_code == 401
     # Try to edit as unauthenticated
     resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks})
-    assert resp.status_code == 401 
+    assert resp.status_code == 401
 
-def test_create_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+def test_create_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -292,7 +285,7 @@ def test_create_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
     assert data["name"] == "Test Mixtape"
     assert data["is_public"] is True
 
-def test_claim_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+def test_claim_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -313,7 +306,7 @@ def test_claim_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
     assert len(data) == 1
     assert data[0]["public_id"] == public_id
 
-def test_cannot_claim_already_claimed_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+def test_cannot_claim_already_claimed_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -330,7 +323,7 @@ def test_cannot_claim_already_claimed_mixtape(client: Tuple[TestClient, str, dic
     assert resp.status_code == 400
     assert "already claimed" in resp.json()["detail"]
 
-def test_edit_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
+def test_edit_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -355,7 +348,7 @@ def test_edit_anonymous_mixtape(client: Tuple[TestClient, str, dict]) -> None:
     assert data["name"] == "Modified Mixtape"
     assert len(data["tracks"]) == 2
 
-def test_anonymous_mixtapes_not_in_user_list(client: Tuple[TestClient, str, dict]) -> None:
+def test_anonymous_mixtapes_not_in_user_list(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -369,7 +362,7 @@ def test_anonymous_mixtapes_not_in_user_list(client: Tuple[TestClient, str, dict
     data = resp.json()
     assert len(data) == 0
 
-def test_claim_then_edit_restricted(client: Tuple[TestClient, str, dict], app) -> None:
+def test_claim_then_edit_restricted(client: tuple[TestClient, str, dict], app) -> None:
     test_client, token, user = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -390,9 +383,9 @@ def test_claim_then_edit_restricted(client: Tuple[TestClient, str, dict], app) -
     assert resp.status_code == 401
     # Try to edit as unauthenticated (should fail)
     resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Hacked", "intro_text": "Hacked!", "is_public": True, "tracks": tracks})
-    assert resp.status_code == 401 
+    assert resp.status_code == 401
 
-def test_anonymous_mixtape_must_be_public(client: Tuple[TestClient, str, dict]) -> None:
+def test_anonymous_mixtape_must_be_public(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -410,9 +403,9 @@ def test_anonymous_mixtape_must_be_public(client: Tuple[TestClient, str, dict]) 
     # Verify anonymous public mixtape still works
     payload["is_public"] = True
     resp = test_client.post("/api/mixtape", json=payload)
-    assert_response_created(resp) 
+    assert_response_created(resp)
 
-def test_anonymous_mixtape_cannot_be_made_private_via_put(client: Tuple[TestClient, str, dict]) -> None:
+def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
@@ -434,4 +427,4 @@ def test_anonymous_mixtape_cannot_be_made_private_via_put(client: Tuple[TestClie
     # Verify making it public still works
     payload["is_public"] = True
     resp = test_client.put(f"/api/mixtape/{public_id}", json=payload)
-    assert_response_success(resp) 
+    assert_response_success(resp)

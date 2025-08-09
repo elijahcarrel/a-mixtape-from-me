@@ -1,13 +1,15 @@
 # entity.py: Orchestrates multi-table operations for Mixtape and related tables using SQLModel
-from typing import Optional, List
-from datetime import datetime, UTC
 import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import desc, func
 from sqlmodel import Session, select
-from sqlalchemy import desc
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+
+from backend.db_models import Mixtape, MixtapeAudit, MixtapeAuditTrack, MixtapeTrack
+
 
 class MixtapeEntity:
-    def __init__(self, name: str, intro_text: Optional[str], subtitle1: Optional[str], subtitle2: Optional[str], subtitle3: Optional[str], is_public: bool, tracks: List[dict]):
+    def __init__(self, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]):
         self.name = name
         self.intro_text = intro_text
         self.subtitle1 = subtitle1
@@ -17,7 +19,7 @@ class MixtapeEntity:
         self.tracks = tracks  # List of dicts with track_position, track_text, spotify_uri
 
     @staticmethod
-    def create_in_db(session: Session, stack_auth_user_id: Optional[str], name: str, intro_text: Optional[str], subtitle1: Optional[str], subtitle2: Optional[str], subtitle3: Optional[str], is_public: bool, tracks: List[dict]) -> str:
+    def create_in_db(session: Session, stack_auth_user_id: str | None, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]) -> str:
         """
         Create a new mixtape, its tracks, and audit records in a transaction. Returns the public_id.
         stack_auth_user_id can be None for anonymous mixtapes.
@@ -25,7 +27,7 @@ class MixtapeEntity:
         public_id = str(uuid.uuid4())
         now = datetime.now(UTC)
         version = 1
-        
+
         # Create mixtape
         mixtape = Mixtape(
             stack_auth_user_id=stack_auth_user_id,
@@ -44,7 +46,7 @@ class MixtapeEntity:
         session.flush()  # Get the ID
         if mixtape.id is None:
             raise ValueError("mixtape.id is None after flush; cannot create tracks")
-        
+
         # Create audit record
         audit = MixtapeAudit(
             mixtape_id=mixtape.id,
@@ -62,7 +64,7 @@ class MixtapeEntity:
         )
         session.add(audit)
         session.flush()  # Get the audit ID
-        
+
         # Create tracks
         if audit.id is None:
             raise ValueError("audit.id is None after flush; cannot create audit tracks")
@@ -82,7 +84,7 @@ class MixtapeEntity:
                 spotify_uri=track_data['spotify_uri']
             )
             session.add(audit_track)
-        
+
         session.commit()
         return public_id
 
@@ -91,13 +93,13 @@ class MixtapeEntity:
         # Get mixtape with tracks
         statement = select(Mixtape).where(Mixtape.public_id == public_id)
         mixtape = session.exec(statement).first()
-        
+
         if not mixtape:
             raise ValueError("Mixtape not found")
-        
+
         # Get tracks (they should be loaded via relationship)
         tracks = mixtape.tracks
-        
+
         result = {
             "public_id": mixtape.public_id,
             "name": mixtape.name,
@@ -121,19 +123,19 @@ class MixtapeEntity:
         return result
 
     @staticmethod
-    def update_in_db(session: Session, public_id: str, name: str, intro_text: Optional[str], subtitle1: Optional[str], subtitle2: Optional[str], subtitle3: Optional[str], is_public: bool, tracks: List[dict]) -> int:
+    def update_in_db(session: Session, public_id: str, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]) -> int:
         """
         Update a mixtape and its tracks, create new audit records, and increment version. Returns new version.
         """
         now = datetime.now(UTC)
-        
+
         # Get existing mixtape
         statement = select(Mixtape).where(Mixtape.public_id == public_id)
         mixtape = session.exec(statement).first()
-        
+
         if not mixtape:
             raise ValueError("Mixtape not found")
-        
+
         # Update mixtape
         mixtape.name = name
         mixtape.intro_text = intro_text
@@ -143,7 +145,7 @@ class MixtapeEntity:
         mixtape.is_public = is_public
         mixtape.last_modified_time = now
         mixtape.version += 1
-        
+
         # Create audit record
         audit = MixtapeAudit(
             mixtape_id=mixtape.id,
@@ -160,7 +162,7 @@ class MixtapeEntity:
         )
         session.add(audit)
         session.flush()  # Get the audit ID
-        
+
         # Delete existing tracks (cascade will handle audit tracks)
         for track in mixtape.tracks:
             session.delete(track)
@@ -187,7 +189,7 @@ class MixtapeEntity:
                 spotify_uri=track_data['spotify_uri']
             )
             session.add(audit_track)
-        
+
         session.commit()
         return mixtape.version
 
@@ -197,22 +199,22 @@ class MixtapeEntity:
         Claim an anonymous mixtape by assigning it to a user. Returns new version.
         """
         now = datetime.now(UTC)
-        
+
         # Get existing mixtape
         statement = select(Mixtape).where(Mixtape.public_id == public_id)
         mixtape = session.exec(statement).first()
-        
+
         if not mixtape:
             raise ValueError("Mixtape not found")
-        
+
         if mixtape.stack_auth_user_id is not None:
             raise ValueError("Mixtape is already claimed")
-        
+
         # Update mixtape ownership
         mixtape.stack_auth_user_id = stack_auth_user_id
         mixtape.last_modified_time = now
         mixtape.version += 1
-        
+
         # Create audit record for the claim
         audit = MixtapeAudit(
             mixtape_id=mixtape.id,
@@ -230,7 +232,7 @@ class MixtapeEntity:
         )
         session.add(audit)
         session.flush()  # Get the audit ID
-        
+
         # Create audit tracks for the claim
         if audit.id is None:
             raise ValueError("audit.id is None after flush; cannot create audit tracks")
@@ -242,12 +244,12 @@ class MixtapeEntity:
                 spotify_uri=track.spotify_uri
             )
             session.add(audit_track)
-        
+
         session.commit()
         return mixtape.version
 
     @staticmethod
-    def list_mixtapes_for_user(session: Session, stack_auth_user_id: str, q: Optional[str] = None, limit: int = 20, offset: int = 0) -> list:
+    def list_mixtapes_for_user(session: Session, stack_auth_user_id: str, q: str | None = None, limit: int = 20, offset: int = 0) -> list:
         """
         List all mixtapes for a user, ordered by last_modified_time descending, with optional search and pagination.
         q: partial match on name (case-insensitive)
@@ -257,8 +259,8 @@ class MixtapeEntity:
         """
         statement = select(Mixtape).where(Mixtape.stack_auth_user_id == stack_auth_user_id)
         if q:
-            statement = statement.where(getattr(Mixtape, 'name').ilike(f"%{q}%"))
-        statement = statement.order_by(desc(getattr(Mixtape, 'last_modified_time'))).limit(limit).offset(offset)
+            statement = statement.where(func.lower(Mixtape.name).contains(func.lower(q)))
+        statement = statement.order_by(desc(Mixtape.last_modified_time)).limit(limit).offset(offset)  # type: ignore[arg-type]
         mixtapes = session.exec(statement).all()
         return [
             {
@@ -269,4 +271,4 @@ class MixtapeEntity:
             for m in mixtapes
         ]
 
-# Additional helpers for DAG management and field propagation will be added here. 
+# Additional helpers for DAG management and field propagation will be added here.

@@ -1,23 +1,18 @@
 import pytest
 from fastapi.testclient import TestClient
-import sys
-import os
 
-# Ensure the project root is in sys.path for 'backend' imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from backend.app_factory import create_app
-from backend.client.stack_auth import MockStackAuthBackend
-from backend.routers import auth
+from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
+
 
 @pytest.fixture
 def client():
     app = create_app()
+    # Set up mock auth
     mock_auth = MockStackAuthBackend()
-    # Register a fake user
     fake_user = {"id": "user123", "email": "test@example.com", "name": "Test User"}
     token = mock_auth.register_user(fake_user)
-    # Override dependency
-    app.dependency_overrides[auth.get_stack_auth_backend] = lambda: mock_auth
+    app.dependency_overrides[get_stack_auth_backend] = lambda: mock_auth
     return TestClient(app), token, fake_user
 
 def test_me_endpoint(client):
@@ -41,4 +36,4 @@ def test_me_unauthorized(client):
     test_client, _, _ = client
     response = test_client.get("/api/auth/me")
     assert response.status_code == 401
-    assert "No access token" in response.text 
+    assert "No access token" in response.text

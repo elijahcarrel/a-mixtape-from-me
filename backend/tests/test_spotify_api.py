@@ -1,10 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from backend.app_factory import create_app
 from backend.client.spotify import MockSpotifyClient
+from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
 from backend.routers import spotify
-from backend.routers import auth
-from backend.util import auth_middleware
+
 
 def assert_track_details(track):
     assert "id" in track
@@ -23,12 +24,10 @@ def assert_track_details(track):
 def client():
     app = create_app()
     # Set up mock auth
-    from backend.client.stack_auth import MockStackAuthBackend
     mock_auth = MockStackAuthBackend()
     fake_user = {"id": "user123", "email": "test@example.com", "name": "Test User"}
     token = mock_auth.register_user(fake_user)
-    app.dependency_overrides[auth.get_stack_auth_backend] = lambda: mock_auth
-    app.dependency_overrides[auth_middleware.get_stack_auth_backend] = lambda: mock_auth
+    app.dependency_overrides[get_stack_auth_backend] = lambda: mock_auth
     # Set up mock spotify
     mock_spotify = MockSpotifyClient()
     app.dependency_overrides[spotify.get_spotify_client] = lambda: mock_spotify
@@ -84,4 +83,4 @@ def test_get_track_without_auth(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["id"] == track_id
-    assert_track_details(data) 
+    assert_track_details(data)
