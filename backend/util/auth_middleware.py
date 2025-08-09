@@ -1,10 +1,10 @@
 from fastapi import Depends, HTTPException, Request
 
-from backend.client.stack_auth import StackAuthBackend, get_stack_auth_backend
+from backend.client.stack_auth import AbstractStackAuthBackend, get_stack_auth_backend
 from backend.util.cache import get_cached_user_info
 
 
-async def get_current_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
+async def get_current_user(request: Request, stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)):
     """
     Middleware function that extracts the access token from headers and returns the current user.
     Can be used as a dependency in FastAPI endpoints.
@@ -23,7 +23,7 @@ async def get_current_user(request: Request, stack_auth: StackAuthBackend = Depe
 
     return user_info
 
-async def get_optional_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
+async def get_optional_user(request: Request, stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)):
     """
     Like get_current_user, but returns None if no access token is provided.
     If a token is provided but invalid, raises 401.

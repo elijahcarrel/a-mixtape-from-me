@@ -1,8 +1,10 @@
 import random
 import string
 
+from .client import AbstractStackAuthBackend
 
-class MockStackAuthBackend:
+
+class MockStackAuthBackend(AbstractStackAuthBackend):
     def __init__(self):
         self.token_to_user = {}
 

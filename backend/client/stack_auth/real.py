@@ -2,8 +2,10 @@ import os
 
 import requests
 
+from .client import AbstractStackAuthBackend
 
-class StackAuthBackend:
+
+class RealStackAuthBackend(AbstractStackAuthBackend):
     def __init__(self):
         self.project_id = os.environ["STACK_PROJECT_ID"]
         self.publishable_client_key = os.environ["STACK_PUBLISHABLE_CLIENT_KEY"]
@@ -39,4 +41,4 @@ class StackAuthBackend:
             return False
 
 def get_stack_auth_backend():
-    return StackAuthBackend()
+    return RealStackAuthBackend()

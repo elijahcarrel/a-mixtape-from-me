@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from backend.client.stack_auth import StackAuthBackend, get_stack_auth_backend
+from backend.client.stack_auth import AbstractStackAuthBackend, get_stack_auth_backend
 from backend.util.cache import cache_user_info, remove_cached_user
 
 router = APIRouter()
 
 @router.get("/me")
-def get_current_user(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
+def get_current_user(request: Request, stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)):
     """Get current user information from Stack Auth token"""
     # Get access token from headers
     access_token = request.headers.get("x-stack-access-token")
@@ -40,7 +40,7 @@ def logout(request: Request):
     return {"message": "Logged out successfully"}
 
 @router.get("/verify")
-def verify_token(request: Request, stack_auth: StackAuthBackend = Depends(get_stack_auth_backend)):
+def verify_token(request: Request, stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)):
     """Verify if the provided token is valid"""
     access_token = request.headers.get("x-stack-access-token")
 

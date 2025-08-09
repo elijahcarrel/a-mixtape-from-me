@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 
+from backend.client.stack_auth import AbstractStackAuthBackend, get_stack_auth_backend
 from backend.util.account_middleware import (
     AuthenticatedRequest,
     authenticate_account_request,
@@ -7,9 +8,12 @@ from backend.util.account_middleware import (
 
 router = APIRouter()
 
-async def get_authenticated_request(request: Request) -> AuthenticatedRequest:
+async def get_authenticated_request(
+    request: Request, 
+    stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)
+) -> AuthenticatedRequest:
     """Dependency that provides authenticated request context for all account endpoints"""
-    return await authenticate_account_request(request)
+    return await authenticate_account_request(request, stack_auth)
 
 @router.get("/me")
 def get_account(auth_request: AuthenticatedRequest = Depends(get_authenticated_request)):

@@ -2,19 +2,18 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app_factory import create_app
-from backend.client.stack_auth import MockStackAuthBackend
+from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
 from backend.routers import auth
 
 
 @pytest.fixture
 def client():
     app = create_app()
+    # Set up mock auth
     mock_auth = MockStackAuthBackend()
-    # Register a fake user
     fake_user = {"id": "user123", "email": "test@example.com", "name": "Test User"}
     token = mock_auth.register_user(fake_user)
-    # Override dependency
-    app.dependency_overrides[auth.get_stack_auth_backend] = lambda: mock_auth
+    app.dependency_overrides[get_stack_auth_backend] = lambda: mock_auth
     return TestClient(app), token, fake_user
 
 def test_me_endpoint(client):

@@ -7,10 +7,9 @@ from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, create_engine
 
 from backend.app_factory import create_app
-from backend.client.spotify.mock import get_mock_spotify_client
-from backend.client.stack_auth import MockStackAuthBackend
-from backend.routers import auth
-from backend.routers import spotify as spotify_router
+from backend.client.spotify import MockSpotifyClient
+from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
+from backend.routers import auth, mixtape, spotify
 from backend.util import auth_middleware
 
 # Import models to ensure they're registered with SQLModel metadata
@@ -98,10 +97,9 @@ def app(engine: Engine, auth_token_and_user):
     app = create_app(db_url)
     mock_auth, token, fake_user = auth_token_and_user
     # Override auth backend for all routers
-    app.dependency_overrides[auth.get_stack_auth_backend] = lambda: mock_auth
-    app.dependency_overrides[auth_middleware.get_stack_auth_backend] = lambda: mock_auth
+    app.dependency_overrides[get_stack_auth_backend] = lambda: mock_auth
     # Override spotify client with mock
-    app.dependency_overrides[spotify_router.get_spotify_client] = get_mock_spotify_client
+    app.dependency_overrides[spotify.get_spotify_client] = lambda: MockSpotifyClient()
     return app
 
 @pytest.fixture
