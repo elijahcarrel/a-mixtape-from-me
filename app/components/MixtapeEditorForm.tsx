@@ -75,6 +75,14 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
     handleSave(updatedValues, true); // Immediate save for track changes
   };
 
+  const reorderTracks = (updatedTracks: (MixtapeTrackResponse | MixtapeTrackRequest)[]) => {
+    const updatedValues = {
+      ...values,
+      tracks: updatedTracks,
+    };
+    setFieldValue('tracks', updatedTracks);
+    handleSave(updatedValues, true); // Immediate save for reorder
+  };
 
 
   return (
@@ -162,7 +170,9 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
         <TrackList
           tracks={values.tracks.map(normalizeTrackToResponse)}
           onRemoveTrack={removeTrack}
-          onEditTrackText={editTrackText} />
+          onEditTrackText={editTrackText}
+          onReorder={reorderTracks}
+        />
       </div>
     </div>
   );
