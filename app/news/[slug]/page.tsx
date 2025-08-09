@@ -25,8 +25,9 @@ async function getPostBySlug(slug: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const meta = await getPostBySlug(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const meta = await getPostBySlug(slug);
   if (!meta) {
     return {};
   }
@@ -43,8 +44,8 @@ export async function generateStaticParams() {
     .map((f) => ({ slug: f.replace(/\.mdx$/, '') }));
 }
 
-export default async function NewsDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = (await params) as { slug: string };
+export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   try {
     const Post = (await import(`@/content/news/${slug}.mdx`)).default;
     return (
