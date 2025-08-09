@@ -88,10 +88,15 @@ export default function SpotifyPlayer({
           if (!isMounted) return;
           controllerRef.current = EmbedController;
 
-          // Attempt autoplay
-          EmbedController.play().catch(() => {
-            /* Autoplay may fail – ignore. */
-          });
+          // Attempt autoplay (guard against non-Promise return)
+          try {
+            const playResult = EmbedController.play?.();
+            if (playResult && typeof (playResult as any).catch === 'function') {
+              (playResult as Promise<any>).catch(() => {});
+            }
+          } catch (_) {
+            /* Ignore play errors */
+          }
 
           // Listen to playback updates.
           EmbedController.addListener('playback_update', (e: any) => {
@@ -119,8 +124,13 @@ export default function SpotifyPlayer({
   useEffect(() => {
     if (controllerRef.current && isApiReady) {
       controllerRef.current.loadUri(uri);
-      // Try to autoplay new track as well.
-      controllerRef.current.play?.().catch(() => {});
+      // Try to autoplay new track as well (handle non-Promise)
+      try {
+        const result = controllerRef.current.play?.();
+        if (result && typeof result.catch === 'function') {
+          result.catch(() => {});
+        }
+      } catch (_) {}
     }
   }, [uri, isApiReady]);
 
