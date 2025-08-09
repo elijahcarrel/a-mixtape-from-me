@@ -20,7 +20,6 @@ export default function MyMixtapesPage() {
   // Keep refs for debouncing and aborting
   const abortControllerRef = useRef<AbortController | null>(null);
   const debouncedFetchRef = useRef<ReturnType<typeof debounce> | null>(null);
-  const hasInitialFetchRef = useRef(false);
 
   // Helper to build URL based on current state
   const buildUrl = (q: string, off: number) => {
@@ -46,20 +45,8 @@ export default function MyMixtapesPage() {
     }
   };
 
-  // Initial fetch on mount
+  // Handle search queries with debounce (including initial load)
   useEffect(() => {
-    if (!hasInitialFetchRef.current) {
-      hasInitialFetchRef.current = true;
-      fetchMixtapes('', 0);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Handle search queries with debounce
-  useEffect(() => {
-    // Skip initial render when query is empty
-    if (query === '' || !hasInitialFetchRef.current) return;
-
     // Reset offset when search term changes
     setOffset(0);
     
@@ -69,12 +56,19 @@ export default function MyMixtapesPage() {
     // Cancel any ongoing request
     if (abortControllerRef.current) abortControllerRef.current.abort();
 
-    debouncedFetchRef.current = debounce(() => {
+    // For initial load (query is empty and no data loaded yet), make immediate request
+    if (query === '' && mixtapes === null) {
       abortControllerRef.current = new AbortController();
       fetchMixtapes(query, 0, abortControllerRef.current.signal);
-    }, 1000);
+    } else {
+      // For subsequent searches, use debounce
+      debouncedFetchRef.current = debounce(() => {
+        abortControllerRef.current = new AbortController();
+        fetchMixtapes(query, 0, abortControllerRef.current.signal);
+      }, 1000);
 
-    debouncedFetchRef.current();
+      debouncedFetchRef.current();
+    }
 
     return () => {
       if (debouncedFetchRef.current) debouncedFetchRef.current.cancel();
@@ -85,10 +79,7 @@ export default function MyMixtapesPage() {
 
   // Handle pagination
   useEffect(() => {
-    // Skip if this is the initial load
-    if (!hasInitialFetchRef.current) return;
-
-    // Skip if offset is 0 and query is empty and we haven't loaded any data yet (initial state)
+    // Skip if offset is 0 and query is empty (initial state)
     if (offset === 0 && query === '' && mixtapes === null) return;
 
     abortControllerRef.current?.abort();

@@ -35,7 +35,7 @@ describe('MyMixtapesPage', () => {
     expect(mockMakeRequest).toHaveBeenCalledTimes(1);
     expect(mockMakeRequest).toHaveBeenCalledWith(
       expect.stringContaining('/api/mixtape?limit=10&offset=0'),
-      expect.objectContaining({ signal: undefined })
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
     );
   });
 
