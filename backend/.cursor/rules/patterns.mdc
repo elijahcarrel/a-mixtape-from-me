@@ -20,8 +20,8 @@
 - Test both success and error scenarios
 
 ## Linting and Type-Checking
-- We lint with ruff (`npm run python-lint` or `npm run python-lint-fix`)
-- We type-check with mypy (`npm run python-typecheck`)
+- We lint with ruff (`npm run backend-lint` or `npm run backend-lint-fix`)
+- We type-check with mypy (`npm run backend-typecheck`)
 
 ## Error Handling
 - Use specific HTTP status codes (400, 401, 404, 422, 500)

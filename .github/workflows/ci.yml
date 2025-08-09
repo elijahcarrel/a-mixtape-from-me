@@ -22,9 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run ESLint
-        run: npm run lint
+        run: npm run frontend-lint
       - name: Type Check
-        run: npx tsc --noEmit
+        run: npm run frontend-typecheck
 
   frontend-jest-tests:
     name: Front-End Jest Tests (Node.js)
@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run Jest tests
-        run: npm test 
+        run: npm run frontend-test 
 
   backend-pytest-tests:
     name: Backend Tests (Python)
