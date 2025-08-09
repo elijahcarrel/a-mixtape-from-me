@@ -80,6 +80,8 @@ STACK_SECRET_SERVER_KEY=your_stack_secret_server_key
 
 #### Frontend & Backend (Node.js, Python)
 
+To open a Python virtual environment and install all front-end and back-end dependencies, just run `npm run setup`. Alternatively, do this manually with the following steps:
+
 ```bash
 # Node dependencies
 npm install
@@ -87,7 +89,7 @@ npm install
 # Python dependencies (in a virtual environment)
 python3 -m venv venv
 source venv/bin/activate
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 pip install -e .
 ```
 
@@ -107,7 +109,6 @@ npm run dev
 ##### Backend
 ```bash
 source venv/bin/activate
-pip3 install -r requirements.txt
 python3 -m uvicorn api.main:app --reload
 ```
 
@@ -153,10 +154,10 @@ To run all tests:
 
 ```bash
 # Backend
-pytest backend/tests/
+npm run backend-test
 
 # Frontend
-npm test
+npm run frontend-test
 ```
 
 ---

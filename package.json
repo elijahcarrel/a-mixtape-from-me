@@ -3,9 +3,9 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "setup-venv": "python3 -m venv venv && source venv/bin/activate",
-    "setup-python-packages": "pip3 install -r requirements.txt && pip3 install -e .",
-    "setup-backend": "npm run setup-venv && npm run setup-python-packages",
+    "setup-backend-venv": "python3 -m venv venv && source venv/bin/activate",
+    "setup-backend-packages": "pip install -r requirements.txt && pip install -e .",
+    "setup-backend": "npm run setup-backend-venv && npm run setup-backend-packages",
     "setup-frontend": "npm install",
     "setup": "npm run setup-backend && npm run setup-frontend",
     "backend-dev": "python3 -m uvicorn api.index:app --reload",
