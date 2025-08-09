@@ -1,3 +1,4 @@
+const path = require('path');
 const withMDX = require('@next/mdx')({
   extension: /\.mdx?$/,
   options: {
@@ -19,6 +20,10 @@ const nextConfig = {
             : '/api/',
       },
     ];
+  },
+  webpack: (config) => {
+    config.resolve.alias['@'] = path.resolve(__dirname);
+    return config;
   },
 };
 

@@ -35,7 +35,8 @@ export default async function NewsPage({
 }: {
   searchParams: { page?: string };
 }) {
-  const page = parseInt(searchParams.page ?? '1', 10);
+  const { page: pageRaw } = (await searchParams) as any;
+  const page = parseInt(pageRaw ?? '1', 10);
   if (page < 1) {
     notFound();
   }

@@ -44,10 +44,9 @@ export async function generateStaticParams() {
 }
 
 export default async function NewsDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
-  const filePath = path.join(POSTS_DIR, `${slug}.mdx`);
+  const { slug } = (await params) as { slug: string };
   try {
-    const Post = (await import(`../../../../content/news/${slug}.mdx`)).default;
+    const Post = (await import(`@/content/news/${slug}.mdx`)).default;
     return (
       <article className="prose dark:prose-invert max-w-none">
         <Post />
