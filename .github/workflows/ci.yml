@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run ESLint
-        run: npm run lint
+        run: npm run frontend-lint
       - name: Type Check
         run: npx tsc --noEmit
 
