@@ -9,7 +9,7 @@ export default function MyMixtapesPage() {
   // --- Local state management for search & pagination
   const [query, setQuery] = useState('');
   const [mixtapes, setMixtapes] = useState<any[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const LIMIT = 10;
@@ -148,7 +148,7 @@ export default function MyMixtapesPage() {
       )}
       
       {/* Pagination Controls */}
-      {!loading && !error && mixtapes && mixtapes.length > 0 && (
+      {!error && mixtapes && mixtapes.length > 0 && (
         <div className="flex justify-between mt-8">
           <button
             className="px-4 py-2 rounded bg-amber-600 text-white disabled:opacity-50"
