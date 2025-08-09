@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 interface SpotifyPlayerProps {
   uri: string; // spotify:track:* uri
   onIsPlayingChange?: (isPlaying: boolean) => void;
+  onTrackEnd?: () => void;
   className?: string;
   width?: string | number;
   height?: string | number;
@@ -21,6 +22,7 @@ interface SpotifyPlayerProps {
 export default function SpotifyPlayer({
   uri,
   onIsPlayingChange,
+  onTrackEnd,
   className,
   width = '100%',
   height = 152,
@@ -98,10 +100,19 @@ export default function SpotifyPlayer({
             /* Ignore play errors */
           }
 
-          // Listen to playback updates.
+          // Listen to playback updates for play/pause and end-of-track detection.
           EmbedController.addListener('playback_update', (e: any) => {
             const playing = !e.data.isPaused;
             onIsPlayingChange?.(playing);
+
+            if (
+              typeof e.data?.position === 'number' &&
+              typeof e.data?.duration === 'number' &&
+              e.data.duration > 0 &&
+              e.data.position >= e.data.duration - 500 /* 0.5s leeway */
+            ) {
+              onTrackEnd?.();
+            }
           });
 
           // Some browsers fire separate events for play/pause. Capture them too.
@@ -131,6 +142,8 @@ export default function SpotifyPlayer({
           result.catch(() => {});
         }
       } catch (_) {}
+      // Reset any end-of-track state when new URI loaded.
+      // (Handled implicitly because we compute fresh each update.)
     }
   }, [uri, isApiReady]);
 

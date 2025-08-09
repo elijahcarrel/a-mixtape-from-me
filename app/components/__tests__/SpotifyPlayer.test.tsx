@@ -17,13 +17,13 @@ describe('SpotifyPlayer', () => {
 
     // Prepare stub IFrame API
     (global as any).SpotifyIframeAPI = {
-      createController: (_el: any, _opts: any, cb: any) => {
+      createController: jest.fn((_el: any, _opts: any, cb: any) => {
         // intercept addListener to capture callbacks
         mockController.addListener = jest.fn((event: string, handler: any) => {
           eventCallbacks[event] = handler;
         });
         cb(mockController);
-      },
+      }),
     };
 
     // Ensure promise is cleared
@@ -66,6 +66,20 @@ describe('SpotifyPlayer', () => {
       eventCallbacks['playback_update']?.({ data: { isPaused: true } });
     });
     expect(onPlaying).toHaveBeenCalledWith(false);
+  });
+
+  it('fires onTrackEnd when playback_update indicates end of track', async () => {
+    const onEnd = jest.fn();
+
+    await act(async () => {
+      render(<SpotifyPlayer uri="spotify:track:123" onTrackEnd={onEnd} />);
+    });
+
+    act(() => {
+      eventCallbacks['playback_update']?.({ data: { isPaused: false, position: 300000, duration: 300000 } });
+    });
+
+    expect(onEnd).toHaveBeenCalled();
   });
 
   it('loads new URI when prop changes', async () => {

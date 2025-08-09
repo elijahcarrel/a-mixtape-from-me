@@ -61,7 +61,12 @@ jest.mock('../EditButton', () => {
 // Mock SpotifyPlayer to avoid loading external script during tests
 jest.mock('../SpotifyPlayer', () => {
   const mockReact = require('react');
-  return function MockSpotifyPlayer(props: { uri: string }) {
+  return function MockSpotifyPlayer(props: { uri: string; onTrackEnd?: () => void }) {
+    // invoke onTrackEnd immediately for test when supplied
+    mockReact.useEffect(() => {
+      props.onTrackEnd?.();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     return <div data-testid="mock-spotify-player" data-track-uri={props.uri} />;
   };
 });
@@ -138,6 +143,20 @@ describe('MixtapeTrackViewer', () => {
     );
     const player = screen.getByTestId('mock-spotify-player');
     expect(player).toHaveAttribute('data-track-uri', 'spotify:track:222');
+  });
+
+  it('calls onNextTrack when track ends', () => {
+    const onNext = jest.fn();
+    render(
+      <MixtapeTrackViewer
+        mixtape={mockMixtape}
+        track={mockMixtape.tracks[0]}
+        trackNumber={1}
+        onNextTrack={onNext}
+      />
+    );
+
+    expect(onNext).toHaveBeenCalled();
   });
 
   it('renders the EditButton', () => {

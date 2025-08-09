@@ -57,6 +57,7 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
         <SpotifyPlayer
           uri={track.track.uri}
           onIsPlayingChange={setIsPlaying}
+          onTrackEnd={onNextTrack}
           height={152}
           width="100%"
         />
