@@ -23,4 +23,5 @@ export function useMixtape() {
   return ctx;
 }
 
-export { MixtapeContextValue, MixtapeContext };
+export type { MixtapeContextValue };
+export { MixtapeContext };
