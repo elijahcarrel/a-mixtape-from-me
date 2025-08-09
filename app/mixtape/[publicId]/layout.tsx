@@ -3,13 +3,13 @@
 import React from 'react';
 import { useParams } from 'next/navigation';
 
-import LoadingDisplay from '../../../components/LoadingDisplay';
-import ErrorDisplay from '../../../components/ErrorDisplay';
-import MainContainer from '../../../components/layout/MainContainer';
-import ContentPane from '../../../components/layout/ContentPane';
-import { useApiRequest } from '../../../hooks/useApiRequest';
-import { MixtapeResponse } from '../../../client';
-import { MixtapeContext } from '../../MixtapeContext';
+import LoadingDisplay from '../../components/LoadingDisplay';
+import ErrorDisplay from '../../components/ErrorDisplay';
+import MainContainer from '../../components/layout/MainContainer';
+import ContentPane from '../../components/layout/ContentPane';
+import { useApiRequest } from '../../hooks/useApiRequest';
+import { MixtapeResponse } from '../../client';
+import { MixtapeContext } from '../MixtapeContext';
 
 interface MixtapeLayoutProps {
   children: React.ReactNode;

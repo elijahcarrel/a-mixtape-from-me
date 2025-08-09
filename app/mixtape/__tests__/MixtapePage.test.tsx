@@ -16,19 +16,19 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock components
-jest.mock('../../../components/MixtapeViewer', () => {
+jest.mock('../../components/MixtapeViewer', () => {
   return function MockMixtapeViewer({ mixtape }: any) {
     return <div data-testid="mixtape-viewer">Mixtape Viewer: {mixtape.name}</div>;
   };
 });
 
-jest.mock('../../../components/LoadingDisplay', () => {
+jest.mock('../../components/LoadingDisplay', () => {
   return function MockLoadingDisplay({ message }: any) {
     return <div data-testid="loading-display">{message}</div>;
   };
 });
 
-jest.mock('../../../components/ErrorDisplay', () => {
+jest.mock('../../components/ErrorDisplay', () => {
   return function MockErrorDisplay({ message }: any) {
     return <div data-testid="error-display">{message}</div>;
   };

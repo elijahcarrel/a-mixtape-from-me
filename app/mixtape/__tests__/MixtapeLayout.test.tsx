@@ -16,25 +16,25 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock useApiRequest
-jest.mock('../../../hooks/useApiRequest', () => {
+jest.mock('../../hooks/useApiRequest', () => {
   return {
     useApiRequest: jest.fn(),
   };
 });
 
 // Mock displays for predictable querying
-jest.mock('../../../components/LoadingDisplay', () => {
+jest.mock('../../components/LoadingDisplay', () => {
   return function MockLoadingDisplay({ message }: any) {
     return <div data-testid="loading-display">{message}</div>;
   };
 });
 
-jest.mock('../../../components/ErrorDisplay', () => {
+jest.mock('../../components/ErrorDisplay', () => {
   return function MockErrorDisplay({ message }: any) {
     return <div data-testid="error-display">{message}</div>;
   };
 });
-import { useApiRequest } from '../../../hooks/useApiRequest';
+import { useApiRequest } from '../../hooks/useApiRequest';
 const mockUseApiRequest = useApiRequest as jest.Mock;
 
 const fakeMixtape = { public_id: 'test-mixtape-123', name: 'Test', tracks: [] } as any;

@@ -1,9 +1,9 @@
 "use client";
 
 import { useParams, useRouter } from 'next/navigation';
-import { useMixtape } from '../../../../MixtapeContext';
-import ErrorDisplay from '../../../../../components/ErrorDisplay';
-import MixtapeTrackViewer from '../../../../../components/MixtapeTrackViewer';
+import { useMixtape } from '../../../MixtapeContext';
+import ErrorDisplay from '../../../../components/ErrorDisplay';
+import MixtapeTrackViewer from '../../../../components/MixtapeTrackViewer';
 
 export default function MixtapeTrackPage() {
   const params = useParams();

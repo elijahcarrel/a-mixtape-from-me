@@ -1,9 +1,9 @@
 'use client';
 
-import MainContainer from '../../../components/layout/MainContainer';
-import ContentPane from '../../../components/layout/ContentPane';
-import MixtapeViewer from '../../../components/MixtapeViewer';
-import { useMixtape } from '../../MixtapeContext';
+import MainContainer from '../../components/layout/MainContainer';
+import ContentPane from '../../components/layout/ContentPane';
+import MixtapeViewer from '../../components/MixtapeViewer';
+import { useMixtape } from '../MixtapeContext';
 
 export default function ViewMixtapePage() {
   const { mixtape } = useMixtape();
