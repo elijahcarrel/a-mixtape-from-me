@@ -23,6 +23,7 @@ class AuthenticatedRequest:
         """Get the user name from Stack Auth user info"""
         return self.user_info.get("name") or self.user_info.get("email")
 
+# TODO: does stack_auth need to be possibly None, or can we just enforce the type strictly?
 async def authenticate_account_request(request: Request, stack_auth: AbstractStackAuthBackend | None = None)->AuthenticatedRequest:
     """
     Middleware function that authenticates all account requests.
