@@ -9,7 +9,7 @@ from backend.util.account_middleware import (
 router = APIRouter()
 
 async def get_authenticated_request(
-    request: Request, 
+    request: Request,
     stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)
 ) -> AuthenticatedRequest:
     """Dependency that provides authenticated request context for all account endpoints"""

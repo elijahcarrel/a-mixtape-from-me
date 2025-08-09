@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 
 from backend.app_factory import create_app
 from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
-from backend.routers import auth
 
 
 @pytest.fixture

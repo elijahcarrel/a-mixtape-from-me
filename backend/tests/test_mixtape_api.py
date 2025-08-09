@@ -9,8 +9,7 @@ from sqlmodel import SQLModel, create_engine
 from backend.app_factory import create_app
 from backend.client.spotify import MockSpotifyClient
 from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
-from backend.routers import auth, mixtape, spotify
-from backend.util import auth_middleware
+from backend.routers import auth, spotify
 
 # Import models to ensure they're registered with SQLModel metadata
 

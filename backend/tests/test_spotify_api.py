@@ -4,8 +4,7 @@ from fastapi.testclient import TestClient
 from backend.app_factory import create_app
 from backend.client.spotify import MockSpotifyClient
 from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
-from backend.routers import auth, spotify
-from backend.util import auth_middleware
+from backend.routers import spotify
 
 
 def assert_track_details(track):
