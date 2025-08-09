@@ -10,6 +10,7 @@ import HeaderContainer from "./components/layout/HeaderContainer";
 import PageTitle from "./components/layout/PageTitle";
 import ThemeProvider from "./components/ThemeProvider";
 import DynamicTheme from "./components/DynamicTheme";
+import Footer from "./components/layout/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 const caveat = Caveat({ 
@@ -82,6 +83,7 @@ export default function RootLayout({
                   <UserButtonHeader />
                 </HeaderContainer>
                 {children}
+                <Footer />
               </MainContainer>
             </DynamicTheme>
           </ThemeProvider>
