@@ -88,7 +88,7 @@ npm install
 
 # Python dependencies (in a virtual environment)
 python3 -m venv venv
-source venv/bin/activate
+. venv/bin/activate
 pip install -r requirements.txt
 pip install -e .
 ```
@@ -99,7 +99,7 @@ pip install -e .
 
 ```bash
 # (Recommended) Start your Python virtual environment first
-source venv/bin/activate
+. venv/bin/activate
 npm run dev
 ```
 - This will start the Next.js frontend (on port 3000) and the FastAPI backend (on port 8000) concurrently.
@@ -108,7 +108,7 @@ npm run dev
 
 ##### Backend
 ```bash
-source venv/bin/activate
+. venv/bin/activate
 python3 -m uvicorn api.main:app --reload
 ```
 

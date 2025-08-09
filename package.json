@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "setup-backend-venv": "python3 -m venv venv && source venv/bin/activate",
+    "setup-backend-venv": "python3 -m venv venv && . venv/bin/activate",
     "setup-backend-packages": "pip install -r requirements.txt && pip install -e .",
     "setup-backend": "npm run setup-backend-venv && npm run setup-backend-packages",
     "setup-frontend": "npm install",
