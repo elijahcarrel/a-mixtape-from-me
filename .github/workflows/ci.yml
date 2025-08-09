@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run Jest tests
-        run: npm test 
+        run: npm run frontend-test 
 
   backend-pytest-tests:
     name: Backend Tests (Python)
