@@ -20,6 +20,7 @@ export default function MyMixtapesPage() {
   // Keep refs for debouncing and aborting
   const abortControllerRef = useRef<AbortController | null>(null);
   const debouncedFetchRef = useRef<ReturnType<typeof debounce> | null>(null);
+  const hasInitialFetchRef = useRef(false);
 
   // Helper to build URL based on current state
   const buildUrl = (q: string, off: number) => {
@@ -45,16 +46,23 @@ export default function MyMixtapesPage() {
     }
   };
 
-  // Immediate fetch on mount (no search query)
+  // Initial fetch on mount
   useEffect(() => {
-    fetchMixtapes('', 0);
+    if (!hasInitialFetchRef.current) {
+      hasInitialFetchRef.current = true;
+      fetchMixtapes('', 0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced search effect
+  // Handle search queries with debounce
   useEffect(() => {
+    // Skip initial render when query is empty
+    if (query === '' || !hasInitialFetchRef.current) return;
+
     // Reset offset when search term changes
     setOffset(0);
+    
     // Cancel previous debounce if any
     if (debouncedFetchRef.current) debouncedFetchRef.current.cancel();
 
@@ -75,9 +83,14 @@ export default function MyMixtapesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
-  // Fetch when offset changes (pagination) - immediate, no debounce
+  // Handle pagination
   useEffect(() => {
-    if (offset === 0 && query === '') return; // already fetched on mount/search effect
+    // Skip if this is the initial load
+    if (!hasInitialFetchRef.current) return;
+
+    // Skip if offset is 0 and query is empty and we haven't loaded any data yet (initial state)
+    if (offset === 0 && query === '' && mixtapes === null) return;
+
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
     fetchMixtapes(query, offset, abortControllerRef.current.signal);

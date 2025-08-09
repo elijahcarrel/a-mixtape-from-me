@@ -22,6 +22,63 @@ describe('MyMixtapesPage', () => {
     jest.clearAllMocks();
   });
 
+  it('should make only one request on initial page load', async () => {
+    const mixtapes = [buildMixtape('abc', 'Test Mixtape', new Date())];
+    mockMakeRequest.mockResolvedValueOnce(mixtapes);
+    
+    render(<MyMixtapesPage />);
+    
+    // Wait for the component to finish loading
+    await waitFor(() => expect(screen.getByText('Test Mixtape')).toBeInTheDocument());
+    
+    // Should have made exactly one request on initial load
+    expect(mockMakeRequest).toHaveBeenCalledTimes(1);
+    expect(mockMakeRequest).toHaveBeenCalledWith(
+      expect.stringContaining('/api/mixtape?limit=10&offset=0'),
+      expect.objectContaining({ signal: undefined })
+    );
+  });
+
+  it('should submit a new request when search bar is cleared', async () => {
+    const initialMixtapes = [buildMixtape('abc', 'Test Mixtape', new Date())];
+    const clearedMixtapes = [buildMixtape('def', 'Another Mixtape', new Date())];
+    
+    mockMakeRequest
+      .mockResolvedValueOnce(initialMixtapes) // initial load
+      .mockResolvedValueOnce(clearedMixtapes); // after clearing search
+    
+    render(<MyMixtapesPage />);
+    
+    // Wait for initial load
+    await waitFor(() => expect(screen.getByText('Test Mixtape')).toBeInTheDocument());
+    
+    // Type something in search
+    const searchInput = screen.getByPlaceholderText('Search mixtapes...');
+    fireEvent.change(searchInput, { target: { value: 'rock' } });
+    
+    // Wait for debounce and search request
+    await act(async () => {
+      await new Promise((res) => setTimeout(res, 1100));
+    });
+    
+    // Clear the search
+    fireEvent.change(searchInput, { target: { value: '' } });
+    
+    // Wait for debounce and cleared search request
+    await act(async () => {
+      await new Promise((res) => setTimeout(res, 1100));
+    });
+    
+    // Should have made 3 requests: initial load, search for 'rock', and cleared search
+    expect(mockMakeRequest).toHaveBeenCalledTimes(3);
+    
+    // Verify the last call was for empty query
+    expect(mockMakeRequest).toHaveBeenLastCalledWith(
+      expect.stringContaining('/api/mixtape?limit=10&offset=0'),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+  });
+
   it('shows loading then empty state', async () => {
     mockMakeRequest.mockResolvedValueOnce([]);
     render(<MyMixtapesPage />);
