@@ -1,10 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditMixtapePage from '../mixtape/[publicId]/edit/page';
 import { MixtapeEditorProps } from '../components/MixtapeEditor';
-import MixtapeTrackPage from '../mixtape/[publicId]/track/[track_number]/page';
 import { MixtapeTrackResponse } from '../client';
+import { MixtapeContext } from '../mixtape/MixtapeContext';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -17,22 +17,7 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock useApiRequest for the page
-jest.mock('../hooks/useApiRequest', () => {
-  const mockUseApiRequest = jest.fn();
-  return {
-    useApiRequest: mockUseApiRequest,
-  };
-});
-
-// Mock useAuthenticatedRequest
-jest.mock('../hooks/useAuthenticatedRequest', () => ({
-  useAuthenticatedRequest: () => ({
-    makeRequest: jest.fn(),
-  }),
-}));
-
-const mockUseApiRequest = jest.requireMock('../hooks/useApiRequest').useApiRequest;
+// No need to mock useApiRequest now – data is supplied via context
 
 // Mock components with more realistic behavior
 jest.mock('../components/MixtapeEditor', () => {
@@ -123,15 +108,12 @@ describe('Mixtape Editing Workflow', () => {
   });
 
   it('completes full mixtape editing workflow', async () => {
-    // Step 1: Load mixtape
-    mockUseApiRequest.mockReturnValue({
-      data: mockMixtapeData,
-      loading: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    render(<EditMixtapePage />);
+    const mockRefetch = jest.fn();
+    render(
+      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData as any, refetch: mockRefetch }}>
+        <EditMixtapePage />
+      </MixtapeContext.Provider>
+    );
     
     // Verify mixtape is loaded
     expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
@@ -164,68 +146,8 @@ describe('Mixtape Editing Workflow', () => {
     expect(screen.getByTestId('track-2')).toBeInTheDocument();
   });
 
-  it('handles loading state during mixtape fetch', () => {
-    mockUseApiRequest.mockReturnValue({
-      data: null,
-      loading: true,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    render(<EditMixtapePage />);
-    
-    expect(screen.getByTestId('loading-display')).toBeInTheDocument();
-    expect(screen.getByText('Loading mixtape...')).toBeInTheDocument();
-  });
-
-  it('handles error state and allows retry', async () => {
-    const mockRefetch = jest.fn();
-    mockUseApiRequest.mockReturnValue({
-      data: null,
-      loading: false,
-      error: 'Failed to load mixtape',
-      refetch: mockRefetch,
-    });
-
-    render(<EditMixtapePage />);
-    
-    expect(screen.getByTestId('error-display')).toBeInTheDocument();
-    expect(screen.getByText('Failed to load mixtape')).toBeInTheDocument();
-    
-    const tryAgainButton = screen.getByRole('button', { name: /try again/i });
-    fireEvent.click(tryAgainButton);
-    
-    await waitFor(() => {
-      expect(mockRefetch).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('transitions from loading to editing successfully', async () => {
-    // Start with loading state
-    mockUseApiRequest.mockReturnValue({
-      data: null,
-      loading: true,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    const { rerender } = render(<EditMixtapePage />);
-    
-    expect(screen.getByTestId('loading-display')).toBeInTheDocument();
-
-    // Transition to loaded state
-    mockUseApiRequest.mockReturnValue({
-      data: mockMixtapeData,
-      loading: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    rerender(<EditMixtapePage />);
-    
-    expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
-    expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
-  });
+  // Loading/error state tests now belong to the layout component and are
+  // covered in MixtapeLayout tests.
 
   it('handles mixtape with no tracks', () => {
     const emptyMixtape = {
@@ -233,14 +155,12 @@ describe('Mixtape Editing Workflow', () => {
       tracks: [],
     };
     
-    mockUseApiRequest.mockReturnValue({
-      data: emptyMixtape,
-      loading: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    render(<EditMixtapePage />);
+    const mockRefetch3 = jest.fn();
+    render(
+      <MixtapeContext.Provider value={{ mixtape: emptyMixtape as any, refetch: mockRefetch3 }}>
+        <EditMixtapePage />
+      </MixtapeContext.Provider>
+    );
     
     expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
     expect(screen.getByText('Tracks: 0')).toBeInTheDocument();
@@ -257,14 +177,12 @@ describe('Mixtape Editing Workflow', () => {
       ],
     };
     
-    mockUseApiRequest.mockReturnValue({
-      data: multiTrackMixtape,
-      loading: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    render(<EditMixtapePage />);
+    const mockRefetch4 = jest.fn();
+    render(
+      <MixtapeContext.Provider value={{ mixtape: multiTrackMixtape as any, refetch: mockRefetch4 }}>
+        <EditMixtapePage />
+      </MixtapeContext.Provider>
+    );
     
     expect(screen.getByText('Tracks: 3')).toBeInTheDocument();
     expect(screen.getByTestId('track-1')).toBeInTheDocument();
