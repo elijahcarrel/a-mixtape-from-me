@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuthenticatedRequest } from '../hooks/useApiRequest';
+import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
 import { debounce } from 'lodash';
 import { useTheme } from './ThemeProvider';
 

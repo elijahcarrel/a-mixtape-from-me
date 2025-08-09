@@ -22,11 +22,15 @@ jest.mock('../hooks/useApiRequest', () => {
   const mockUseApiRequest = jest.fn();
   return {
     useApiRequest: mockUseApiRequest,
-    useAuthenticatedRequest: () => ({
-      makeRequest: jest.fn(),
-    }),
   };
 });
+
+// Mock useAuthenticatedRequest
+jest.mock('../hooks/useAuthenticatedRequest', () => ({
+  useAuthenticatedRequest: () => ({
+    makeRequest: jest.fn(),
+  }),
+}));
 
 const mockUseApiRequest = jest.requireMock('../hooks/useApiRequest').useApiRequest;
 

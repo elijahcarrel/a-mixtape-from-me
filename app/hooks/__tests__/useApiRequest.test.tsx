@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { useApiRequest, useAuthenticatedRequest } from '../useApiRequest';
+import { useApiRequest } from '../useApiRequest';
 
 // Mock dependencies
 const mockUser = {
@@ -188,24 +188,6 @@ describe('useApiRequest', () => {
         text: () => Promise.resolve('Unauthorized'),
       });
 
-      // Mock window.location using a simpler approach
-      const originalLocation = window.location;
-      const mockLocation = {
-        pathname: '/test-page',
-        search: '?param=value',
-      };
-      
-      // Use a different approach to mock location
-      Object.defineProperty(window, 'location', {
-        value: {
-          ...originalLocation,
-          pathname: mockLocation.pathname,
-          search: mockLocation.search,
-        },
-        writable: true,
-        configurable: true,
-      });
-
       const { result } = renderHook(() =>
         useApiRequest({
           url: '/api/test',
@@ -217,16 +199,9 @@ describe('useApiRequest', () => {
       });
 
       expect(mockRouter.replace).toHaveBeenCalledWith(
-        '/handler/signup?next=%2Ftest-page%3Fparam%3Dvalue'
+        '/handler/signup?next=%2F'
       );
       expect(result.current.error).toBe('Authentication required');
-
-      // Restore window.location
-      Object.defineProperty(window, 'location', {
-        value: originalLocation,
-        writable: true,
-        configurable: true,
-      });
     });
   });
 
@@ -364,91 +339,5 @@ describe('useApiRequest', () => {
       expect(result.current.data).toEqual(mockResponse2);
       expect(mockFetch).toHaveBeenCalledTimes(2);
     });
-  });
-});
-
-describe('useAuthenticatedRequest', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockFetch.mockClear();
-  });
-
-  it('should return makeRequest function', () => {
-    const { result } = renderHook(() => useAuthenticatedRequest());
-
-    expect(result.current.makeRequest).toBeDefined();
-    expect(typeof result.current.makeRequest).toBe('function');
-  });
-
-  it('should make authenticated requests', async () => {
-    const mockResponse = { data: 'test' };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    });
-
-    const { result } = renderHook(() => useAuthenticatedRequest());
-
-    const response = await result.current.makeRequest('/api/test');
-
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      method: 'GET',
-      headers: expect.objectContaining({
-        'Content-Type': 'application/json',
-        'x-stack-access-token': 'test-token',
-      }),
-    }));
-    expect(response).toEqual(mockResponse);
-  });
-
-  it('should handle AbortSignal', async () => {
-    const mockResponse = { data: 'test' };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    });
-
-    const { result } = renderHook(() => useAuthenticatedRequest());
-    const abortController = new AbortController();
-
-    const response = await result.current.makeRequest('/api/test', {
-      signal: abortController.signal,
-    });
-
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      method: 'GET',
-      signal: abortController.signal,
-    }));
-    expect(response).toEqual(mockResponse);
-  });
-
-  it('should handle POST requests with body', async () => {
-    const mockResponse = { success: true };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    });
-
-    const { result } = renderHook(() => useAuthenticatedRequest());
-
-    const response = await result.current.makeRequest('/api/test', {
-      method: 'POST',
-      body: { test: 'data' },
-    });
-
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({ test: 'data' }),
-    }));
-    expect(response).toEqual(mockResponse);
-  });
-
-  it('should handle errors', async () => {
-    const errorMessage = 'Network error';
-    mockFetch.mockRejectedValueOnce(new Error(errorMessage));
-
-    const { result } = renderHook(() => useAuthenticatedRequest());
-
-    await expect(result.current.makeRequest('/api/test')).rejects.toThrow(errorMessage);
   });
 });

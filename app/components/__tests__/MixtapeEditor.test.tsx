@@ -5,7 +5,7 @@ import MixtapeEditor from '../MixtapeEditor';
 
 // Mock useAuthenticatedRequest
 const mockMakeRequest = jest.fn();
-jest.mock('../../hooks/useApiRequest', () => ({
+jest.mock('../../hooks/useAuthenticatedRequest', () => ({
   useAuthenticatedRequest: () => ({
     makeRequest: mockMakeRequest,
   }),

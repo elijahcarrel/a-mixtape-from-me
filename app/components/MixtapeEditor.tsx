@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Formik } from 'formik';
 import { debounce } from 'lodash';
-import { useAuthenticatedRequest } from '../hooks/useApiRequest';
+import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
 import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
