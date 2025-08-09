@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
 import { getAuthHeaders } from './useAuth';
@@ -114,7 +114,7 @@ export function useApiRequest<T = any>({
   const router = useRouter();
   const user = useUser();
 
-  const makeRequest = useCallback(async () => {
+  const makeRequest = async () => {
     setLoading(true);
     setError(null);
     
@@ -129,11 +129,11 @@ export function useApiRequest<T = any>({
     } finally {
       setLoading(false);
     }
-  }, [url, method, body, headers, user, router, onSuccess, onError]);
+  };
 
   useEffect(() => {
     makeRequest();
-  }, [makeRequest]); // Re-run when makeRequest changes
+  }, [url, user]); // Re-run when URL or user changes
 
   const refetch = () => {
     makeRequest();
