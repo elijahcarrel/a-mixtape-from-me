@@ -9,6 +9,8 @@ packages = ["backend"]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+# TODO: run ruff and mypy on `scripts/` too, not just `backend/`
+
 [tool.ruff]
 target-version = "py312"
 line-length = 88
