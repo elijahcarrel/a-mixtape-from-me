@@ -83,7 +83,9 @@ describe('TrackAutocomplete', () => {
       await new Promise(resolve => setTimeout(resolve, 1100));
     });
     
-    expect(mockMakeRequest).toHaveBeenCalledWith('/api/spotify/search?query=test');
+    expect(mockMakeRequest).toHaveBeenCalledWith('/api/spotify/search?query=test', expect.objectContaining({
+      signal: expect.any(AbortSignal)
+    }));
   });
 
   it('displays search results', async () => {
@@ -246,6 +248,208 @@ describe('TrackAutocomplete', () => {
     
     // Should only call the API once with the final query
     expect(mockMakeRequest).toHaveBeenCalledTimes(1);
-    expect(mockMakeRequest).toHaveBeenCalledWith('/api/spotify/search?query=test');
+    expect(mockMakeRequest).toHaveBeenCalledWith('/api/spotify/search?query=test', expect.objectContaining({
+      signal: expect.any(AbortSignal)
+    }));
+  });
+
+  describe('AbortController functionality', () => {
+    it('passes AbortSignal to makeRequest', async () => {
+      mockMakeRequest.mockResolvedValue(mockSearchResults);
+      
+      const mockOnTrackSelect = jest.fn();
+      render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
+      
+      const searchInput = screen.getByPlaceholderText('Search for tracks...');
+      fireEvent.change(searchInput, { target: { value: 'test' } });
+      
+      // Wait for the debounce delay
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      expect(mockMakeRequest).toHaveBeenCalledWith(
+        '/api/spotify/search?query=test',
+        expect.objectContaining({
+          signal: expect.any(AbortSignal)
+        })
+      );
+    });
+
+    it('cancels pending requests when new search is triggered', async () => {
+      // Mock a delayed response that we can control
+      let resolveFirstRequest: (value: any) => void;
+      let rejectFirstRequest: (error: any) => void;
+      
+      const firstRequestPromise = new Promise((resolve, reject) => {
+        resolveFirstRequest = resolve;
+        rejectFirstRequest = reject;
+      });
+
+      mockMakeRequest
+        .mockImplementationOnce(() => firstRequestPromise)
+        .mockResolvedValueOnce(mockSearchResults);
+
+      const mockOnTrackSelect = jest.fn();
+      render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
+      
+      const searchInput = screen.getByPlaceholderText('Search for tracks...');
+      
+      // Start first search
+      fireEvent.change(searchInput, { target: { value: 'first' } });
+      
+      // Wait for debounce to trigger first search
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      // Verify first request was made
+      expect(mockMakeRequest).toHaveBeenCalledTimes(1);
+      expect(mockMakeRequest).toHaveBeenCalledWith(
+        '/api/spotify/search?query=first',
+        expect.objectContaining({
+          signal: expect.any(AbortSignal)
+        })
+      );
+      
+      // Start second search before first completes
+      fireEvent.change(searchInput, { target: { value: 'second' } });
+      
+      // Wait for debounce to trigger second search
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      // Verify second request was made
+      expect(mockMakeRequest).toHaveBeenCalledTimes(2);
+      expect(mockMakeRequest).toHaveBeenCalledWith(
+        '/api/spotify/search?query=second',
+        expect.objectContaining({
+          signal: expect.any(AbortSignal)
+        })
+      );
+      
+      // Now resolve the first request - it should be ignored
+      resolveFirstRequest!(mockSearchResults);
+      
+      // Wait a bit for any state updates
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+      
+      // The results should be from the second search, not the first
+      // Since the first request was cancelled, we shouldn't see its results
+      expect(screen.getByTestId('track-result-track1')).toBeInTheDocument();
+    });
+
+    it('handles AbortError gracefully without showing errors', async () => {
+      // Mock makeRequest to throw AbortError for the first request
+      const abortError = new Error('AbortError');
+      abortError.name = 'AbortError';
+      
+      mockMakeRequest
+        .mockRejectedValueOnce(abortError)
+        .mockResolvedValueOnce(mockSearchResults);
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
+      const mockOnTrackSelect = jest.fn();
+      render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
+      
+      const searchInput = screen.getByPlaceholderText('Search for tracks...');
+      
+      // Start first search that will be cancelled
+      fireEvent.change(searchInput, { target: { value: 'first' } });
+      
+      // Wait for debounce
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      // Start second search
+      fireEvent.change(searchInput, { target: { value: 'second' } });
+      
+      // Wait for debounce
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      // Should not have logged any errors for AbortError
+      expect(consoleSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('Search error:'),
+        abortError
+      );
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('cancels requests when component unmounts', async () => {
+      // Mock a delayed response
+      let resolveRequest: (value: any) => void;
+      const requestPromise = new Promise((resolve) => {
+        resolveRequest = resolve;
+      });
+
+      mockMakeRequest.mockImplementation(() => requestPromise);
+
+      const mockOnTrackSelect = jest.fn();
+      const { unmount } = render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
+      
+      const searchInput = screen.getByPlaceholderText('Search for tracks...');
+      fireEvent.change(searchInput, { target: { value: 'test' } });
+      
+      // Wait for debounce to trigger search
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      // Verify request was made
+      expect(mockMakeRequest).toHaveBeenCalledTimes(1);
+      
+      // Unmount component
+      unmount();
+      
+      // Resolve the request after unmount
+      resolveRequest!(mockSearchResults);
+      
+      // Wait a bit to ensure no state updates occur
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+      
+      // The component should be unmounted and no errors should occur
+      expect(screen.queryByPlaceholderText('Search for tracks...')).not.toBeInTheDocument();
+    });
+
+    it('creates new AbortController for each search', async () => {
+      mockMakeRequest.mockResolvedValue(mockSearchResults);
+      
+      const mockOnTrackSelect = jest.fn();
+      render(<TrackAutocomplete onTrackSelect={mockOnTrackSelect} />);
+      
+      const searchInput = screen.getByPlaceholderText('Search for tracks...');
+      
+      // First search
+      fireEvent.change(searchInput, { target: { value: 'first' } });
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      // Second search
+      fireEvent.change(searchInput, { target: { value: 'second' } });
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      
+      // Verify both calls were made with different AbortSignals
+      expect(mockMakeRequest).toHaveBeenCalledTimes(2);
+      
+      const firstCall = mockMakeRequest.mock.calls[0];
+      const secondCall = mockMakeRequest.mock.calls[1];
+      
+      expect(firstCall[1].signal).toBeInstanceOf(AbortSignal);
+      expect(secondCall[1].signal).toBeInstanceOf(AbortSignal);
+      expect(firstCall[1].signal).not.toBe(secondCall[1].signal);
+    });
   });
 }); 

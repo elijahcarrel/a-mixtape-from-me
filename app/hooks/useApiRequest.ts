@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
 import { getAuthHeaders } from './useAuth';
@@ -25,11 +25,12 @@ async function makeAuthenticatedRequest<T = any>(
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
     body?: any;
     headers?: Record<string, string>;
+    signal?: AbortSignal;
   } = {},
   user: any,
   router: any
 ): Promise<T> {
-  const { method = 'GET', body, headers = {} } = options;
+  const { method = 'GET', body, headers = {}, signal } = options;
   
   // Get auth headers
   const authHeaders = await getAuthHeaders(user);
@@ -46,6 +47,10 @@ async function makeAuthenticatedRequest<T = any>(
 
   if (body && method !== 'GET') {
     requestOptions.body = JSON.stringify(body);
+  }
+
+  if (signal) {
+    requestOptions.signal = signal;
   }
 
   const response = await fetch(url, requestOptions);
@@ -81,6 +86,7 @@ export function useAuthenticatedRequest() {
       method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
       body?: any;
       headers?: Record<string, string>;
+      signal?: AbortSignal;
     } = {}
   ): Promise<T> => {
     return makeAuthenticatedRequest(url, options, user, router);
@@ -108,7 +114,7 @@ export function useApiRequest<T = any>({
   const router = useRouter();
   const user = useUser();
 
-  const makeRequest = async () => {
+  const makeRequest = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -123,11 +129,11 @@ export function useApiRequest<T = any>({
     } finally {
       setLoading(false);
     }
-  };
+  }, [url, method, body, headers, user, router, onSuccess, onError]);
 
   useEffect(() => {
     makeRequest();
-  }, [url, user]); // Re-run when URL or user changes
+  }, [makeRequest]); // Re-run when makeRequest changes
 
   const refetch = () => {
     makeRequest();
