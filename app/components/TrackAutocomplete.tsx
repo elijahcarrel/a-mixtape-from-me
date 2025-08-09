@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useAuthenticatedRequest } from '../hooks/useApiRequest';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
 import { debounce } from 'lodash';
 import { useTheme } from './ThemeProvider';
 
@@ -19,7 +19,7 @@ interface TrackSearchResult {
 interface AutocompleteProps<T> {
   placeholder: string;
   onSelect: (item: T) => void;
-  searchFunction: (query: string) => Promise<T[]>;
+  searchFunction: (query: string, signal?: AbortSignal) => Promise<T[]>;
   renderItem: (item: T, isSelected: boolean) => React.ReactNode;
   getItemKey: (item: T) => string;
 }
@@ -38,33 +38,70 @@ function Autocomplete<T>({
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { theme } = useTheme();
 
-  const debouncedSearch = debounce(async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setResults([]);
-      setIsOpen(false);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const searchResults = await searchFunction(searchQuery);
-      setResults(searchResults);
-      setIsOpen(searchResults.length > 0);
-      setSelectedIndex(-1);
-    } catch (error) {
-      console.error('Search error:', error);
-      setResults([]);
-      setIsOpen(false);
-    } finally {
-      setIsSearching(false);
-    }
-  }, 1000);
+  // Create debounced search function that updates when searchFunction changes
+  const debouncedSearchRef = useRef<ReturnType<typeof debounce> | null>(null);
 
   useEffect(() => {
-    debouncedSearch(query);
-    return () => debouncedSearch.cancel();
+    // Cancel any existing debounced function
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current.cancel();
+    }
+
+    // Create new debounced function
+    debouncedSearchRef.current = debounce(async (searchQuery: string) => {
+      if (!searchQuery.trim()) {
+        setResults([]);
+        setIsOpen(false);
+        return;
+      }
+
+      // Cancel any pending request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController();
+
+      setIsSearching(true);
+      try {
+        const searchResults = await searchFunction(searchQuery, abortControllerRef.current.signal);
+        setResults(searchResults);
+        setIsOpen(searchResults.length > 0);
+        setSelectedIndex(-1);
+      } catch (error) {
+        // Only handle errors that aren't from cancellation
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Search error:', error);
+          setResults([]);
+          setIsOpen(false);
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    }, 1000);
+
+    // Cleanup function
+    return () => {
+      if (debouncedSearchRef.current) {
+        debouncedSearchRef.current.cancel();
+      }
+    };
+  }, [searchFunction]);
+
+  useEffect(() => {
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current(query);
+    }
+    return () => {
+      // Cancel any pending request when component unmounts or query changes
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [query]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,9 +223,11 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
   const { makeRequest } = useAuthenticatedRequest();
   const { theme } = useTheme();
 
-  const searchTracks = async (query: string): Promise<TrackSearchResult[]> => {
+  const searchTracks = async (query: string, signal?: AbortSignal): Promise<TrackSearchResult[]> => {
     try {
-      const data = await makeRequest(`/api/spotify/search?query=${encodeURIComponent(query)}`);
+      const data = await makeRequest(`/api/spotify/search?query=${encodeURIComponent(query)}`, {
+        signal
+      });
       return data || [];
     } catch (error) {
       console.error('Error searching tracks:', error);
@@ -198,6 +237,8 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
 
   const renderTrackItem = (track: TrackSearchResult, isSelected: boolean) => (
     <div className="flex items-center space-x-2 sm:space-x-3">
+      {/* TODO: Use Image instead of img? */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={track.album.images[0]?.url || '/placeholder-album.png'}
         alt={track.album.name}
