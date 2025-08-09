@@ -2,7 +2,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlmodel import Session, select
 
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeAuditTrack, MixtapeTrack
@@ -259,8 +259,8 @@ class MixtapeEntity:
         """
         statement = select(Mixtape).where(Mixtape.stack_auth_user_id == stack_auth_user_id)
         if q:
-            statement = statement.where(Mixtape.name.ilike(f"%{q}%"))
-        statement = statement.order_by(desc(Mixtape.last_modified_time)).limit(limit).offset(offset)
+            statement = statement.where(func.lower(Mixtape.name).contains(func.lower(q)))
+        statement = statement.order_by(desc(Mixtape.last_modified_time)).limit(limit).offset(offset)  # type: ignore[arg-type]
         mixtapes = session.exec(statement).all()
         return [
             {

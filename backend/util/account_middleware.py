@@ -22,7 +22,7 @@ class AuthenticatedRequest:
         """Get the user name from Stack Auth user info"""
         return self.user_info.get("name") or self.user_info.get("email")
 
-async def authenticate_account_request(request: Request):
+async def authenticate_account_request(request: Request, stack_auth=None)->AuthenticatedRequest:
     """
     Middleware function that authenticates all account requests.
     Returns an AuthenticatedRequest object with user info and access token.
@@ -34,7 +34,11 @@ async def authenticate_account_request(request: Request):
         raise HTTPException(status_code=401, detail="No access token provided")
 
     # Get user info from cache (with automatic validation if needed)
-    user_info = get_cached_user_info(access_token)
+    if stack_auth is None:
+        # TODO: Implement proper stack_auth injection
+        raise HTTPException(status_code=401, detail="Authentication service not available")
+
+    user_info = get_cached_user_info(access_token, stack_auth)
 
     if not user_info:
         raise HTTPException(status_code=401, detail="Invalid or expired access token")

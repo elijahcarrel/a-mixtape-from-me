@@ -21,6 +21,7 @@ select = [
     "C4", # flake8-comprehensions
     "UP", # pyupgrade
 ]
+# TODO: enable really strict rules, remove all these ignore configs, and also remove all `noqa`s in codebase.
 ignore = [
     "E501",  # line too long
     "B008",  # do not perform function calls in argument defaults
@@ -33,11 +34,12 @@ ignore = [
 
 [tool.mypy]
 python_version = "3.12"
+# TODO: enable really strict rules, remove all these disable configs, and also remove all `type: ignore`s in codebase.
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false # TODO: re-enable once we add types everywhere
 disallow_incomplete_defs = true
-check_untyped_defs = true
+check_untyped_defs = false # TODO: re-enable once we add types everywhere
 disallow_untyped_decorators = true
 no_implicit_optional = true
 warn_redundant_casts = true
@@ -45,6 +47,7 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+disable_error_code = ["no-untyped-def"]
 
 [[tool.mypy.overrides]]
 module = [

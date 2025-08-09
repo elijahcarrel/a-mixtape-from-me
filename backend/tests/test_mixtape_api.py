@@ -28,7 +28,7 @@ def assert_response_success(response: httpx.Response, expected_status: int = 200
                     error_detail += f"\nError detail: {error_json['detail']}"
                 else:
                     error_detail += f"\nResponse body: {response.text}"
-            except:
+            except: # noqa: E722
                 error_detail += f"\nResponse body: {response.text}"
 
         # Create a custom exception that will show the calling line

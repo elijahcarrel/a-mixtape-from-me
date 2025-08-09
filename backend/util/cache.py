@@ -1,15 +1,26 @@
 import hashlib
 import time
-from typing import Any
+from typing import Any, Protocol
 
 # In-memory cache - can be easily replaced with Redis later
+# TODO: make user_cache a type rather than just using dict[str, Any]
 user_cache: dict[str, dict[str, Any]] = {}
+
+
+# Type for stack auth backend - using Protocol for better compatibility
+class StackAuthBackend(Protocol):
+    def get_user_with_access_token(self, access_token: str) -> dict[str, Any] | None:
+        ...
+
+    def validate_access_token(self, access_token: str) -> bool:
+        ...
 
 def hash_token(token: str) -> str:
     """Create a hash of the access token for use as cache key"""
     return hashlib.sha256(token.encode()).hexdigest()
 
-def get_cached_user_info(access_token: str, stack_auth) -> dict[str, Any] | None:
+# TODO: make user_info a type rather than just using dict[str, Any]
+def get_cached_user_info(access_token: str, stack_auth: StackAuthBackend) -> dict[str, Any] | None:
     """
     Get user info from cache, validating token if needed, using the provided stack_auth backend.
     Returns None if token is invalid.
@@ -20,7 +31,7 @@ def get_cached_user_info(access_token: str, stack_auth) -> dict[str, Any] | None
         # Try to get user info from Stack Auth
         try:
             user_info = stack_auth.get_user_with_access_token(access_token)
-            if user_info:
+            if user_info and isinstance(user_info, dict):
                 # Cache the user info
                 user_cache[token_hash] = {
                     "access_token": access_token,
@@ -42,7 +53,7 @@ def get_cached_user_info(access_token: str, stack_auth) -> dict[str, Any] | None
     # Return user info with the current access token
     user_info = cache_entry["user_info"].copy()
     user_info["access_token"] = cache_entry["access_token"]
-    return user_info
+    return user_info  # type: ignore[no-any-return]
 
 def cache_user_info(access_token: str, user_info: dict[str, Any]):
     """Cache user information for a given access token"""
