@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
 import { getAuthHeaders } from './useAuth';
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 interface UseApiRequestOptions<T = any> {
   url: string;
@@ -28,7 +29,7 @@ async function makeAuthenticatedRequest<T = any>(
     signal?: AbortSignal;
   } = {},
   user: any,
-  router: any
+  router: AppRouterInstance,
 ): Promise<T> {
   const { method = 'GET', body, headers = {}, signal } = options;
   
