@@ -79,6 +79,42 @@ describe('MyMixtapesPage', () => {
     );
   });
 
+  it('should show floating loading indicator without removing existing content', async () => {
+    const initialMixtapes = [buildMixtape('abc', 'Test Mixtape', new Date())];
+    const searchMixtapes = [buildMixtape('def', 'Rock Mixtape', new Date())];
+    
+    mockMakeRequest
+      .mockResolvedValueOnce(initialMixtapes) // initial load
+      .mockResolvedValueOnce(searchMixtapes); // search results
+    
+    render(<MyMixtapesPage />);
+    
+    // Wait for initial load
+    await waitFor(() => expect(screen.getByText('Test Mixtape')).toBeInTheDocument());
+    
+    // Type something in search to trigger loading
+    const searchInput = screen.getByPlaceholderText('Search mixtapes...');
+    fireEvent.change(searchInput, { target: { value: 'rock' } });
+    
+    // The existing content should still be visible
+    expect(screen.getByText('Test Mixtape')).toBeInTheDocument();
+    
+    // A floating loading indicator should appear
+    expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    
+    // Wait for the search to complete (debounce + request time)
+    await act(async () => {
+      await new Promise((res) => setTimeout(res, 1100));
+    });
+    
+    // Wait for the search results to appear
+    await waitFor(() => expect(screen.getByText('Rock Mixtape')).toBeInTheDocument());
+    
+    // Loading indicator should be gone
+    expect(screen.queryByTestId('loading-indicator')).not.toBeInTheDocument();
+  });
+
   it('shows loading then empty state', async () => {
     mockMakeRequest.mockResolvedValueOnce([]);
     render(<MyMixtapesPage />);
