@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Request
 
-from backend.util.cache import get_cached_user_info
+from backend.util.cache import StackAuthBackend, get_cached_user_info
 
 
 class AuthenticatedRequest:
@@ -22,7 +22,7 @@ class AuthenticatedRequest:
         """Get the user name from Stack Auth user info"""
         return self.user_info.get("name") or self.user_info.get("email")
 
-async def authenticate_account_request(request: Request, stack_auth=None)->AuthenticatedRequest:
+async def authenticate_account_request(request: Request, stack_auth: StackAuthBackend | None = None)->AuthenticatedRequest:
     """
     Middleware function that authenticates all account requests.
     Returns an AuthenticatedRequest object with user info and access token.
