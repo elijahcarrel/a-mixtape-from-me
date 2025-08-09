@@ -1,44 +1,107 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useApiRequest } from '../hooks/useApiRequest';
-
-function formatRelativeTime(dateStr: string) {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-  return date.toLocaleDateString();
-}
+import { debounce } from 'lodash';
+import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
+import { formatRelativeTime } from '../util/time';
 
 export default function MyMixtapesPage() {
-  const searchParams = useSearchParams();
-  const q = searchParams?.get('q') || undefined;
-  const limit = searchParams?.get('limit') || undefined;
-  const offset = searchParams?.get('offset') || undefined;
+  // --- Local state management for search & pagination
+  const [query, setQuery] = useState('');
+  const [mixtapes, setMixtapes] = useState<any[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const query: Record<string, string> = {};
-  if (q) query.q = q;
-  if (limit) query.limit = limit;
-  if (offset) query.offset = offset;
-  const queryString = Object.keys(query).length > 0 ? '?' + new URLSearchParams(query).toString() : '';
+  const LIMIT = 10;
+  const [offset, setOffset] = useState(0);
 
-  const { data: mixtapes, loading, error } = useApiRequest<any[]>({
-    url: `/api/mixtape${queryString}`,
-  });
+  const { makeRequest } = useAuthenticatedRequest();
+
+  // Keep refs for debouncing and aborting
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const debouncedFetchRef = useRef<ReturnType<typeof debounce> | null>(null);
+
+  // Helper to build URL based on current state
+  const buildUrl = (q: string, off: number) => {
+    const params: Record<string, string> = { limit: String(LIMIT), offset: String(off) };
+    if (q.trim()) params.q = q.trim();
+    return `/api/mixtape?${new URLSearchParams(params).toString()}`;
+  };
+
+  const fetchMixtapes = async (q: string, off: number, signal?: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await makeRequest<any[]>(buildUrl(q, off), { signal });
+      setMixtapes(data);
+    } catch (err: any) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        // Ignore aborted requests
+        return;
+      }
+      setError(err.message ?? 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Immediate fetch on mount (no search query)
+  useEffect(() => {
+    fetchMixtapes('', 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced search effect
+  useEffect(() => {
+    // Reset offset when search term changes
+    setOffset(0);
+    // Cancel previous debounce if any
+    if (debouncedFetchRef.current) debouncedFetchRef.current.cancel();
+
+    // Cancel any ongoing request
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+
+    debouncedFetchRef.current = debounce(() => {
+      abortControllerRef.current = new AbortController();
+      fetchMixtapes(query, 0, abortControllerRef.current.signal);
+    }, 1000);
+
+    debouncedFetchRef.current();
+
+    return () => {
+      if (debouncedFetchRef.current) debouncedFetchRef.current.cancel();
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  // Fetch when offset changes (pagination) - immediate, no debounce
+  useEffect(() => {
+    if (offset === 0 && query === '') return; // already fetched on mount/search effect
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+    fetchMixtapes(query, offset, abortControllerRef.current.signal);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offset]);
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4">
+    <div className="w-full max-w-4xl mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-6 text-center">My Mixtapes</h1>
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search mixtapes..."
+          className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-amber-600"
+        />
+      </div>
       {loading && <div className="text-center text-gray-500">Loading...</div>}
       {error && <div className="text-center text-red-500">{error}</div>}
       {!loading && !error && (
         <ul className="space-y-4">
-          {(!mixtapes || mixtapes.length === 0) && (
+          {(!mixtapes || mixtapes.length === 0) && !loading && (
             <li className="text-center text-gray-500">No mixtapes found.</li>
           )}
           {mixtapes && mixtapes.map((m) => (
@@ -55,6 +118,25 @@ export default function MyMixtapesPage() {
             </li>
           ))}
         </ul>
+      )}
+      {/* Pagination Controls */}
+      {!loading && !error && mixtapes && mixtapes.length > 0 && (
+        <div className="flex justify-between mt-8">
+          <button
+            className="px-4 py-2 rounded bg-amber-600 text-white disabled:opacity-50"
+            disabled={offset === 0 || loading}
+            onClick={() => setOffset(Math.max(0, offset - LIMIT))}
+          >
+            Previous
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-amber-600 text-white disabled:opacity-50"
+            disabled={loading || (mixtapes.length < LIMIT)}
+            onClick={() => setOffset(offset + LIMIT)}
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   );
