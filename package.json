@@ -29,6 +29,7 @@
     "@dnd-kit/core": "6.3.1",
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
+    "@mdx-js/loader": "^3.1.0",
     "@next/mdx": "^15.4.6",
     "@stackframe/stack": "^2.8.27",
     "@types/js-cookie": "^3.0.6",
