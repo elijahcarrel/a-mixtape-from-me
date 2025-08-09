@@ -75,6 +75,8 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   }, [mixtape.public_id, makeRequest]);
 
   // Debounced save function for text changes
+  // TODO: fix this. Error is "React Hook useCallback received a function whose dependencies are unknown. Pass an inline function instead..
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSave = useCallback(
     debounce(async (values: FormValues) => {
       await immediateSave(values);

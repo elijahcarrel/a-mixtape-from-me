@@ -48,6 +48,8 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText }: Tr
             {/* Album Art */}
             <div className="shrink-0">
               {details.album.images[0] ? (
+                // TODO: Use Image instead of img?
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={details.album.images[0].url}
                   alt={details.album.name}

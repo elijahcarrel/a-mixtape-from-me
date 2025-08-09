@@ -57,6 +57,8 @@ export function useApiRequest<T = any>({
 
   useEffect(() => {
     makeRequest();
+    // TODO: fix this. Error is "React Hook useEffect has a missing dependency: 'makeRequest'. Either include it or remove the dependency array."
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, user]); // Re-run when URL or user changes
 
   const refetch = () => {

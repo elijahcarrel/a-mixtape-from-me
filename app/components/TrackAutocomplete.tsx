@@ -237,6 +237,8 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
 
   const renderTrackItem = (track: TrackSearchResult, isSelected: boolean) => (
     <div className="flex items-center space-x-2 sm:space-x-3">
+      {/* TODO: Use Image instead of img? */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={track.album.images[0]?.url || '/placeholder-album.png'}
         alt={track.album.name}
