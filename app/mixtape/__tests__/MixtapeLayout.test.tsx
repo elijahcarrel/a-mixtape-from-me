@@ -86,6 +86,20 @@ describe('MixtapeLayout', () => {
     expect(screen.getByTestId('child')).toBeInTheDocument();
   });
 
+  it('renders an error display when the API request fails', () => {
+    const refetch = jest.fn();
+    mockUseApiRequest.mockReturnValue({ data: null, loading: false, error: 'Failed to load mixtape', refetch });
+
+    render(
+      <MixtapeLayout>
+        <div data-testid="child" />
+      </MixtapeLayout>
+    );
+
+    expect(screen.getByTestId('error-display')).toBeInTheDocument();
+    expect(screen.getByText('Failed to load mixtape')).toBeInTheDocument();
+  });
+
   // TODO: we're re-fetching the mixtape for some reason. Fix this and then re-enable this test.
   it.skip('does not refetch mixtape when navigating between tracks', () => {
     const refetch = jest.fn();
