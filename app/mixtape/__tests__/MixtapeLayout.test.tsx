@@ -1,17 +1,14 @@
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen } from '../../components/__tests__/test-utils';
-import { act } from 'react-dom/test-utils';
 import '@testing-library/jest-dom';
 
 import MixtapeLayout from '../[publicId]/layout';
 
 // Mock next/navigation
 const mockPush = jest.fn();
-let currentPublicId = 'test-mixtape-123';
-let paramsObject = { publicId: currentPublicId };
 
 jest.mock('next/navigation', () => ({
-  useParams: () => paramsObject,
+  useParams: () => ({ publicId: 'test-mixtape-123' }),
   useRouter: () => ({ push: mockPush }),
 }));
 
