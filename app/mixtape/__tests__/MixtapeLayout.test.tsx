@@ -35,9 +35,35 @@ jest.mock('../../components/ErrorDisplay', () => {
   };
 });
 import { useApiRequest } from '../../hooks/useApiRequest';
+import { MixtapeResponse } from '@/app/client';
 const mockUseApiRequest = useApiRequest as jest.Mock;
 
-const fakeMixtape = { public_id: 'test-mixtape-123', name: 'Test', tracks: [] } as any;
+
+const fakeMixtape: MixtapeResponse = {
+  public_id: 'test-mixtape-123',
+  name: 'Test Mixtape',
+  intro_text: 'A test mixtape',
+  subtitle1: 'Some subtitle',
+  subtitle2: 'Subtitle 2',
+  subtitle3: 'Subtitle 3',
+  is_public: false,
+  create_time: '2023-01-01T00:00:00Z',
+  last_modified_time: '2023-01-01T00:00:00Z',
+  stack_auth_user_id: 'user123',
+  tracks: [
+    {
+      track_position: 1,
+      track_text: 'Test Track 1',
+      track: {
+        id: 'track-1',
+        name: 'Test Track',
+        artists: [{ name: 'Test Artist' }],
+        album: { name: 'Test Album', images: [] },
+        uri: 'spotify:track:123',
+      },
+    },
+  ],
+};
 
 describe('MixtapeLayout', () => {
   afterEach(() => {

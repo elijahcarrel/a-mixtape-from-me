@@ -3,6 +3,7 @@ import { render, screen } from '../../components/__tests__/test-utils';
 import '@testing-library/jest-dom';
 import ViewMixtapePage from '../[publicId]/page';
 import { MixtapeContext } from '../MixtapeContext';
+import { MixtapeResponse } from '@/app/client';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -34,10 +35,13 @@ jest.mock('../../components/ErrorDisplay', () => {
   };
 });
 
-const mockMixtapeData = {
+const mockMixtapeData: MixtapeResponse = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
+  subtitle1: 'Subtitle 1',
+  subtitle2: 'Subtitle 2',
+  subtitle3: 'Subtitle 3',
   is_public: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
@@ -45,7 +49,13 @@ const mockMixtapeData = {
     {
       track_position: 1,
       track_text: 'Test Track 1',
-      spotify_uri: 'spotify:track:123',
+      track: {
+        id: '1',
+        name: 'Test Track 1',
+        artists: [{ name: 'Artist 1' }],
+        album: { name: 'Album 1', images: [] },
+        uri: 'spotify:track:1',
+      },
     },
   ],
   stack_auth_user_id: '00000000-0000-0000-0000-000000000000',

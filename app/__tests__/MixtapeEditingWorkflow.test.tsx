@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditMixtapePage from '../mixtape/[publicId]/edit/page';
 import { MixtapeEditorProps } from '../components/MixtapeEditor';
-import { MixtapeTrackResponse } from '../client';
+import { MixtapeRequest, MixtapeResponse, MixtapeTrackResponse } from '../client';
 import { MixtapeContext } from '../mixtape/MixtapeContext';
 
 // Mock next/navigation
@@ -16,8 +16,6 @@ jest.mock('next/navigation', () => ({
     push: mockPush,
   }),
 }));
-
-// No need to mock useApiRequest now – data is supplied via context
 
 // Mock components with more realistic behavior
 jest.mock('../components/MixtapeEditor', () => {
@@ -83,7 +81,7 @@ jest.mock('../components/ErrorDisplay', () => {
   };
 });
 
-const mockMixtapeData = {
+const mockMixtapeData: MixtapeResponse = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
@@ -93,11 +91,18 @@ const mockMixtapeData = {
   is_public: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
+  stack_auth_user_id: 'user123',
   tracks: [
     {
       track_position: 1,
       track_text: 'Test Track 1',
-      spotify_uri: 'spotify:track:123',
+      track: {
+        id: 'track-1',
+        name: 'Test Track',
+        artists: [{ name: 'Test Artist' }],
+        album: { name: 'Test Album', images: [] },
+        uri: 'spotify:track:123',
+      },
     },
   ],
 };
@@ -110,7 +115,7 @@ describe('Mixtape Editing Workflow', () => {
   it('completes full mixtape editing workflow', async () => {
     const mockRefetch = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData as any, refetch: mockRefetch }}>
+      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData, refetch: mockRefetch }}>
         <EditMixtapePage />
       </MixtapeContext.Provider>
     );
@@ -146,9 +151,6 @@ describe('Mixtape Editing Workflow', () => {
     expect(screen.getByTestId('track-2')).toBeInTheDocument();
   });
 
-  // Loading/error state tests now belong to the layout component and are
-  // covered in MixtapeLayout tests.
-
   it('handles mixtape with no tracks', () => {
     const emptyMixtape = {
       ...mockMixtapeData,
@@ -157,7 +159,7 @@ describe('Mixtape Editing Workflow', () => {
     
     const mockRefetch3 = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: emptyMixtape as any, refetch: mockRefetch3 }}>
+      <MixtapeContext.Provider value={{ mixtape: emptyMixtape, refetch: mockRefetch3 }}>
         <EditMixtapePage />
       </MixtapeContext.Provider>
     );
@@ -171,15 +173,15 @@ describe('Mixtape Editing Workflow', () => {
     const multiTrackMixtape = {
       ...mockMixtapeData,
       tracks: [
-        { track_position: 1, track_text: 'Track 1', spotify_uri: 'spotify:track:1' },
-        { track_position: 2, track_text: 'Track 2', spotify_uri: 'spotify:track:2' },
-        { track_position: 3, track_text: 'Track 3', spotify_uri: 'spotify:track:3' },
+        { track_position: 1, track_text: 'Track 1', track: { id: '1', name: 'Track 1', artists: [{ name: 'Artist 1' }], album: { name: 'Album 1', images: [] }, uri: 'spotify:track:1' } },
+        { track_position: 2, track_text: 'Track 2', track: { id: '2', name: 'Track 2', artists: [{ name: 'Artist 2' }], album: { name: 'Album 2', images: [] }, uri: 'spotify:track:2' } },
+        { track_position: 3, track_text: 'Track 3', track: { id: '3', name: 'Track 3', artists: [{ name: 'Artist 3' }], album: { name: 'Album 3', images: [] }, uri: 'spotify:track:3' } },
       ],
     };
     
     const mockRefetch4 = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: multiTrackMixtape as any, refetch: mockRefetch4 }}>
+      <MixtapeContext.Provider value={{ mixtape: multiTrackMixtape, refetch: mockRefetch4 }}>
         <EditMixtapePage />
       </MixtapeContext.Provider>
     );
