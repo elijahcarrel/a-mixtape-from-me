@@ -1,7 +1,8 @@
 import React, { act } from 'react';
 import { render, screen } from '../../components/__tests__/test-utils';
 import '@testing-library/jest-dom';
-
+import { useApiRequest } from '../../hooks/useApiRequest';
+import { MixtapeResponse } from '@/app/client';
 import MixtapeLayout from '../[publicId]/layout';
 
 // Mock next/navigation
@@ -31,8 +32,6 @@ jest.mock('../../components/ErrorDisplay', () => {
     return <div data-testid="error-display">{message}</div>;
   };
 });
-import { useApiRequest } from '../../hooks/useApiRequest';
-import { MixtapeResponse } from '@/app/client';
 const mockUseApiRequest = useApiRequest as jest.Mock;
 
 

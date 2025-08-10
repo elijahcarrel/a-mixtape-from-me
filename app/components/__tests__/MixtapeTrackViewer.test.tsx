@@ -65,7 +65,6 @@ jest.mock('../SpotifyPlayer', () => {
     // invoke onTrackEnd immediately for test when supplied
     mockReact.useEffect(() => {
       props.onTrackEnd?.();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return <div data-testid="mock-spotify-player" data-track-uri={props.uri} />;
   };
