@@ -12,6 +12,9 @@ class MockSpotifyClient(AbstractSpotifyClient):
     def __init__(self):
         self.reset_tracks()
 
+        # Initialise playlist storage
+        self._playlists = {}
+
     def reset_tracks(self):
         self.tracks = [
             SpotifyTrack(
@@ -78,6 +81,33 @@ class MockSpotifyClient(AbstractSpotifyClient):
             if t.id == track_id:
                 return t
         raise Exception("Track not found")
+
+    # --- Playlist helpers ---
+    def _generate_playlist_uri(self) -> str:
+        idx = len(getattr(self, "_playlists", {})) + 1
+        return f"spotify:playlist:mock{idx}"
+
+    def create_playlist(self, title: str, description: str, track_uris: list[str]):
+        if not hasattr(self, "_playlists"):
+            self._playlists = {}
+        uri = self._generate_playlist_uri()
+        self._playlists[uri] = {
+            "title": title,
+            "description": description,
+            "tracks": list(track_uris),
+        }
+        return uri
+
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]):
+        if not hasattr(self, "_playlists"):
+            self._playlists = {}
+        # Upsert behaviour for idempotence
+        self._playlists[playlist_uri] = {
+            "title": title,
+            "description": description,
+            "tracks": list(track_uris),
+        }
+        return playlist_uri
 
 def get_mock_spotify_client():
     return MockSpotifyClient()
