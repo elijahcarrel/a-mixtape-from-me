@@ -1,9 +1,9 @@
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import Tooltip from './Tooltip';
+import { useTheme } from './ThemeProvider';
 
-export const toolbarBtnBase =
-  'p-2 rounded-md transition-colors duration-150 hover:bg-amber-100 dark:hover:bg-amber-800/40 focus:outline-none';
+const base = 'p-2 rounded-md transition-colors duration-150 focus:outline-none';
 
 interface ToolbarButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: ReactNode;
@@ -13,10 +13,13 @@ interface ToolbarButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 export function ToolbarButton({ icon, tooltip, label, className = '', withTooltip = true, ...rest }: ToolbarButtonProps) {
+  const { theme } = useTheme();
+  const hoverClass = theme === 'dark' ? 'hover:bg-amber-700/30' : 'hover:bg-amber-100';
+  const combined = `${base} ${hoverClass} ${className}`;
   const btn = (
     <button
       type="button"
-      className={`${toolbarBtnBase} ${className}`}
+      className={combined}
       {...rest}
     >
       {icon}
@@ -39,11 +42,14 @@ interface ToolbarButtonLinkProps {
 }
 
 export function ToolbarButtonLink({ href, tooltip, icon, label, prefetch = true, className = '', withTooltip = true, ...rest }: ToolbarButtonLinkProps) {
+  const { theme } = useTheme();
+  const hoverClass = theme === 'dark' ? 'hover:bg-amber-700/30' : 'hover:bg-amber-100';
+  const combined = `${base} flex items-center space-x-1 ${hoverClass} ${className}`;
   const link = (
     <Link
       href={href}
       prefetch={prefetch}
-      className={`${toolbarBtnBase} flex items-center space-x-1 ${className}`}
+      className={combined}
       {...rest}
     >
       {icon}
