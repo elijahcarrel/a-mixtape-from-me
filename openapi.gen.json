@@ -496,6 +496,49 @@
                 }
             }
         },
+        "/api/mixtape/{public_id}/spotify-export": {
+            "post": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Export Mixtape To Spotify",
+                "description": "Create or update a Spotify playlist representing this mixtape and return the mixtape data.",
+                "operationId": "export_mixtape_to_spotify_api_mixtape__public_id__spotify_export_post",
+                "parameters": [
+                    {
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Public Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MixtapeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/": {
             "get": {
                 "summary": "Root",
@@ -604,6 +647,18 @@
                         "title": "Subtitle3",
                         "description": "Third subtitle line (max 60 characters)"
                     },
+                    "spotify_playlist_uri": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Spotify Playlist Uri",
+                        "description": "Spotify playlist URI associated with this mixtape (if any)"
+                    },
                     "is_public": {
                         "type": "boolean",
                         "title": "Is Public",
@@ -684,6 +739,17 @@
                         "type": "boolean",
                         "title": "Is Public"
                     },
+                    "spotify_playlist_uri": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Spotify Playlist Uri"
+                    },
                     "create_time": {
                         "type": "string",
                         "title": "Create Time"
@@ -720,6 +786,7 @@
                     "subtitle2",
                     "subtitle3",
                     "is_public",
+                    "spotify_playlist_uri",
                     "create_time",
                     "last_modified_time",
                     "stack_auth_user_id",

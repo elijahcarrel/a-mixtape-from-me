@@ -93,12 +93,87 @@ class SpotifyClient(AbstractSpotifyClient):
 
     # --- Playlist helpers ---
     def create_playlist(self, title: str, description: str, track_uris: list[str]):
-        """Stub implementation. Real playlist creation requires user-scope OAuth."""
-        raise NotImplementedError("create_playlist is not implemented for the real Spotify client yet")
+        """Create a new playlist for a configured user and populate it with tracks.
+
+        Environment variables required:
+        * SPOTIFY_PLAYLIST_OAUTH_TOKEN – OAuth token with playlist-modify-public/private scopes.
+        * SPOTIFY_PLAYLIST_USER_ID    – Spotify user id that will own the playlist.
+        """
+
+        oauth_token = os.environ.get("SPOTIFY_PLAYLIST_OAUTH_TOKEN")
+        user_id = os.environ.get("SPOTIFY_PLAYLIST_USER_ID")
+        if not oauth_token or not user_id:
+            raise Exception("Missing SPOTIFY_PLAYLIST_OAUTH_TOKEN or SPOTIFY_PLAYLIST_USER_ID env vars")
+
+        headers = {
+            "Authorization": f"Bearer {oauth_token}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "name": title,
+            "description": description or "",
+            "public": True,
+        }
+
+        resp = requests.post(
+            f"https://api.spotify.com/v1/users/{user_id}/playlists", json=payload, headers=headers
+        )
+        if resp.status_code not in (200, 201):
+            raise Exception(f"Failed to create playlist: {resp.text}")
+
+        playlist_data = resp.json()
+        playlist_id = playlist_data["id"]
+        playlist_uri = playlist_data["uri"]
+
+        # Populate tracks (replace – tracks list expected to be small)
+        if track_uris:
+            resp2 = requests.put(
+                f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks",
+                json={"uris": track_uris},
+                headers=headers,
+            )
+            if resp2.status_code not in (200, 201):
+                raise Exception(f"Failed to add tracks to playlist: {resp2.text}")
+
+        return playlist_uri
 
     def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]):
-        """Stub implementation for updating a playlist."""
-        raise NotImplementedError("update_playlist is not implemented for the real Spotify client yet")
+        oauth_token = os.environ.get("SPOTIFY_PLAYLIST_OAUTH_TOKEN")
+        if not oauth_token:
+            raise Exception("Missing SPOTIFY_PLAYLIST_OAUTH_TOKEN env var")
+
+        headers = {
+            "Authorization": f"Bearer {oauth_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Extract playlist id from URI (spotify:playlist:ID)
+        parts = playlist_uri.split(":")
+        if len(parts) != 3 or parts[1] != "playlist":
+            raise ValueError("Invalid playlist URI")
+        playlist_id = parts[2]
+
+        # Update metadata
+        payload_meta = {"name": title, "description": description or ""}
+        resp = requests.put(
+            f"https://api.spotify.com/v1/playlists/{playlist_id}",
+            json=payload_meta,
+            headers=headers,
+        )
+        if resp.status_code not in (200, 201):
+            raise Exception(f"Failed to update playlist details: {resp.text}")
+
+        # Replace tracks
+        resp2 = requests.put(
+            f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks",
+            json={"uris": track_uris},
+            headers=headers,
+        )
+        if resp2.status_code not in (200, 201):
+            raise Exception(f"Failed to update playlist tracks: {resp2.text}")
+
+        return playlist_uri
 
 def get_spotify_client():
     return SpotifyClient()

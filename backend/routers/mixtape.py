@@ -203,9 +203,14 @@ def export_mixtape_to_spotify(
 
     # Persist playlist URI if newly created
     if mixtape.get("spotify_playlist_uri") != playlist_uri:
-        from backend.db_models import Mixtape, MixtapeAudit  # Local import to avoid cycles
         from datetime import UTC, datetime
+
         from sqlmodel import select
+
+        from backend.db_models import (  # Local import to avoid cycles
+            Mixtape,
+            MixtapeAudit,
+        )
 
         now = datetime.now(UTC)
         stmt = select(Mixtape).where(Mixtape.public_id == public_id)
@@ -236,6 +241,23 @@ def export_mixtape_to_spotify(
         session.commit()
 
         mixtape["spotify_playlist_uri"] = playlist_uri
+
+    # Enrich tracks with TrackDetails for response model consistency
+    enriched_tracks = []
+    for track in mixtape["tracks"]:
+        try:
+            track_id = track["spotify_uri"].replace("spotify:track:", "")
+            details = spotify_client.get_track(track_id)
+            if not details:
+                raise Exception("Track not found")
+        except Exception:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch track details for {track['spotify_uri']}")
+        enriched_tracks.append({
+            "track_position": track["track_position"],
+            "track_text": track.get("track_text"),
+            "track": details.to_dict() if hasattr(details, 'to_dict') else details
+        })
+    mixtape["tracks"] = enriched_tracks
 
     return mixtape
 
