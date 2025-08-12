@@ -18,7 +18,8 @@ export interface MixtapeEditorProps {
 }
 
 export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEditorProps) {
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false); // request in-flight
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
   const { theme } = useTheme();
@@ -66,6 +67,8 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
           tracks: values.tracks.map(normalizeTrackToRequest)
         }
       });
+      // Saved successfully
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving mixtape:', error);
     } finally {
@@ -85,6 +88,9 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
 
   // Unified save handler
   const handleSave = useCallback(async (values: FormValues, immediate: boolean = false) => {
+    // Mark unsaved changes immediately
+    setHasUnsavedChanges(true);
+
     if (immediate) {
       await immediateSave(values);
     } else {
@@ -152,7 +158,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
             {/* Toolbar has access to live Formik context now */}
             <MixtapeEditorToolbar
               mixtape={mixtape}
-              isSaving={isSaving}
+              isSaving={isSaving || hasUnsavedChanges}
               values={values}
               setFieldValue={setFieldValue}
               handleSave={handleSave}
@@ -167,8 +173,6 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
           </>
         )}
       </Formik>
-
-      {/* Preview button has been moved into the top toolbar */}
     </div>
   );
 } 

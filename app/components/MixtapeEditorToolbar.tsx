@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Undo2,
@@ -10,14 +10,16 @@ import {
   CloudCheck,
   X,
 } from 'lucide-react';
+import Link from 'next/link';
 import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { FormValues } from './MixtapeEditorForm';
+import Tooltip from './Tooltip';
 
 interface MixtapeEditorToolbarProps {
   mixtape: MixtapeResponse;
-  isSaving: boolean;
+  isSaving: boolean; // saving OR unsaved pending – pre-calculated by parent
   values: FormValues;
   setFieldValue: (field: string, value: any) => void;
   handleSave: (values: FormValues, immediate: boolean) => void;
@@ -32,6 +34,11 @@ export default function MixtapeEditorToolbar({
 }: MixtapeEditorToolbarProps) {
   const router = useRouter();
   const { theme } = useTheme();
+
+  // Prefetch viewer route for faster navigation
+  useEffect(() => {
+    router.prefetch(`/mixtape/${mixtape.public_id}`);
+  }, [router, mixtape.public_id]);
 
   // Share dialog state
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -71,45 +78,49 @@ export default function MixtapeEditorToolbar({
       <HeaderContainer>
         <div className="flex items-center space-x-1 sm:space-x-2">
           {/* Undo */}
-          <button
-            type="button"
-            title="Undo"
-            className={commonBtnStyles}
-            // TODO: connect to undo endpoint
-            onClick={() => {}}
-          >
-            <Undo2 size={20} />
-          </button>
+          <Tooltip content="Undo">
+            <button
+              type="button"
+              className={commonBtnStyles}
+              // TODO: connect to undo endpoint
+              onClick={() => {}}
+            >
+              <Undo2 size={20} />
+            </button>
+          </Tooltip>
 
           {/* Redo */}
-          <button
-            type="button"
-            title="Redo"
-            className={commonBtnStyles}
-            onClick={() => {}}
-          >
-            <Redo2 size={20} />
-          </button>
+          <Tooltip content="Redo">
+            <button
+              type="button"
+              className={commonBtnStyles}
+              onClick={() => {}}
+            >
+              <Redo2 size={20} />
+            </button>
+          </Tooltip>
 
           {/* Share */}
-          <button
-            type="button"
-            title="Share"
-            className={commonBtnStyles}
-            onClick={() => setIsShareOpen(true)}
-          >
-            <Share2 size={20} />
-          </button>
+          <Tooltip content="Share">
+            <button
+              type="button"
+              className={commonBtnStyles}
+              onClick={() => setIsShareOpen(true)}
+            >
+              <Share2 size={20} />
+            </button>
+          </Tooltip>
 
           {/* Export to Spotify */}
-          <button
-            type="button"
-            title="Export to Spotify"
-            className={commonBtnStyles}
-            onClick={() => copyToClipboard('not implemented yet', 'Spotify URL copied (placeholder)')}
-          >
-            <ExternalLink size={20} />
-          </button>
+          <Tooltip content="Export to Spotify">
+            <button
+              type="button"
+              className={commonBtnStyles}
+              onClick={() => copyToClipboard('not implemented yet', 'Spotify URL copied (placeholder)')}
+            >
+              <ExternalLink size={20} />
+            </button>
+          </Tooltip>
 
           {/* Status */}
           <div
@@ -127,16 +138,17 @@ export default function MixtapeEditorToolbar({
 
         {/* Right aligned preview */}
         <div className="ml-auto">
-          <button
-            type="button"
-            title="Preview"
-            className={`${commonBtnStyles} flex items-center space-x-1`}
-            data-testid="preview-button"
-            onClick={() => router.push(`/mixtape/${mixtape.public_id}`)}
-          >
-            <Eye size={20} />
-            <span className="text-sm">Preview</span>
-          </button>
+          <Tooltip content="Preview">
+            <Link
+              href={`/mixtape/${mixtape.public_id}`}
+              prefetch
+              className={`${commonBtnStyles} flex items-center space-x-1`}
+              data-testid="preview-button"
+            >
+              <Eye size={20} />
+              <span className="text-sm">Preview</span>
+            </Link>
+          </Tooltip>
         </div>
       </HeaderContainer>
 
