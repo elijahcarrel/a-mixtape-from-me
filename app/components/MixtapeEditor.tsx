@@ -4,13 +4,12 @@ import { useState, useCallback } from 'react';
 import { Formik } from 'formik';
 import { debounce } from 'lodash';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
-import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse } from '../client';
 import { normalizeTrackToRequest } from '../util/track-util';
-import PreviewButton from './PreviewButton';
+import MixtapeEditorToolbar from './MixtapeEditorToolbar';
 import { MixtapeEditorForm, FormValues } from './MixtapeEditorForm';
 
 export interface MixtapeEditorProps {
@@ -19,7 +18,8 @@ export interface MixtapeEditorProps {
 }
 
 export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEditorProps) {
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false); // request in-flight
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
   const { theme } = useTheme();
@@ -67,6 +67,8 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
           tracks: values.tracks.map(normalizeTrackToRequest)
         }
       });
+      // Saved successfully
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving mixtape:', error);
     } finally {
@@ -86,6 +88,9 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
 
   // Unified save handler
   const handleSave = useCallback(async (values: FormValues, immediate: boolean = false) => {
+    // Mark unsaved changes immediately
+    setHasUnsavedChanges(true);
+
     if (immediate) {
       await immediateSave(values);
     } else {
@@ -133,23 +138,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         </div>
       )}
 
-      <HeaderContainer>
-        {isSaving && (
-          <div 
-            className={`absolute top-2 sm:top-4 right-2 sm:right-4 text-xs sm:text-sm flex items-center px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm border z-10 ${
-              theme === 'dark' 
-                ? 'text-amber-300 bg-amber-900/20 border-amber-700' 
-                : 'text-amber-600 bg-amber-50 border-amber-200'
-            }`} 
-            data-testid="saving-indicator"
-          >
-            <div className={`animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 mr-1 sm:mr-2 ${
-              theme === 'dark' ? 'border-amber-300' : 'border-amber-600'
-            }`}></div>
-            Saving...
-          </div>
-        )}
-      </HeaderContainer>
+      {/* Toolbar is rendered inside Formik below to access live form state */}
 
       <Formik
         initialValues={{
@@ -165,17 +154,25 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
         onSubmit={() => {}} // We handle saving via our custom handlers
       >
         {({ values, setFieldValue }) => (
-          <MixtapeEditorForm
-            mixtape={mixtape}
-            values={values}
-            setFieldValue={setFieldValue}
-            handleSave={handleSave}
-          />
+          <>
+            {/* Toolbar has access to live Formik context now */}
+            <MixtapeEditorToolbar
+              mixtape={mixtape}
+              isSaving={isSaving || hasUnsavedChanges}
+              values={values}
+              setFieldValue={setFieldValue}
+              handleSave={handleSave}
+            />
+
+            <MixtapeEditorForm
+              mixtape={mixtape}
+              values={values}
+              setFieldValue={setFieldValue}
+              handleSave={handleSave}
+            />
+          </>
         )}
       </Formik>
-
-      {/* Preview Button - floating bottom right */}
-      <PreviewButton mixtape={mixtape} />
     </div>
   );
 } 

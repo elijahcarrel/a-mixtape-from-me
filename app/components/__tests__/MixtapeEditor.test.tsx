@@ -19,9 +19,11 @@ jest.mock('../../hooks/useAuth', () => ({
 
 // Mock useRouter
 const mockPush = jest.fn();
+const mockPrefetch = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
+    prefetch: mockPrefetch,
   }),
   usePathname: () => "/mixtape/test-mixtape-123/edit"
 }));
@@ -482,9 +484,13 @@ describe('MixtapeEditor', () => {
   it('handles public/private toggle', async () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
     
-    const publicToggle = screen.getByRole('checkbox');
-    fireEvent.click(publicToggle);
-    
+    // open share modal
+    const shareButton = screen.getByTestId('share-button');
+    fireEvent.click(shareButton);
+
+    const modalToggle = screen.getByLabelText('Make this mixtape public');
+    fireEvent.click(modalToggle);
+
     // Fast-forward debounce timer
     await act(async () => {
       jest.advanceTimersByTime(1000);
@@ -523,17 +529,12 @@ describe('MixtapeEditor', () => {
     expect(screen.getByText('Tracks (2)')).toBeInTheDocument();
   });
 
-  it('renders the Preview button', () => {
+  it('renders the Preview link', () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
-    expect(screen.getByTestId('preview-button')).toBeInTheDocument();
+    const previewLink = screen.getByTestId('preview-button');
+    expect(previewLink).toBeInTheDocument();
+    expect(previewLink).toHaveAttribute('href', '/mixtape/test-mixtape-123');
     expect(screen.getByText('Preview')).toBeInTheDocument();
-  });
-
-  it('navigates to the viewer page when Preview button is clicked', () => {
-    render(<MixtapeEditor mixtape={mockMixtapeData} />);
-    const previewButton = screen.getByTestId('preview-button');
-    fireEvent.click(previewButton);
-    expect(mockPush).toHaveBeenCalledWith('/mixtape/test-mixtape-123');
   });
 
   // NEW TESTS: Testing the bug fix and new functionality
@@ -784,9 +785,13 @@ describe('MixtapeEditor', () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
       // Toggle public/private
-      const publicToggle = screen.getByRole('checkbox');
-      fireEvent.click(publicToggle);
-      
+      // open share modal
+      const shareButton = screen.getByTestId('share-button');
+      fireEvent.click(shareButton);
+
+      const modalToggle = screen.getByLabelText('Make this mixtape public');
+      fireEvent.click(modalToggle);
+
       // Should not save immediately
       expect(mockMakeRequest).not.toHaveBeenCalled();
       
