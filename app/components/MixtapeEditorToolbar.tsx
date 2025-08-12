@@ -82,7 +82,7 @@ export default function MixtapeEditorToolbar({
           <ToolbarButton icon={<Redo2 size={20} />} tooltip="Redo" onClick={() => {}} />
 
           {/* Share */}
-          <ToolbarButton icon={<Share2 size={20} />} tooltip="Share" onClick={() => setIsShareOpen(true)} />
+          <ToolbarButton icon={<Share2 size={20} />} tooltip="Share" onClick={() => setIsShareOpen(true)} data-testid="share-button" />
 
           {/* Export to Spotify */}
           <ToolbarButton icon={<ExternalLink size={20} />} tooltip="Export to Spotify" onClick={() => copyToClipboard('not implemented yet', 'Spotify URL copied (placeholder)')} />

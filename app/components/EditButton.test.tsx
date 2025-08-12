@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import EditButton from './EditButton';
+import ThemeProvider from './ThemeProvider';
 import '@testing-library/jest-dom';
 
 jest.mock('next/navigation', () => ({
@@ -38,27 +39,43 @@ describe('EditButton', () => {
 
   it('renders for the owner', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'user1' } });
-    render(<EditButton mixtape={mixtape} />);
+    render(
+      <ThemeProvider>
+        <EditButton mixtape={mixtape} />
+      </ThemeProvider>
+    );
     expect(screen.getByTestId('edit-button')).toBeInTheDocument();
     expect(screen.getByText('Edit')).toBeInTheDocument();
   });
 
-  it('navigates to the edit page on click', () => {
+  it('renders link to edit page', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'user1' } });
-    render(<EditButton mixtape={mixtape} />);
-    fireEvent.click(screen.getByTestId('edit-button'));
-    expect(mockPush).toHaveBeenCalledWith('/mixtape/abc123/edit');
+    render(
+      <ThemeProvider>
+        <EditButton mixtape={mixtape} />
+      </ThemeProvider>
+    );
+    const link = screen.getByTestId('edit-button');
+    expect(link).toHaveAttribute('href', '/mixtape/abc123/edit');
   });
 
   it('does not render for non-owner', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'otheruser' } });
-    render(<EditButton mixtape={mixtape} />);
+    render(
+      <ThemeProvider>
+        <EditButton mixtape={mixtape} />
+      </ThemeProvider>
+    );
     expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
   });
 
   it('does not render if not authenticated', () => {
     mockUseAuth.mockReturnValue({ user: null });
-    render(<EditButton mixtape={mixtape} />);
+    render(
+      <ThemeProvider>
+        <EditButton mixtape={mixtape} />
+      </ThemeProvider>
+    );
     expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
   });
 }); 
