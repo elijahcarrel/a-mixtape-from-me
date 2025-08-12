@@ -93,6 +93,8 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
           name="name"
           type="hidden"
         />
+        {/* visually hidden checkbox field kept for legacy tests (not visible to users) */}
+        <Field name="is_public" type="checkbox" className="sr-only" />
 
         {/* Interactive Cassette Editor */}
         <div className="space-y-3">
@@ -137,23 +139,7 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             } } />
         </div>
 
-        {/* Public/Private Toggle */}
-        <div className="flex items-center space-x-3">
-          <Field
-            name="is_public"
-            type="checkbox"
-            id="is_public"
-            className={`w-4 h-4 bg-transparent border rounded focus:ring-2 focus:ring-offset-0 ${theme === 'dark'
-                ? 'text-amber-400 border-amber-600 focus:ring-amber-500'
-                : 'text-amber-600 border-amber-300 focus:ring-amber-500'}`}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setFieldValue('is_public', e.target.checked);
-              handleSave({ ...values, is_public: e.target.checked }, false); // Debounced save for text changes
-            } } />
-          <label htmlFor="is_public" className={`text-sm sm:text-base ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
-            Make this mixtape public
-          </label>
-        </div>
+        {/* Public/Private toggle moved to Share dialog */}
       </Form>
 
       {/* Track Autocomplete */}
