@@ -91,5 +91,14 @@ class SpotifyClient(AbstractSpotifyClient):
                 self.track_cache.popitem(last=False)  # Remove least recently used
         return track
 
+    # --- Playlist helpers ---
+    def create_playlist(self, title: str, description: str, track_uris: list[str]):
+        """Stub implementation. Real playlist creation requires user-scope OAuth."""
+        raise NotImplementedError("create_playlist is not implemented for the real Spotify client yet")
+
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]):
+        """Stub implementation for updating a playlist."""
+        raise NotImplementedError("update_playlist is not implemented for the real Spotify client yet")
+
 def get_spotify_client():
     return SpotifyClient()

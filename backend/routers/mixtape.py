@@ -29,6 +29,7 @@ class MixtapeRequest(BaseModel):
     subtitle1: str | None = Field(None, max_length=60, description="First subtitle line (max 60 characters)")
     subtitle2: str | None = Field(None, max_length=60, description="Second subtitle line (max 60 characters)")
     subtitle3: str | None = Field(None, max_length=60, description="Third subtitle line (max 60 characters)")
+    spotify_playlist_uri: str | None = Field(None, description="Spotify playlist URI associated with this mixtape (if any)")
     is_public: bool = Field(False, description="Whether the mixtape is public")
     tracks: list[MixtapeTrackRequest] = Field(..., description="List of tracks in the mixtape")
 
@@ -55,6 +56,7 @@ class MixtapeResponse(BaseModel):
     subtitle2: str | None
     subtitle3: str | None
     is_public: bool
+    spotify_playlist_uri: str | None
     create_time: str
     last_modified_time: str
     stack_auth_user_id: str | None
@@ -155,6 +157,86 @@ def get_mixtape(public_id: str, request_obj: Request, user_info: dict | None = D
             "track": details.to_dict() if hasattr(details, 'to_dict') else details
         })
     mixtape["tracks"] = enriched_tracks
+    return mixtape
+
+# --- Spotify export endpoint ---
+
+@router.post("/{public_id}/spotify-export", response_model=MixtapeResponse)
+def export_mixtape_to_spotify(
+    public_id: str,
+    request_obj: Request,
+    user_info: dict | None = Depends(get_optional_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    """Create or update a Spotify playlist representing this mixtape and return the mixtape data."""
+    # DB session
+    session = next(request_obj.app.state.get_db_dep())
+
+    # Load mixtape with ownership info
+    try:
+        mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Mixtape not found")
+
+    # Ownership / permissions: same as update_mixtape
+    if mixtape["stack_auth_user_id"] is not None:
+        stack_auth_user_id = (user_info or {}).get("user_id") or (user_info or {}).get("id")
+        if not stack_auth_user_id or stack_auth_user_id != mixtape["stack_auth_user_id"]:
+            raise HTTPException(status_code=401, detail="Not authorized to export this mixtape")
+
+    title = mixtape["name"]
+    subtitle_parts = [mixtape.get("subtitle1"), mixtape.get("subtitle2"), mixtape.get("subtitle3"), mixtape.get("intro_text")]
+    description = " | ".join([part for part in subtitle_parts if part])
+    # Sort track URIs by position
+    track_uris = [t["spotify_uri"] for t in sorted(mixtape["tracks"], key=lambda x: x["track_position"])]
+
+    playlist_uri: str | None = mixtape.get("spotify_playlist_uri")
+    try:
+        if playlist_uri:
+            playlist_uri = spotify_client.update_playlist(playlist_uri, title, description, track_uris)
+        else:
+            playlist_uri = spotify_client.create_playlist(title, description, track_uris)
+    except NotImplementedError:
+        raise HTTPException(status_code=500, detail="Spotify playlist functionality not implemented in server")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # Persist playlist URI if newly created
+    if mixtape.get("spotify_playlist_uri") != playlist_uri:
+        from backend.db_models import Mixtape, MixtapeAudit  # Local import to avoid cycles
+        from datetime import UTC, datetime
+        from sqlmodel import select
+
+        now = datetime.now(UTC)
+        stmt = select(Mixtape).where(Mixtape.public_id == public_id)
+        mixtape_row = session.exec(stmt).first()
+        if mixtape_row is None:
+            raise HTTPException(status_code=404, detail="Mixtape not found")
+        mixtape_row.spotify_playlist_uri = playlist_uri
+        mixtape_row.last_modified_time = now
+        mixtape_row.version += 1
+
+        # Audit record
+        audit = MixtapeAudit(
+            mixtape_id=mixtape_row.id,
+            public_id=public_id,
+            name=mixtape_row.name,
+            intro_text=mixtape_row.intro_text,
+            subtitle1=mixtape_row.subtitle1,
+            subtitle2=mixtape_row.subtitle2,
+            subtitle3=mixtape_row.subtitle3,
+            spotify_playlist_uri=playlist_uri,
+            is_public=mixtape_row.is_public,
+            create_time=mixtape_row.create_time,
+            last_modified_time=now,
+            version=mixtape_row.version,
+            stack_auth_user_id=mixtape_row.stack_auth_user_id,
+        )
+        session.add(audit)
+        session.commit()
+
+        mixtape["spotify_playlist_uri"] = playlist_uri
+
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)

@@ -19,6 +19,7 @@ class Mixtape(SQLModel, table=True):
     subtitle1: str | None = Field(default=None, max_length=60)
     subtitle2: str | None = Field(default=None, max_length=60)
     subtitle3: str | None = Field(default=None, max_length=60)
+    spotify_playlist_uri: str | None = Field(default=None, description="Spotify playlist URI associated with this mixtape")
     is_public: bool = Field(default=False)
     create_time: datetime = Field(default_factory=datetime.utcnow)
     last_modified_time: datetime = Field(default_factory=datetime.utcnow)
@@ -41,6 +42,7 @@ class MixtapeAudit(SQLModel, table=True):
     subtitle1: str | None = Field(default=None, max_length=60)
     subtitle2: str | None = Field(default=None, max_length=60)
     subtitle3: str | None = Field(default=None, max_length=60)
+    spotify_playlist_uri: str | None = Field(default=None, description="Spotify playlist URI associated with this mixtape at the time of audit")
     is_public: bool = Field(default=False)
     create_time: datetime
     last_modified_time: datetime

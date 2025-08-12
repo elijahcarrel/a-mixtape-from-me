@@ -68,3 +68,13 @@ class AbstractSpotifyClient(ABC):
         Returns a SpotifyTrack object for the given track_id.
         """
         pass
+
+    @abstractmethod
+    def create_playlist(self, title: str, description: str, track_uris: list[str]) -> str:
+        """Create a new playlist and return its Spotify URI"""
+        pass
+
+    @abstractmethod
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> str:
+        """Update an existing playlist and return its Spotify URI (usually unchanged)"""
+        pass

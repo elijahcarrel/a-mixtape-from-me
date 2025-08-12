@@ -188,6 +188,55 @@ def test_duplicate_track_position_rejected(client: tuple[TestClient, str, dict])
     # Should not create mixtape with duplicate track positions
     assert resp.status_code in [422, 400], f"Expected 422 or 400, got {resp.status_code}. Response: {resp.text}"
 
+
+# --- New tests: Spotify export ---
+
+
+def test_spotify_export_create_and_update(client: tuple[TestClient, str, dict]) -> None:
+    """Ensure that the spotify-export endpoint creates a playlist and then updates it idempotently."""
+    test_client, token, _ = client
+
+    # Step 1: Create mixtape with two tracks
+    tracks = [
+        {"track_position": 1, "track_text": "One", "spotify_uri": "spotify:track:track1"},
+        {"track_position": 2, "track_text": "Two", "spotify_uri": "spotify:track:track2"},
+    ]
+    resp = test_client.post(
+        "/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token}
+    )
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+
+    # Step 2: Export to Spotify – should create playlist
+    resp = test_client.post(
+        f"/api/mixtape/{public_id}/spotify-export", headers={"x-stack-access-token": token}
+    )
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["spotify_playlist_uri"] is not None
+    playlist_uri_first = data["spotify_playlist_uri"]
+
+    # Step 3: Modify mixtape (add another track)
+    new_tracks = [
+        {"track_position": 1, "track_text": "One", "spotify_uri": "spotify:track:track1"},
+        {"track_position": 2, "track_text": "Two", "spotify_uri": "spotify:track:track2"},
+        {"track_position": 3, "track_text": "Three", "spotify_uri": "spotify:track:track3"},
+    ]
+    resp = test_client.put(
+        f"/api/mixtape/{public_id}",
+        json=mixtape_payload(new_tracks),
+        headers={"x-stack-access-token": token},
+    )
+    assert_response_success(resp)
+
+    # Step 4: Export again – should update existing playlist (same URI)
+    resp = test_client.post(
+        f"/api/mixtape/{public_id}/spotify-export", headers={"x-stack-access-token": token}
+    )
+    assert_response_success(resp)
+    data2 = resp.json()
+    assert data2["spotify_playlist_uri"] == playlist_uri_first
+
 def test_get_nonexistent_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     resp = test_client.get("/api/mixtape/00000000-0000-0000-0000-000000000000", headers={"x-stack-access-token": token})
