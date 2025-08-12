@@ -8,7 +8,7 @@
     "setup-backend": "npm run setup-backend-venv && npm run setup-backend-packages",
     "setup-frontend": "npm install",
     "setup": "npm run setup-backend && npm run setup-frontend",
-    "backend-dev": "python3 -m uvicorn api.index:app --reload",
+    "backend-dev": "venv/bin/uvicorn api.index:app --reload",
     "frontend-dev": "next dev",
     "dev": "concurrently \"npm run frontend-dev\" \"npm run backend-dev\"",
     "build": "next build",
