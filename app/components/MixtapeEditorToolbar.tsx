@@ -108,6 +108,7 @@ export default function MixtapeEditorToolbar({
             icon={<Eye size={20} />}
             tooltip="Preview"
             label="Preview"
+            withTooltip={false}
             data-testid="preview-button"
           />
         </div>

@@ -22,6 +22,7 @@ export default function EditButton({ mixtape, 'data-testid': dataTestId }: EditB
       tooltip="Edit"
       icon={<Pencil size={20} />}
       label="Edit"
+      withTooltip={false}
       data-testid={dataTestId ?? 'edit-button'}
     />
   );
