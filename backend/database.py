@@ -45,3 +45,41 @@ def create_tables(db_url: str):
     """Create all tables defined in SQLModel models"""
     engine = get_engine(db_url)
     SQLModel.metadata.create_all(engine)
+
+# ------------------------------------------------------------
+# FastAPI dependency helpers
+# ------------------------------------------------------------
+
+from collections.abc import Generator
+
+
+def get_readonly_session() -> Generator[Session, None, None]:  # pragma: no cover – utility
+    """FastAPI dependency that yields a *read-only* SQLModel session.
+
+    The session is *not* committed when the request finishes – it is intended
+    for read operations only. It is nevertheless enclosed in its own session
+    context so that connection pooling works correctly.
+    """
+    if _current_db_url is None:
+        raise RuntimeError("Database URL has not been configured – call create_app() first")
+    engine = get_engine(_current_db_url)
+    with Session(engine) as session:
+        yield session
+
+
+def get_write_session() -> Generator[Session, None, None]:  # pragma: no cover – utility
+    """FastAPI dependency that provides a writable/transactional session.
+
+    Any unhandled exception will cause a rollback. Otherwise, the transaction
+    is committed after the request completes.
+    """
+    if _current_db_url is None:
+        raise RuntimeError("Database URL has not been configured – call create_app() first")
+    engine = get_engine(_current_db_url)
+    with Session(engine) as session:
+        try:
+            yield session
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise

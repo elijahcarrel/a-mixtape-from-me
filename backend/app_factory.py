@@ -51,49 +51,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
     )
 
     # Import routers
-    # ---------------------------------------------------------------------
-    # Database session middleware for write operations
-    # ---------------------------------------------------------------------
-
-    if database_url:
-        from sqlmodel import Session
-
-        from backend.database import get_engine
-
-        engine = get_engine(database_url)
-
-        @app.middleware("http")
-        async def db_session_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]):  # type: ignore[override]
-            """Open a database session/transaction for write requests (POST/PUT/PATCH/DELETE).
-
-            The session is attached to ``request.state.db_session`` so that
-            downstream handlers can use it directly instead of calling
-            ``app.state.get_db_dep``. Read-only requests (GET/HEAD/OPTIONS)
-            are left unchanged to avoid unnecessary transactions.
-            """
-
-            # Fast check for HTTP methods that typically mutate state.
-            if request.method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
-                session = Session(engine)
-                request.state.db_session = session  # type: ignore[attr-defined]
-                try:
-                    response = await call_next(request)
-                    # Commit after successful response generation
-                    session.commit()
-                    return response
-                except Exception:  # noqa: BLE001 – re-raise after rollback
-                    session.rollback()
-                    raise
-                finally:
-                    session.close()
-            else:
-                # Non-mutating request – just continue.
-                return await call_next(request)
-
-
-    # ---------------------------------------------------------------------
     # Routers
-    # ---------------------------------------------------------------------
     from backend.routers import account, auth, health, mixtape, spotify
 
     # Include routers

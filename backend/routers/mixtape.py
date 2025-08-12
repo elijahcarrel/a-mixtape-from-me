@@ -1,6 +1,8 @@
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
+from sqlmodel import Session
+from backend.database import get_write_session, get_readonly_session
 
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.entity import MixtapeEntity
@@ -61,7 +63,12 @@ class MixtapeResponse(BaseModel):
     tracks: list[MixtapeTrackResponse]
 
 @router.post("", response_model=dict, status_code=201)
-def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def create_mixtape(
+    request: MixtapeRequest,
+    session: Session = Depends(get_write_session),
+    user_info: dict | None = Depends(get_optional_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
     # Validate and enrich tracks
     enriched_tracks = []
     for track in request.tracks:
@@ -80,9 +87,6 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dic
         })
     # Get database session from app state
     # Prefer transaction-bound session if middleware attached it
-    session = getattr(request_obj.state, "db_session", None)
-    if session is None:
-        session = next(request_obj.app.state.get_db_dep())
     stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
     # Anonymous mixtapes must be public
     if user_info is None and not request.is_public:
@@ -95,11 +99,12 @@ def create_mixtape(request: MixtapeRequest, request_obj: Request, user_info: dic
     return {"public_id": public_id}
 
 @router.post("/{public_id}/claim", response_model=dict)
-def claim_mixtape(public_id: str, request_obj: Request, user_info: dict = Depends(get_current_user)):
+def claim_mixtape(
+    public_id: str,
+    session: Session = Depends(get_write_session),
+    user_info: dict = Depends(get_current_user),
+):
     """Claim an anonymous mixtape, making the authenticated user the owner."""
-    session = getattr(request_obj.state, "db_session", None)
-    if session is None:
-        session = next(request_obj.app.state.get_db_dep())
     stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
     if not stack_auth_user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -118,15 +123,12 @@ def claim_mixtape(public_id: str, request_obj: Request, user_info: dict = Depend
 
 @router.get("", response_model=list[dict])
 def list_my_mixtapes(
-    request_obj: Request,
+    session: Session = Depends(get_readonly_session),
     user_info: dict = Depends(get_current_user),
     q: str | None = Query(None, description="Search mixtape titles (partial match)"),
     limit: int = Query(20, ge=1, le=100, description="Max results to return"),
     offset: int = Query(0, ge=0, description="Results offset for pagination"),
 ):
-    session = getattr(request_obj.state, "db_session", None)
-    if session is None:
-        session = next(request_obj.app.state.get_db_dep())
     stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
     if not stack_auth_user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -134,11 +136,12 @@ def list_my_mixtapes(
     return mixtapes
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
-def get_mixtape(public_id: str, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
-    # Get database session from app state
-    session = getattr(request_obj.state, "db_session", None)
-    if session is None:
-        session = next(request_obj.app.state.get_db_dep())
+def get_mixtape(
+    public_id: str,
+    session: Session = Depends(get_readonly_session),
+    user_info: dict | None = Depends(get_optional_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
     try:
         mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
     except ValueError:
@@ -167,7 +170,13 @@ def get_mixtape(public_id: str, request_obj: Request, user_info: dict | None = D
     return mixtape
 
 @router.put("/{public_id}", response_model=dict)
-def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):
+def update_mixtape(
+    public_id: str,
+    request: MixtapeRequest,
+    session: Session = Depends(get_write_session),
+    user_info: dict | None = Depends(get_optional_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
     # Validate and enrich tracks
     enriched_tracks = []
     for track in request.tracks:
@@ -185,9 +194,7 @@ def update_mixtape(public_id: str, request: MixtapeRequest, request_obj: Request
             "spotify_uri": track.spotify_uri
         })
     # Get database session from app state
-    session = getattr(request_obj.state, "db_session", None)
-    if session is None:
-        session = next(request_obj.app.state.get_db_dep())
+    # session is injected via dependency
     # Check ownership
     try:
         mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
