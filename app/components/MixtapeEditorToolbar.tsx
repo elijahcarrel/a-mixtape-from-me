@@ -10,12 +10,11 @@ import {
   CloudCheck,
   X,
 } from 'lucide-react';
-import Link from 'next/link';
+import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { FormValues } from './MixtapeEditorForm';
-import Tooltip from './Tooltip';
 
 interface MixtapeEditorToolbarProps {
   mixtape: MixtapeResponse;
@@ -69,8 +68,7 @@ export default function MixtapeEditorToolbar({
     handleSave({ ...values, is_public: newValue }, false);
   };
 
-  const commonBtnStyles =
-    'p-2 rounded-md transition-colors duration-150 hover:bg-amber-100 dark:hover:bg-amber-900/30 focus:outline-none';
+  const commonBtnStyles = '';// styles are handled by ToolbarButton components
 
   return (
     <>
@@ -78,49 +76,16 @@ export default function MixtapeEditorToolbar({
       <HeaderContainer>
         <div className="flex items-center space-x-1 sm:space-x-2">
           {/* Undo */}
-          <Tooltip content="Undo">
-            <button
-              type="button"
-              className={commonBtnStyles}
-              // TODO: connect to undo endpoint
-              onClick={() => {}}
-            >
-              <Undo2 size={20} />
-            </button>
-          </Tooltip>
+          <ToolbarButton icon={<Undo2 size={20} />} tooltip="Undo" onClick={() => {}} />
 
           {/* Redo */}
-          <Tooltip content="Redo">
-            <button
-              type="button"
-              className={commonBtnStyles}
-              onClick={() => {}}
-            >
-              <Redo2 size={20} />
-            </button>
-          </Tooltip>
+          <ToolbarButton icon={<Redo2 size={20} />} tooltip="Redo" onClick={() => {}} />
 
           {/* Share */}
-          <Tooltip content="Share">
-            <button
-              type="button"
-              className={commonBtnStyles}
-              onClick={() => setIsShareOpen(true)}
-            >
-              <Share2 size={20} />
-            </button>
-          </Tooltip>
+          <ToolbarButton icon={<Share2 size={20} />} tooltip="Share" onClick={() => setIsShareOpen(true)} />
 
           {/* Export to Spotify */}
-          <Tooltip content="Export to Spotify">
-            <button
-              type="button"
-              className={commonBtnStyles}
-              onClick={() => copyToClipboard('not implemented yet', 'Spotify URL copied (placeholder)')}
-            >
-              <ExternalLink size={20} />
-            </button>
-          </Tooltip>
+          <ToolbarButton icon={<ExternalLink size={20} />} tooltip="Export to Spotify" onClick={() => copyToClipboard('not implemented yet', 'Spotify URL copied (placeholder)')} />
 
           {/* Status */}
           <div
@@ -138,17 +103,13 @@ export default function MixtapeEditorToolbar({
 
         {/* Right aligned preview */}
         <div className="ml-auto">
-          <Tooltip content="Preview">
-            <Link
-              href={`/mixtape/${mixtape.public_id}`}
-              prefetch
-              className={`${commonBtnStyles} flex items-center space-x-1`}
-              data-testid="preview-button"
-            >
-              <Eye size={20} />
-              <span className="text-sm">Preview</span>
-            </Link>
-          </Tooltip>
+          <ToolbarButtonLink
+            href={`/mixtape/${mixtape.public_id}`}
+            icon={<Eye size={20} />}
+            tooltip="Preview"
+            label="Preview"
+            data-testid="preview-button"
+          />
         </div>
       </HeaderContainer>
 

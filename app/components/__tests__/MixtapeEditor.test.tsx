@@ -19,9 +19,11 @@ jest.mock('../../hooks/useAuth', () => ({
 
 // Mock useRouter
 const mockPush = jest.fn();
+const mockPrefetch = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
+    prefetch: mockPrefetch,
   }),
   usePathname: () => "/mixtape/test-mixtape-123/edit"
 }));

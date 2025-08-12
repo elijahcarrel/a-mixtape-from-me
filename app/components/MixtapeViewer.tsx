@@ -2,7 +2,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import CassetteSVG from './CassetteSVG';
 import { MixtapeResponse } from '../client';
-import EditButton from './EditButton';
+import MixtapeViewerToolbar from './MixtapeViewerToolbar';
 
 interface MixtapeViewerProps {
   mixtape: MixtapeResponse;
@@ -27,7 +27,7 @@ export default function MixtapeViewer({ mixtape }: MixtapeViewerProps) {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
-      <EditButton mixtape={mixtape} />
+      <MixtapeViewerToolbar mixtape={mixtape} />
       {/* Grain overlay */}
       <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
       <div className="relative z-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl px-4 sm:px-6 pt-4 sm:pt-8 pb-20 sm:pb-24 flex flex-col items-center">
