@@ -527,3 +527,85 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
 
     # TODO: Once version history endpoint exists, assert that version 2 has
     #       name == "FirstUpdate" and version 3 has name == "SecondUpdate".
+
+# ------------------------------------------------------------
+# NEW TESTS – UNDO / REDO
+# ------------------------------------------------------------
+
+
+def test_undo_and_redo_basic_flow(client: tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+
+    track_a = {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:track1"}
+    track_b = {"track_position": 1, "track_text": "B", "spotify_uri": "spotify:track:track1"}
+
+    # Create V1 (track A)
+    resp_create = test_client.post("/api/mixtape", json={"name": "V1", "intro_text": "", "is_public": True, "tracks": [track_a]}, headers={"x-stack-access-token": token})
+    assert_response_created(resp_create)
+    public_id = resp_create.json()["public_id"]
+
+    # Update to V2 (track B)
+    resp_put = test_client.put(f"/api/mixtape/{public_id}", json={"name": "V2", "intro_text": "", "is_public": True, "tracks": [track_b]}, headers={"x-stack-access-token": token})
+    assert_response_success(resp_put)
+
+    # Undo -> should revert to V1 state and set can_redo True, can_undo False
+    resp_undo = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp_undo)
+    data_undo = resp_undo.json()
+    assert data_undo["name"] == "V1"
+    assert data_undo["can_redo"] is True
+    assert data_undo["can_undo"] is False
+
+    # Redo -> should restore V2 and flags inverted
+    resp_redo = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert_response_success(resp_redo)
+    data_redo = resp_redo.json()
+    assert data_redo["name"] == "V2"
+    assert data_redo["can_redo"] is False
+    assert data_redo["can_undo"] is True
+
+
+def test_redo_chain_broken_after_new_edit(client: tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+
+    track_a = {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:track1"}
+    track_b = {"track_position": 1, "track_text": "B", "spotify_uri": "spotify:track:track1"}
+    track_c = {"track_position": 1, "track_text": "C", "spotify_uri": "spotify:track:track1"}
+
+    # Create V1
+    resp_create = test_client.post("/api/mixtape", json={"name": "V1", "intro_text": "", "is_public": True, "tracks": [track_a]}, headers={"x-stack-access-token": token})
+    assert_response_created(resp_create)
+    public_id = resp_create.json()["public_id"]
+
+    # Update to V2
+    resp_put = test_client.put(f"/api/mixtape/{public_id}", json={"name": "V2", "intro_text": "", "is_public": True, "tracks": [track_b]}, headers={"x-stack-access-token": token})
+    assert_response_success(resp_put)
+
+    # Undo (back to V1)
+    resp_undo = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp_undo)
+
+    # Make a *new* edit – V3 (track C)
+    resp_put2 = test_client.put(f"/api/mixtape/{public_id}", json={"name": "V3", "intro_text": "", "is_public": True, "tracks": [track_c]}, headers={"x-stack-access-token": token})
+    assert_response_success(resp_put2)
+
+    # Attempt redo – should fail (chain broken)
+    resp_redo = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert_response_success(resp_redo, 400)
+
+
+def test_undo_not_available_error(client: tuple[TestClient, str, dict]) -> None:
+    test_client, token, _ = client
+
+    track_a = {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:track1"}
+    resp_create = test_client.post("/api/mixtape", json={"name": "V1", "intro_text": "", "is_public": True, "tracks": [track_a]}, headers={"x-stack-access-token": token})
+    assert_response_created(resp_create)
+    public_id = resp_create.json()["public_id"]
+
+    # Undo should fail (no previous version)
+    resp_undo = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp_undo, 400)
+
+    # Redo should also fail
+    resp_redo = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert_response_success(resp_redo, 400)

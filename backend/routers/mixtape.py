@@ -60,6 +60,9 @@ class MixtapeResponse(BaseModel):
     last_modified_time: str
     stack_auth_user_id: str | None
     tracks: list[MixtapeTrackResponse]
+    can_undo: bool = Field(..., description="Whether an undo operation is possible")
+    can_redo: bool = Field(..., description="Whether a redo operation is possible")
+    version: int = Field(..., description="Current version number of the mixtape")
 
 @router.post("", response_model=dict, status_code=201)
 def create_mixtape(
@@ -166,7 +169,98 @@ def get_mixtape(
             "track": details.to_dict() if hasattr(details, 'to_dict') else details
         })
     mixtape["tracks"] = enriched_tracks
+
+    # Compute undo/redo capability flags and prune internal pointer keys
+    mixtape["can_undo"] = mixtape.get("undo_to_version") is not None
+    mixtape["can_redo"] = mixtape.get("redo_to_version") is not None
+    mixtape["version"] = mixtape.get("version")
+    mixtape.pop("undo_to_version", None)
+    mixtape.pop("redo_to_version", None)
     return mixtape
+
+# ------------------------------------------------------------
+# UNDO / REDO endpoints
+# ------------------------------------------------------------
+
+
+@router.post("/{public_id}/undo", response_model=MixtapeResponse)
+def undo_mixtape(
+    public_id: str,
+    session: Session = Depends(get_write_session),
+    user_info: dict | None = Depends(get_optional_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    """Create a new version by undoing the most recent change."""
+    # Permission checks – reuse logic from update_mixtape
+    mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
+    if not mixtape["is_public"]:
+        stack_auth_user_id = (user_info or {}).get("user_id") or (user_info or {}).get("id")
+        if not stack_auth_user_id or stack_auth_user_id != mixtape["stack_auth_user_id"]:
+            raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
+
+    try:
+        MixtapeEntity.undo_in_db(session, public_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Reload and enrich
+    refreshed = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
+    # Enrich tracks like get_mixtape
+    enriched_tracks = []
+    for track in refreshed["tracks"]:
+        track_id = track["spotify_uri"].replace("spotify:track:", "")
+        details = spotify_client.get_track(track_id)
+        enriched_tracks.append({
+            "track_position": track["track_position"],
+            "track_text": track.get("track_text"),
+            "track": details.to_dict() if hasattr(details, "to_dict") else details,
+        })
+    refreshed["tracks"] = enriched_tracks
+    refreshed["can_undo"] = refreshed.get("undo_to_version") is not None
+    refreshed["can_redo"] = refreshed.get("redo_to_version") is not None
+    refreshed["version"] = refreshed.get("version")
+    refreshed.pop("undo_to_version", None)
+    refreshed.pop("redo_to_version", None)
+    return refreshed
+
+
+@router.post("/{public_id}/redo", response_model=MixtapeResponse)
+def redo_mixtape(
+    public_id: str,
+    session: Session = Depends(get_write_session),
+    user_info: dict | None = Depends(get_optional_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    """Create a new version by redoing the most recently undone change."""
+    mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
+    if not mixtape["is_public"]:
+        stack_auth_user_id = (user_info or {}).get("user_id") or (user_info or {}).get("id")
+        if not stack_auth_user_id or stack_auth_user_id != mixtape["stack_auth_user_id"]:
+            raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
+
+    try:
+        MixtapeEntity.redo_in_db(session, public_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    refreshed = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
+
+    enriched_tracks = []
+    for track in refreshed["tracks"]:
+        track_id = track["spotify_uri"].replace("spotify:track:", "")
+        details = spotify_client.get_track(track_id)
+        enriched_tracks.append({
+            "track_position": track["track_position"],
+            "track_text": track.get("track_text"),
+            "track": details.to_dict() if hasattr(details, "to_dict") else details,
+        })
+    refreshed["tracks"] = enriched_tracks
+    refreshed["can_undo"] = refreshed.get("undo_to_version") is not None
+    refreshed["can_redo"] = refreshed.get("redo_to_version") is not None
+    refreshed["version"] = refreshed.get("version")
+    refreshed.pop("undo_to_version", None)
+    refreshed.pop("redo_to_version", None)
+    return refreshed
 
 @router.put("/{public_id}", response_model=dict)
 def update_mixtape(
