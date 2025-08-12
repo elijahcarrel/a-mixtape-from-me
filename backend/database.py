@@ -1,3 +1,5 @@
+from collections.abc import Generator
+
 from sqlmodel import Session, SQLModel, create_engine
 
 # Import models to ensure they're registered with SQLModel metadata
@@ -36,11 +38,6 @@ def get_engine(db_url: str):
         )
     return _engines[db_url]
 
-def get_db(db_url: str):
-    engine = get_engine(db_url)
-    with Session(engine) as session:
-        yield session
-
 def create_tables(db_url: str):
     """Create all tables defined in SQLModel models"""
     engine = get_engine(db_url)
@@ -49,9 +46,6 @@ def create_tables(db_url: str):
 # ------------------------------------------------------------
 # FastAPI dependency helpers
 # ------------------------------------------------------------
-
-from collections.abc import Generator
-
 
 def get_readonly_session() -> Generator[Session, None, None]:  # pragma: no cover – utility
     """FastAPI dependency that yields a *read-only* SQLModel session.

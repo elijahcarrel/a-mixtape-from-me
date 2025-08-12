@@ -438,7 +438,8 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     be the final state in the database and the mixtape version to increment
     sequentially.
     """
-    import threading, time  # Local import to avoid affecting other tests
+    import threading  # Local import to avoid affecting other tests
+    import time
 
     from backend import entity as mixtape_entity  # noqa: WPS433 – test-only import
 
@@ -508,7 +509,7 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     assert not t1.is_alive() and not t2.is_alive(), "Both updates should have completed"
 
     # Validate both responses were successful and the second update prevailed
-    for name, resp in results:
+    for _name, resp in results:
         assert_response_success(resp)
 
     versions = [resp.json().get("version") for _, resp in results]

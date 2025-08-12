@@ -12,7 +12,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
     # Set the database URL for this app instance
 
-    from backend.database import create_tables, get_db, set_database_url
+    from backend.database import create_tables, set_database_url
 
     set_database_url(database_url)
 
@@ -30,16 +30,6 @@ def create_app(database_url: str | None = None) -> FastAPI:
         docs_url=f"{api_prefix}/docs",
         openapi_url=f"{api_prefix}/openapi.json",
     )
-
-    # Store the database dependency in app state
-    def get_db_dep():
-        if database_url:
-            yield from get_db(database_url)
-        else:
-            # For testing or when no database is configured
-            yield None
-
-    app.state.get_db_dep = get_db_dep
 
     # Add CORS middleware
     app.add_middleware(

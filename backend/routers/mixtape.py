@@ -1,10 +1,9 @@
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session
-from backend.database import get_write_session, get_readonly_session
 
 from backend.client.spotify import SpotifyClient, get_spotify_client
+from backend.database import get_readonly_session, get_write_session
 from backend.entity import MixtapeEntity
 from backend.routers.spotify import TrackDetails  # Import TrackDetails
 from backend.util.auth_middleware import get_current_user, get_optional_user
