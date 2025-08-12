@@ -428,3 +428,102 @@ def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClie
     payload["is_public"] = True
     resp = test_client.put(f"/api/mixtape/{public_id}", json=payload)
     assert_response_success(resp)
+
+def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient, str, dict]) -> None:
+    """Simulate two concurrent PUT requests and verify they are processed in order.
+
+    We use the test pause mechanism in backend.entity to block the first request
+    while it holds a row-level lock. The second request should wait until the
+    first completes. After unblocking, we expect the second request's data to
+    be the final state in the database and the mixtape version to increment
+    sequentially.
+    """
+    import threading  # Local import to avoid affecting other tests
+    import time
+
+    from backend import entity as mixtape_entity  # noqa: WPS433 – test-only import
+
+    test_client, token, _ = client
+
+    # Create initial mixtape
+    create_tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp_create = test_client.post(
+        "/api/mixtape",
+        json={
+            "name": "Initial Mixtape",
+            "intro_text": "Intro",
+            "is_public": True,
+            "tracks": create_tracks,
+        },
+        headers={"x-stack-access-token": token},
+    )
+    assert_response_created(resp_create)
+    public_id = resp_create.json()["public_id"]
+
+    # Enable test pause mechanism before issuing PUT requests
+    mixtape_entity._TEST_PAUSE_EVENT = threading.Event()
+    mixtape_entity._TEST_PAUSE_ENABLED = True
+
+    results: list[tuple[str, httpx.Response]] = []
+
+    def send_update(name: str, track_text: str) -> None:  # noqa: D401 – simple verb
+        update_tracks = [
+            {"track_position": 1, "track_text": track_text, "spotify_uri": "spotify:track:track1"}
+        ]
+        resp = test_client.put(
+            f"/api/mixtape/{public_id}",
+            json={
+                "name": name,
+                "intro_text": "Intro",
+                "is_public": True,
+                "tracks": update_tracks,
+            },
+            headers={"x-stack-access-token": token},
+        )
+        results.append((name, resp))
+
+    # Start first update thread (will acquire lock and then pause)
+    t1 = threading.Thread(target=send_update, args=("FirstUpdate", "A"), daemon=True)
+    t1.start()
+
+    time.sleep(0.5)  # Give t1 time to reach the pause
+    assert t1.is_alive(), "First update should be waiting due to test pause"
+
+    # Start second update thread (should block on SELECT FOR UPDATE)
+    t2 = threading.Thread(target=send_update, args=("SecondUpdate", "B"), daemon=True)
+    t2.start()
+
+    time.sleep(0.5)
+    assert t2.is_alive(), "Second update should be blocked by row lock"
+
+    # Unblock the first request, allowing both to finish sequentially
+    mixtape_entity._TEST_PAUSE_ENABLED = False
+    assert mixtape_entity._TEST_PAUSE_EVENT is not None  # mypy reassurance
+    mixtape_entity._TEST_PAUSE_EVENT.set()
+
+    t1.join(timeout=5)
+    t2.join(timeout=5)
+
+    assert not t1.is_alive() and not t2.is_alive(), "Both updates should have completed"
+
+    # Validate both responses were successful and the second update prevailed
+    for _name, resp in results:
+        assert_response_success(resp)
+
+    versions = [resp.json().get("version") for _, resp in results]
+    assert len(versions) == 2 and sorted(versions) == versions, "Versions should increment sequentially"
+
+    # Final GET should reflect the second update
+    resp_final = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
+    assert_response_success(resp_final)
+    data_final = resp_final.json()
+    assert data_final["name"] == "SecondUpdate", "Latest update should win"
+
+    # Clean up test pause globals to avoid side effects on other tests
+    mixtape_entity._TEST_PAUSE_EVENT = None
+    mixtape_entity._TEST_PAUSE_ENABLED = False
+
+    # TODO: Once version history endpoint exists, assert that version 2 has
+    #       name == "FirstUpdate" and version 3 has name == "SecondUpdate".

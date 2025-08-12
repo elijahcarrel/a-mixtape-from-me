@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Request
-from sqlmodel import func, select
+from fastapi import APIRouter, Depends
+from sqlmodel import Session, func, select
+
+from backend.database import get_readonly_session
 
 router = APIRouter()
 
 @router.get("/db")
-def db(request_obj: Request):
-    session = next(request_obj.app.state.get_db_dep())
-
+def db(session: Session = Depends(get_readonly_session)):
     time = session.exec(select(func.now())).first()
     version = session.exec(select(func.version())).first()
 

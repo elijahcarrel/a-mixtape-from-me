@@ -1,4 +1,5 @@
 # entity.py: Orchestrates multi-table operations for Mixtape and related tables using SQLModel
+import threading
 import uuid
 from datetime import UTC, datetime
 
@@ -6,6 +7,27 @@ from sqlalchemy import desc, func
 from sqlmodel import Session, select
 
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeAuditTrack, MixtapeTrack
+
+# --- TESTING CONCURRENCY SUPPORT ---
+# These globals are used ONLY during tests to deterministically pause execution
+# in the middle of an update/claim operation while holding a row-level lock.
+# They have *no effect* in normal operation because _TEST_PAUSE_ENABLED is False
+# by default and production code never toggles it.
+_TEST_PAUSE_ENABLED: bool = False
+_TEST_PAUSE_EVENT: threading.Event | None = None
+
+
+def _maybe_pause_for_tests() -> None:
+    """Block execution if the test pause flag/event is enabled.
+
+    This allows tests to hold the row-level lock acquired by SELECT FOR UPDATE
+    while another concurrent request attempts to obtain the lock. In production
+    the function is a no-op.
+    """
+    global _TEST_PAUSE_ENABLED, _TEST_PAUSE_EVENT
+    if _TEST_PAUSE_ENABLED and _TEST_PAUSE_EVENT is not None:
+        # Wait until the event is set by the test to resume execution.
+        _TEST_PAUSE_EVENT.wait()
 
 
 class MixtapeEntity:
@@ -129,8 +151,14 @@ class MixtapeEntity:
         """
         now = datetime.now(UTC)
 
-        # Get existing mixtape
-        statement = select(Mixtape).where(Mixtape.public_id == public_id)
+        # Acquire a row-level lock on the mixtape so that concurrent updates are
+        # processed sequentially. Other transactions will block on this lock
+        # until we commit or roll back.
+        statement = (
+            select(Mixtape)
+            .where(Mixtape.public_id == public_id)
+            .with_for_update()
+        )
         mixtape = session.exec(statement).first()
 
         if not mixtape:
@@ -190,6 +218,10 @@ class MixtapeEntity:
             )
             session.add(audit_track)
 
+        # Pause after all modifications but *before* releasing the lock to allow
+        # test cases to control concurrency ordering deterministically.
+        _maybe_pause_for_tests()
+
         session.commit()
         return mixtape.version
 
@@ -200,8 +232,12 @@ class MixtapeEntity:
         """
         now = datetime.now(UTC)
 
-        # Get existing mixtape
-        statement = select(Mixtape).where(Mixtape.public_id == public_id)
+        # Acquire row-level lock to ensure claims are processed sequentially
+        statement = (
+            select(Mixtape)
+            .where(Mixtape.public_id == public_id)
+            .with_for_update()
+        )
         mixtape = session.exec(statement).first()
 
         if not mixtape:
@@ -244,6 +280,9 @@ class MixtapeEntity:
                 spotify_uri=track.spotify_uri
             )
             session.add(audit_track)
+
+        # Pause before releasing the lock for deterministic concurrency tests.
+        _maybe_pause_for_tests()
 
         session.commit()
         return mixtape.version
