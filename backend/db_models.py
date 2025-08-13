@@ -23,6 +23,9 @@ class Mixtape(SQLModel, table=True):
     create_time: datetime = Field(default_factory=datetime.utcnow)
     last_modified_time: datetime = Field(default_factory=datetime.utcnow)
     version: int = Field(default=1)
+    # Undo/Redo pointers (null when not available)
+    undo_to_version: int | None = Field(default=None, description="Version reached when performing an undo from this version")
+    redo_to_version: int | None = Field(default=None, description="Version reached when performing a redo from this version")
     # Relationships
     tracks: list["MixtapeTrack"] = Relationship(back_populates="mixtape", cascade_delete=True)
     audits: list["MixtapeAudit"] = Relationship(back_populates="mixtape")
@@ -45,6 +48,9 @@ class MixtapeAudit(SQLModel, table=True):
     create_time: datetime
     last_modified_time: datetime
     version: int
+    # Undo/Redo pointers for navigation through history
+    undo_to_version: int | None = Field(default=None)
+    redo_to_version: int | None = Field(default=None)
     stack_auth_user_id: str | None = Field(default=None, description="Stack Auth User ID of the owner (None for anonymous)")
     # Relationships
     mixtape: "Mixtape" = Relationship(back_populates="audits")

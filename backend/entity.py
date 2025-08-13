@@ -50,7 +50,7 @@ class MixtapeEntity:
         now = datetime.now(UTC)
         version = 1
 
-        # Create mixtape
+        # Create mixtape (initial version has no undo/redo targets)
         mixtape = Mixtape(
             stack_auth_user_id=stack_auth_user_id,
             public_id=public_id,
@@ -62,7 +62,9 @@ class MixtapeEntity:
             is_public=is_public,
             create_time=now,
             last_modified_time=now,
-            version=version
+            version=version,
+            undo_to_version=None,
+            redo_to_version=None,
         )
         session.add(mixtape)
         session.flush()  # Get the ID
@@ -79,10 +81,12 @@ class MixtapeEntity:
             subtitle2=subtitle2,
             subtitle3=subtitle3,
             is_public=is_public,
-            create_time=now,
+            create_time=mixtape.create_time,
             last_modified_time=now,
-            version=version,
-            stack_auth_user_id=stack_auth_user_id
+            version=mixtape.version,
+            stack_auth_user_id=stack_auth_user_id,
+            undo_to_version=None,
+            redo_to_version=None,
         )
         session.add(audit)
         session.flush()  # Get the audit ID
@@ -132,6 +136,9 @@ class MixtapeEntity:
             "is_public": mixtape.is_public,
             "create_time": mixtape.create_time.isoformat(),
             "last_modified_time": mixtape.last_modified_time.isoformat(),
+            "version": mixtape.version,
+            "undo_to_version": mixtape.undo_to_version,
+            "redo_to_version": mixtape.redo_to_version,
             "tracks": [
                 {
                     "track_position": t.track_position,
@@ -144,6 +151,33 @@ class MixtapeEntity:
             result["stack_auth_user_id"] = mixtape.stack_auth_user_id
         return result
 
+    # --------------------------------------------------
+    # Helper – create audit snapshot (used by multiple ops)
+    # --------------------------------------------------
+
+    @staticmethod
+    def _create_audit_snapshot(session: Session, mixtape: Mixtape, now: datetime) -> MixtapeAudit:
+        """Persist an audit snapshot for *current* mixtape state and return it."""
+        audit = MixtapeAudit(
+            mixtape_id=mixtape.id,
+            public_id=mixtape.public_id,
+            name=mixtape.name,
+            intro_text=mixtape.intro_text,
+            subtitle1=mixtape.subtitle1,
+            subtitle2=mixtape.subtitle2,
+            subtitle3=mixtape.subtitle3,
+            is_public=mixtape.is_public,
+            create_time=mixtape.create_time,
+            last_modified_time=now,
+            version=mixtape.version,
+            stack_auth_user_id=mixtape.stack_auth_user_id,
+            undo_to_version=mixtape.undo_to_version,
+            redo_to_version=mixtape.redo_to_version,
+        )
+        session.add(audit)
+        session.flush()
+        return audit
+
     @staticmethod
     def update_in_db(session: Session, public_id: str, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]) -> int:
         """
@@ -151,20 +185,16 @@ class MixtapeEntity:
         """
         now = datetime.now(UTC)
 
-        # Acquire a row-level lock on the mixtape so that concurrent updates are
-        # processed sequentially. Other transactions will block on this lock
-        # until we commit or roll back.
-        statement = (
-            select(Mixtape)
-            .where(Mixtape.public_id == public_id)
-            .with_for_update()
-        )
-        mixtape = session.exec(statement).first()
+        # Acquire row-level lock to serialize updates
+        stmt = select(Mixtape).where(Mixtape.public_id == public_id).with_for_update()
+        mixtape = session.exec(stmt).first()
 
         if not mixtape:
             raise ValueError("Mixtape not found")
 
-        # Update mixtape
+        prev_version = mixtape.version
+
+        # Update mixtape fields
         mixtape.name = name
         mixtape.intro_text = intro_text
         mixtape.subtitle1 = subtitle1
@@ -172,9 +202,19 @@ class MixtapeEntity:
         mixtape.subtitle3 = subtitle3
         mixtape.is_public = is_public
         mixtape.last_modified_time = now
-        mixtape.version += 1
+        mixtape.version = prev_version + 1
 
-        # Create audit record
+        # Maintain undo/redo pointers
+        mixtape.undo_to_version = prev_version
+        mixtape.redo_to_version = None
+
+        # Update previous audit's redo_to_version pointer so we can redo back
+        prev_audit_stmt = select(MixtapeAudit).where(MixtapeAudit.mixtape_id == mixtape.id, MixtapeAudit.version == prev_version).with_for_update()
+        prev_audit = session.exec(prev_audit_stmt).first()
+        if prev_audit is not None:
+            prev_audit.redo_to_version = mixtape.version
+
+        # Create audit record for *new* state
         audit = MixtapeAudit(
             mixtape_id=mixtape.id,
             public_id=public_id,
@@ -186,10 +226,13 @@ class MixtapeEntity:
             is_public=is_public,
             create_time=mixtape.create_time,
             last_modified_time=now,
-            version=mixtape.version
+            version=mixtape.version,
+            stack_auth_user_id=mixtape.stack_auth_user_id,
+            undo_to_version=prev_version,
+            redo_to_version=None,
         )
         session.add(audit)
-        session.flush()  # Get the audit ID
+        session.flush()
 
         # Delete existing tracks (cascade will handle audit tracks)
         for track in mixtape.tracks:
@@ -246,10 +289,19 @@ class MixtapeEntity:
         if mixtape.stack_auth_user_id is not None:
             raise ValueError("Mixtape is already claimed")
 
-        # Update mixtape ownership
+        # Update mixtape ownership and maintain version pointers
+        prev_version = mixtape.version
         mixtape.stack_auth_user_id = stack_auth_user_id
         mixtape.last_modified_time = now
-        mixtape.version += 1
+        mixtape.version = prev_version + 1
+        mixtape.undo_to_version = prev_version
+        mixtape.redo_to_version = None
+
+        # Update previous audit redo pointer
+        prev_audit_stmt = select(MixtapeAudit).where(MixtapeAudit.mixtape_id == mixtape.id, MixtapeAudit.version == prev_version).with_for_update()
+        prev_audit = session.exec(prev_audit_stmt).first()
+        if prev_audit is not None:
+            prev_audit.redo_to_version = mixtape.version
 
         # Create audit record for the claim
         audit = MixtapeAudit(
@@ -264,7 +316,9 @@ class MixtapeEntity:
             create_time=mixtape.create_time,
             last_modified_time=now,
             version=mixtape.version,
-            stack_auth_user_id=stack_auth_user_id
+            stack_auth_user_id=stack_auth_user_id,
+            undo_to_version=mixtape.undo_to_version,
+            redo_to_version=mixtape.redo_to_version
         )
         session.add(audit)
         session.flush()  # Get the audit ID
@@ -309,5 +363,157 @@ class MixtapeEntity:
             }
             for m in mixtapes
         ]
+
+    # --------------------------------------------------
+    # UNDO / REDO operations
+    # --------------------------------------------------
+
+    @staticmethod
+    def _apply_audit_state_to_mixtape(session: Session, mixtape: Mixtape, audit_src: MixtapeAudit) -> list[dict]:
+        """Replace mixtape's tracks and basic fields with those from audit_src.
+
+        Returns list of dicts representing tracks that were applied (used to
+        create new audit tracks).
+        """
+        # Delete existing tracks
+        for t in mixtape.tracks:
+            session.delete(t)
+        session.flush()
+
+        # Apply scalar fields
+        mixtape.name = audit_src.name
+        mixtape.intro_text = audit_src.intro_text
+        mixtape.subtitle1 = audit_src.subtitle1
+        mixtape.subtitle2 = audit_src.subtitle2
+        mixtape.subtitle3 = audit_src.subtitle3
+        mixtape.is_public = audit_src.is_public
+
+        # Recreate tracks from audit
+        applied_tracks: list[dict] = []
+        for at in audit_src.tracks:
+            td = {
+                "track_position": at.track_position,
+                "track_text": at.track_text,
+                "spotify_uri": at.spotify_uri,
+            }
+            track = MixtapeTrack(mixtape_id=mixtape.id, **td)
+            session.add(track)
+            applied_tracks.append(td)
+        session.flush()
+        return applied_tracks
+
+    @staticmethod
+    def undo_in_db(session: Session, public_id: str) -> int:
+        """Perform an undo operation and return the new version number."""
+        now = datetime.now(UTC)
+
+        stmt = select(Mixtape).where(Mixtape.public_id == public_id).with_for_update()
+        mixtape = session.exec(stmt).first()
+        if not mixtape:
+            raise ValueError("Mixtape not found")
+        if mixtape.undo_to_version is None:
+            raise ValueError("Nothing to undo")
+
+        target_version = mixtape.undo_to_version
+
+        audit_target_stmt = select(MixtapeAudit).where(MixtapeAudit.mixtape_id == mixtape.id, MixtapeAudit.version == target_version)
+        audit_target = session.exec(audit_target_stmt).first()
+        if audit_target is None:
+            raise ValueError("Undo target not found in audit log")
+
+        current_version = mixtape.version
+        mixtape.version = current_version + 1
+
+        # Apply state from audit_target (updates tracks + fields)
+        applied_tracks = MixtapeEntity._apply_audit_state_to_mixtape(session, mixtape, audit_target)
+
+        # Pointers
+        mixtape.undo_to_version = audit_target.undo_to_version
+        mixtape.redo_to_version = current_version
+
+        # Update current audit redo pointer so redo works
+        new_audit = MixtapeAudit(
+            mixtape_id=mixtape.id,
+            public_id=public_id,
+            name=mixtape.name,
+            intro_text=mixtape.intro_text,
+            subtitle1=mixtape.subtitle1,
+            subtitle2=mixtape.subtitle2,
+            subtitle3=mixtape.subtitle3,
+            is_public=mixtape.is_public,
+            create_time=mixtape.create_time,
+            last_modified_time=now,
+            version=mixtape.version,
+            stack_auth_user_id=mixtape.stack_auth_user_id,
+            undo_to_version=mixtape.undo_to_version,
+            redo_to_version=mixtape.redo_to_version,
+        )
+        session.add(new_audit)
+        session.flush()
+
+        # Audit tracks corresponding to applied state
+        for td in applied_tracks:
+            session.add(MixtapeAuditTrack(mixtape_audit_id=new_audit.id, **td))
+
+        _maybe_pause_for_tests()
+
+        session.commit()
+        return mixtape.version
+
+    @staticmethod
+    def redo_in_db(session: Session, public_id: str) -> int:
+        """Perform a redo operation and return the new version number."""
+        now = datetime.now(UTC)
+
+        stmt = select(Mixtape).where(Mixtape.public_id == public_id).with_for_update()
+        mixtape = session.exec(stmt).first()
+        if not mixtape:
+            raise ValueError("Mixtape not found")
+        if mixtape.redo_to_version is None:
+            raise ValueError("Nothing to redo")
+
+        target_version = mixtape.redo_to_version
+
+        audit_target_stmt = select(MixtapeAudit).where(MixtapeAudit.mixtape_id == mixtape.id, MixtapeAudit.version == target_version)
+        audit_target = session.exec(audit_target_stmt).first()
+        if audit_target is None:
+            raise ValueError("Redo target not found in audit log")
+
+        current_version = mixtape.version
+        mixtape.version = current_version + 1
+
+        applied_tracks = MixtapeEntity._apply_audit_state_to_mixtape(session, mixtape, audit_target)
+
+        # Pointers
+        mixtape.undo_to_version = current_version
+        mixtape.redo_to_version = audit_target.redo_to_version
+
+        # Update current audit undo pointer
+        new_audit = MixtapeAudit(
+            mixtape_id=mixtape.id,
+            public_id=public_id,
+            name=mixtape.name,
+            intro_text=mixtape.intro_text,
+            subtitle1=mixtape.subtitle1,
+            subtitle2=mixtape.subtitle2,
+            subtitle3=mixtape.subtitle3,
+            is_public=mixtape.is_public,
+            create_time=mixtape.create_time,
+            last_modified_time=now,
+            version=mixtape.version,
+            stack_auth_user_id=mixtape.stack_auth_user_id,
+            undo_to_version=mixtape.undo_to_version,
+            redo_to_version=mixtape.redo_to_version,
+        )
+        session.add(new_audit)
+        session.flush()
+
+        for td in applied_tracks:
+            session.add(MixtapeAuditTrack(mixtape_audit_id=new_audit.id, **td))
+
+        _maybe_pause_for_tests()
+
+        session.commit()
+        return mixtape.version
 
 # Additional helpers for DAG management and field propagation will be added here.
