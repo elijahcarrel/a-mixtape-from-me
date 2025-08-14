@@ -3,7 +3,9 @@ from sqlmodel import Session
 
 from backend.apimodel.mixtape import MixtapeOverview, MixtapeRequest, MixtapeResponse, MixtapeTrackResponse
 from backend.client.spotify import SpotifyClient, get_spotify_client
+from backend.convert_client_apimodel.track import spotify_track_to_mixtape_track_details
 from backend.database import get_readonly_session, get_write_session
+from backend.db_models import Mixtape
 from backend.entity.mixtape import MixtapeEntity
 from backend.query.mixtape import MixtapeQuery
 from backend.apimodel.spotify import TrackAlbum, TrackAlbumImage, TrackArtist, TrackDetails  # Import TrackDetails
@@ -96,6 +98,40 @@ def list_my_mixtapes(
         for m in mixtapes
     ]
 
+def load_mixtape_apimodel_from_dbmodel(spotify_client: SpotifyClient, mixtape: Mixtape)->MixtapeResponse:
+    # Enrich tracks with TrackDetails
+    enriched_tracks: list[MixtapeTrackResponse] = []
+    for track in mixtape.tracks:
+        try:
+            track_id = track.spotify_uri.replace('spotify:track:', '')
+            details = spotify_client.get_track(track_id)
+            if not details:
+                raise Exception("Track not found")
+        except Exception:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch track details for {track.spotify_uri}")
+        enriched_tracks.append(
+            MixtapeTrackResponse(
+                track_position=track.track_position,
+                track_text=track.track_text,
+                track=spotify_track_to_mixtape_track_details(details)
+            )
+        )
+
+    return MixtapeResponse(
+        public_id=mixtape.public_id,
+        name=mixtape.name,
+        intro_text=mixtape.intro_text,
+        subtitle1=mixtape.subtitle1,
+        subtitle2=mixtape.subtitle2,
+        subtitle3=mixtape.subtitle3,
+        is_public=mixtape.is_public,
+        create_time=mixtape.create_time.isoformat(),
+        last_modified_time=mixtape.last_modified_time.isoformat(),
+        stack_auth_user_id=mixtape.stack_auth_user_id,
+        tracks=enriched_tracks,
+    )
+
+
 @router.get("/{public_id}", response_model=MixtapeResponse)
 def get_mixtape(
     public_id: str,
@@ -115,59 +151,7 @@ def get_mixtape(
         if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
 
-    # Enrich tracks with TrackDetails
-    # TODO: handle Spotify class -> API class conversion elsewhere.
-    enriched_tracks: list[MixtapeTrackResponse] = []
-    for track in mixtape.tracks:
-        try:
-            track_id = track.spotify_uri.replace('spotify:track:', '')
-            details = spotify_client.get_track(track_id)
-            if not details:
-                raise Exception("Track not found")
-        except Exception:
-            raise HTTPException(status_code=500, detail=f"Failed to fetch track details for {track.spotify_uri}")
-        enriched_tracks.append(
-            MixtapeTrackResponse(
-                track_position=track.track_position,
-                track_text=track.track_text,
-                track=TrackDetails(
-                    id=details.id,
-                    name=details.name,
-                    artists=[
-                        TrackArtist(
-                            name=artist.name,
-                        )
-                        for artist in details.artists
-                    ],
-                    album=TrackAlbum(
-                        name=details.album.name,
-                        images=[
-                            TrackAlbumImage(
-                                url=image.url,
-                                width=image.width,
-                                height=image.height,
-                            )
-                            for image in details.album.images
-                        ]
-                    ),
-                    uri=details.uri,
-                )
-            )
-        )
-
-    return MixtapeResponse(
-        public_id=mixtape.public_id,
-        name=mixtape.name,
-        intro_text=mixtape.intro_text,
-        subtitle1=mixtape.subtitle1,
-        subtitle2=mixtape.subtitle2,
-        subtitle3=mixtape.subtitle3,
-        is_public=mixtape.is_public,
-        create_time=mixtape.create_time.isoformat(),
-        last_modified_time=mixtape.last_modified_time.isoformat(),
-        stack_auth_user_id=mixtape.stack_auth_user_id,
-        tracks=enriched_tracks,
-    )
+    return load_mixtape_apimodel_from_dbmodel(spotify_client, mixtape)
 
 @router.put("/{public_id}", response_model=dict)
 def update_mixtape(

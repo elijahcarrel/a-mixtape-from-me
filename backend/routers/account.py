@@ -8,6 +8,8 @@ from backend.util.account_middleware import (
 
 router = APIRouter()
 
+# TODO: rather than returning random dicts here, define API types in apimodel and then return those.
+
 async def get_authenticated_request(
     request: Request,
     stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)
