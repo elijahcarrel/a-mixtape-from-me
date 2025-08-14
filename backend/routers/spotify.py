@@ -1,30 +1,11 @@
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
+from backend.apimodel.spotify import TrackDetails
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.util.auth_middleware import get_optional_user
 
 router = APIRouter()
-
-class TrackArtist(BaseModel):
-    name: str
-
-class TrackAlbumImage(BaseModel):
-    url: str
-    width: int
-    height: int
-
-class TrackAlbum(BaseModel):
-    name: str
-    images: list[TrackAlbumImage]
-
-class TrackDetails(BaseModel):
-    id: str
-    name: str
-    artists: list[TrackArtist]
-    album: TrackAlbum
-    uri: str
 
 @router.get("/search", response_model=list[TrackDetails])
 def search_tracks(query: str, user_info: dict | None = Depends(get_optional_user), spotify_client: SpotifyClient = Depends(get_spotify_client)):

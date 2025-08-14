@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import desc, func
 from sqlmodel import Session, select
+from typing import Sequence
 
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeAuditTrack, MixtapeTrack
 
@@ -11,7 +12,7 @@ class MixtapeQuery:
     def __init__(self, for_update = False):
         self.for_update = for_update
 
-    def list_mixtapes_for_user(self, session: Session, stack_auth_user_id: str, q: str | None = None, limit: int = 20, offset: int = 0) -> list[Mixtape]:
+    def list_mixtapes_for_user(self, session: Session, stack_auth_user_id: str, q: str | None = None, limit: int = 20, offset: int = 0) -> Sequence[Mixtape]:
         """
         List all mixtapes for a user, ordered by last_modified_time descending, with optional search and pagination.
         q: partial match on name (case-insensitive)
