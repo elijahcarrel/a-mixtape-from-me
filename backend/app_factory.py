@@ -14,7 +14,8 @@ def create_app(database_url: str | None = None) -> FastAPI:
     """Factory function to create FastAPI app with configurable database"""
 
     # Initialize the database connection.
-    initialize_engine(database_url)
+    if database_url is not None:
+        initialize_engine(database_url)
 
     api_prefix = "/api"
 

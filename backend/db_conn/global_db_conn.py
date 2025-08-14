@@ -43,4 +43,6 @@ def initialize_engine(db_url: str)->Engine:
     return _current_engine
 
 def get_current_engine()->Engine:
+    if _current_engine is None:
+        raise Exception("no engine has been initialized")
     return _current_engine
