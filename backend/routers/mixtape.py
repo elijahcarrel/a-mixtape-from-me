@@ -4,7 +4,7 @@ from sqlmodel import Session
 from backend.apimodel.mixtape import MixtapeOverview, MixtapeRequest, MixtapeResponse, MixtapeTrackResponse
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_apimodel.track import spotify_track_to_mixtape_track_details
-from backend.database import get_readonly_session, get_write_session
+from backend.db_conn.dependency_helpers import get_readonly_session, get_write_session
 from backend.db_models import Mixtape
 from backend.entity.mixtape import MixtapeEntity
 from backend.query.mixtape import MixtapeQuery

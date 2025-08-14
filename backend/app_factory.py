@@ -6,15 +6,15 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend.database import set_database_url
+from backend.db_conn.global_db_conn import initialize_engine
 from backend.routers import account, auth, health, mixtape, spotify
 
 
 def create_app(database_url: str | None = None) -> FastAPI:
     """Factory function to create FastAPI app with configurable database"""
 
-    # Set the database URL for this app instance
-    set_database_url(database_url)
+    # Initialize the database connection.
+    initialize_engine(database_url)
 
     api_prefix = "/api"
 

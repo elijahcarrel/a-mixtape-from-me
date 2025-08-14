@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, func, select
 
-from backend.database import get_readonly_session
+from backend.db_conn.dependency_helpers import get_readonly_session
 
 router = APIRouter()
 

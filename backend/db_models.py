@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import (
     Index,
@@ -18,8 +18,8 @@ class Mixtape(SQLModel, table=True):
     subtitle2: str | None = Field(default=None, max_length=60)
     subtitle3: str | None = Field(default=None, max_length=60)
     is_public: bool = Field(default=False)
-    create_time: datetime = Field(default_factory=datetime.utcnow)
-    last_modified_time: datetime = Field(default_factory=datetime.utcnow)
+    create_time: datetime = Field(default_factory=datetime.now(UTC))
+    last_modified_time: datetime = Field(default_factory=datetime.now(UTC))
     version: int = Field(default=1)
     # Relationships
     tracks: list["MixtapeTrack"] = Relationship(back_populates="mixtape", cascade_delete=True)
