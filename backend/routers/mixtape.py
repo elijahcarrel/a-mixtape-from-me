@@ -87,8 +87,8 @@ def list_my_mixtapes(
     stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
     if not stack_auth_user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    mixtape_query = MixtapeQuery(for_update=False)
-    mixtapes = mixtape_query.list_mixtapes_for_user(session, stack_auth_user_id, q=q, limit=limit, offset=offset)
+    mixtape_query = MixtapeQuery(session=session, for_update=False)
+    mixtapes = mixtape_query.list_mixtapes_for_user(stack_auth_user_id, q=q, limit=limit, offset=offset)
     return [
         MixtapeOverview(
             public_id=m.public_id, 
@@ -139,8 +139,8 @@ def get_mixtape(
     user_info: dict | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
-    mixtape_query = MixtapeQuery(for_update=False)
-    mixtape = mixtape_query.load_by_public_id(session, public_id)
+    mixtape_query = MixtapeQuery(session=session, for_update=False)
+    mixtape = mixtape_query.load_by_public_id(public_id)
     # If mixtape not found, return 404.
     if mixtape is None:
         raise HTTPException(status_code=404, detail="Mixtape not found")
@@ -177,24 +177,27 @@ def update_mixtape(
             "track_text": track.track_text,
             "spotify_uri": track.spotify_uri
         })
-    # Get database session from app state
-    # session is injected via dependency
-    # Check ownership
-    try:
-        mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
-    except ValueError:
+
+    mixtape_query = MixtapeQuery(session=session, for_update=True)
+    mixtape = mixtape_query.load_by_public_id(public_id)
+
+    if mixtape is None:
         raise HTTPException(status_code=404, detail="Mixtape not found")
-    # Anonymous mixtapes cannot be made private
-    if mixtape["stack_auth_user_id"] is None and not request.is_public:
-        raise HTTPException(status_code=400, detail="Anonymous mixtapes must remain public")
-    # For anonymous mixtapes (stack_auth_user_id is None), anyone can edit
-    if mixtape["stack_auth_user_id"] is not None:
+    
+    # Check ownership.
+    if mixtape.stack_auth_user_id is not None:
         # For owned mixtapes, require authentication and ownership
         stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
         if not stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authenticated")
-        if stack_auth_user_id != mixtape["stack_auth_user_id"]:
+        if stack_auth_user_id != mixtape.stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
+
+    # Anonymous mixtapes cannot be made private
+    if mixtape.stack_auth_user_id is None and not request.is_public:
+        raise HTTPException(status_code=400, detail="Anonymous mixtapes must remain public")
+
+    # For anonymous mixtapes (stack_auth_user_id is None), anyone can edit
     try:
         new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
     except ValueError:

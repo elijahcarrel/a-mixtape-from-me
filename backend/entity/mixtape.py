@@ -111,40 +111,6 @@ class MixtapeEntity:
         return public_id
 
     @staticmethod
-    def load_by_public_id(session: Session, public_id: str, include_owner: bool = False) -> dict:
-        # Get mixtape with tracks
-        statement = select(Mixtape).where(Mixtape.public_id == public_id)
-        mixtape = session.exec(statement).first()
-
-        if not mixtape:
-            raise ValueError("Mixtape not found")
-
-        # Get tracks (they should be loaded via relationship)
-        tracks = mixtape.tracks
-
-        result = {
-            "public_id": mixtape.public_id,
-            "name": mixtape.name,
-            "intro_text": mixtape.intro_text,
-            "subtitle1": mixtape.subtitle1,
-            "subtitle2": mixtape.subtitle2,
-            "subtitle3": mixtape.subtitle3,
-            "is_public": mixtape.is_public,
-            "create_time": mixtape.create_time.isoformat(),
-            "last_modified_time": mixtape.last_modified_time.isoformat(),
-            "tracks": [
-                {
-                    "track_position": t.track_position,
-                    "track_text": t.track_text,
-                    "spotify_uri": t.spotify_uri
-                } for t in tracks
-            ]
-        }
-        if include_owner:
-            result["stack_auth_user_id"] = mixtape.stack_auth_user_id
-        return result
-
-    @staticmethod
     def update_in_db(session: Session, public_id: str, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]) -> int:
         """
         Update a mixtape and its tracks, create new audit records, and increment version. Returns new version.
