@@ -1,12 +1,8 @@
-import threading
-import uuid
-from datetime import UTC, datetime
-
 from sqlalchemy import desc, func
 from sqlmodel import Session, select
-from typing import Sequence
+from collections.abc import Sequence
 
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeAuditTrack, MixtapeTrack
+from backend.db_models import Mixtape
 
 class MixtapeQuery:
     def __init__(self, session: Session, for_update = False):

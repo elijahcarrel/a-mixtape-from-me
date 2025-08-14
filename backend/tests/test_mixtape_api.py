@@ -3,7 +3,6 @@
 import httpx
 from fastapi.testclient import TestClient
 
-from backend.entity import mixtape
 from backend.routers import auth
 from backend.tests.assertion_utils import (
     assert_response_created,

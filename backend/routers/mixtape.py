@@ -8,7 +8,6 @@ from backend.db_conn.dependency_helpers import get_readonly_session, get_write_s
 from backend.db_models import Mixtape
 from backend.entity.mixtape import MixtapeEntity
 from backend.query.mixtape import MixtapeQuery
-from backend.apimodel.spotify import TrackAlbum, TrackAlbumImage, TrackArtist, TrackDetails  # Import TrackDetails
 from backend.util.auth_middleware import get_current_user, get_optional_user
 
 router = APIRouter()
