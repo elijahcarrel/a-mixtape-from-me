@@ -4,8 +4,10 @@ from sqlmodel import Session
 
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.database import get_readonly_session, get_write_session
-from backend.entity import MixtapeEntity
-from backend.routers.spotify import TrackDetails  # Import TrackDetails
+from backend.db_models import Mixtape
+from backend.entity.mixtape import MixtapeEntity
+from backend.query.mixtape import MixtapeQuery
+from backend.routers.spotify import TrackAlbum, TrackAlbumImage, TrackArtist, TrackDetails  # Import TrackDetails
 from backend.util.auth_middleware import get_current_user, get_optional_user
 
 router = APIRouter()
@@ -60,6 +62,11 @@ class MixtapeResponse(BaseModel):
     last_modified_time: str
     stack_auth_user_id: str | None
     tracks: list[MixtapeTrackResponse]
+
+class MixtapeOverview(BaseModel):
+    public_id: str
+    name: str
+    last_modified_time: str
 
 @router.post("", response_model=dict, status_code=201)
 def create_mixtape(
@@ -120,7 +127,7 @@ def claim_mixtape(
         raise HTTPException(status_code=400, detail=str(e))
     return {"version": new_version}
 
-@router.get("", response_model=list[dict])
+@router.get("", response_model=list[MixtapeOverview])
 def list_my_mixtapes(
     session: Session = Depends(get_readonly_session),
     user_info: dict = Depends(get_current_user),
@@ -131,8 +138,16 @@ def list_my_mixtapes(
     stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
     if not stack_auth_user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    mixtapes = MixtapeEntity.list_mixtapes_for_user(session, stack_auth_user_id, q=q, limit=limit, offset=offset)
-    return mixtapes
+    mixtape_query = MixtapeQuery(for_update=False)
+    mixtapes = mixtape_query.list_mixtapes_for_user(session, stack_auth_user_id, q=q, limit=limit, offset=offset)
+    return [
+        MixtapeOverview(
+            public_id=m.public_id, 
+            name=m.name, 
+            last_modified_time=m.last_modified_time.isoformat(),
+        )
+        for m in mixtapes
+    ]
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
 def get_mixtape(
@@ -141,32 +156,71 @@ def get_mixtape(
     user_info: dict | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
-    try:
-        mixtape = MixtapeEntity.load_by_public_id(session, public_id, include_owner=True)
-    except ValueError:
+    mixtape_query = MixtapeQuery(for_update=False)
+    mixtape = mixtape_query.load_by_public_id(session, public_id)
+    # If mixtape not found, return 404.
+    if mixtape is None:
         raise HTTPException(status_code=404, detail="Mixtape not found")
-    # If not public, require authentication and ownership
-    if not mixtape["is_public"]:
+
+    # If mixtape not public, require authentication and ownership.
+    if not mixtape.is_public:
         stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
         if not stack_auth_user_id or stack_auth_user_id != mixtape["stack_auth_user_id"]:
             raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
+
     # Enrich tracks with TrackDetails
-    enriched_tracks = []
-    for track in mixtape["tracks"]:
+    # TODO: handle Spotify class -> API class conversion elsewhere.
+    enriched_tracks: list[MixtapeTrackResponse] = []
+    for track in mixtape.tracks:
         try:
-            track_id = track["spotify_uri"].replace('spotify:track:', '')
+            track_id = track.spotify_uri.replace('spotify:track:', '')
             details = spotify_client.get_track(track_id)
             if not details:
                 raise Exception("Track not found")
         except Exception:
-            raise HTTPException(status_code=500, detail=f"Failed to fetch track details for {track['spotify_uri']}")
-        enriched_tracks.append({
-            "track_position": track["track_position"],
-            "track_text": track.get("track_text"),
-            "track": details.to_dict() if hasattr(details, 'to_dict') else details
-        })
-    mixtape["tracks"] = enriched_tracks
-    return mixtape
+            raise HTTPException(status_code=500, detail=f"Failed to fetch track details for {track.spotify_uri}")
+        enriched_tracks.append(
+            MixtapeTrackResponse(
+                track_position=track.track_position,
+                track_text=track.track_text,
+                track=TrackDetails(
+                    id=details.id,
+                    name=details.name,
+                    artists=[
+                        TrackArtist(
+                            name=artist.name,
+                        )
+                        for artist in details.artists
+                    ],
+                    album=TrackAlbum(
+                        name=details.album.name,
+                        images=[
+                            TrackAlbumImage(
+                                url=image.url,
+                                width=image.width,
+                                height=image.height,
+                            )
+                            for image in details.album.images
+                        ]
+                    ),
+                    uri=details.uri,
+                )
+            )
+        )
+
+    return MixtapeResponse(
+        public_id=mixtape.public_id,
+        name=mixtape.name,
+        intro_text=mixtape.intro_text,
+        subtitle1=mixtape.subtitle1,
+        subtitle2=mixtape.subtitle2,
+        subtitle3=mixtape.subtitle3,
+        is_public=mixtape.is_public,
+        create_time=mixtape.create_time.isoformat(),
+        last_modified_time=mixtape.last_modified_time.isoformat(),
+        stack_auth_user_id=mixtape.stack_auth_user_id,
+        tracks=enriched_tracks,
+    )
 
 @router.put("/{public_id}", response_model=dict)
 def update_mixtape(

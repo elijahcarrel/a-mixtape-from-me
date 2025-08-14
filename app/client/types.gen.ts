@@ -11,6 +11,24 @@ export type HttpValidationError = {
 };
 
 /**
+ * MixtapeOverview
+ */
+export type MixtapeOverview = {
+    /**
+     * Public Id
+     */
+    public_id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Last Modified Time
+     */
+    last_modified_time: string;
+};
+
+/**
  * MixtapeRequest
  */
 export type MixtapeRequest = {
@@ -421,9 +439,7 @@ export type ListMyMixtapesApiMixtapeGetResponses = {
      * Response List My Mixtapes Api Mixtape Get
      * Successful Response
      */
-    200: Array<{
-        [key: string]: unknown;
-    }>;
+    200: Array<MixtapeOverview>;
 };
 
 export type ListMyMixtapesApiMixtapeGetResponse = ListMyMixtapesApiMixtapeGetResponses[keyof ListMyMixtapesApiMixtapeGetResponses];

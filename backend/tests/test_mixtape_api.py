@@ -3,6 +3,7 @@
 import httpx
 from fastapi.testclient import TestClient
 
+from backend.entity import mixtape
 from backend.routers import auth
 from backend.tests.assertion_utils import (
     assert_response_created,
@@ -338,7 +339,7 @@ def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClie
 def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient, str, dict]) -> None:
     """Simulate two concurrent PUT requests and verify they are processed in order.
 
-    We use the test pause mechanism in backend.entity to block the first request
+    We use the test pause mechanism in backend.entity.mixtape to block the first request
     while it holds a row-level lock. The second request should wait until the
     first completes. After unblocking, we expect the second request's data to
     be the final state in the database and the mixtape version to increment
@@ -347,7 +348,7 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     import threading  # Local import to avoid affecting other tests
     import time
 
-    from backend import entity as mixtape_entity  # noqa: WPS433 – test-only import
+    from backend.entity import mixtape as mixtape_entity  # noqa: WPS433 – test-only import
 
     test_client, token, _ = client
 

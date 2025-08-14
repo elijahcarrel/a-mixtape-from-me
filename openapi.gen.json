@@ -336,8 +336,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "type": "object",
-                                        "additionalProperties": true
+                                        "$ref": "#/components/schemas/MixtapeOverview"
                                     },
                                     "title": "Response List My Mixtapes Api Mixtape Get"
                                 }
@@ -543,6 +542,29 @@
                 },
                 "type": "object",
                 "title": "HTTPValidationError"
+            },
+            "MixtapeOverview": {
+                "properties": {
+                    "public_id": {
+                        "type": "string",
+                        "title": "Public Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "last_modified_time": {
+                        "type": "string",
+                        "title": "Last Modified Time"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "public_id",
+                    "name",
+                    "last_modified_time"
+                ],
+                "title": "MixtapeOverview"
             },
             "MixtapeRequest": {
                 "properties": {

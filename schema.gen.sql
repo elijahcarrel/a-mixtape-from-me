@@ -16,9 +16,9 @@ CREATE TABLE "Mixtape" (
 	PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX "ix_Mixtape_public_id" ON "Mixtape" (public_id);
-
 CREATE INDEX "ix_Mixtape_stack_auth_user_id" ON "Mixtape" (stack_auth_user_id);
+
+CREATE UNIQUE INDEX "ix_Mixtape_public_id" ON "Mixtape" (public_id);
 
 CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON "Mixtape" (stack_auth_user_id, last_modified_time);
 
