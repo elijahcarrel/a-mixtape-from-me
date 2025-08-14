@@ -1,5 +1,6 @@
 import httpx
 
+
 # Utility functions for better test assertions
 def assert_response_success(response: httpx.Response, expected_status: int = 200) -> None:
     """Assert that a response was successful with detailed error information"""

@@ -1,4 +1,5 @@
 from collections.abc import Generator
+
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
 
@@ -27,7 +28,7 @@ def normalize_db_url(db_url: str)->str:
         # Already in correct psycopg format
         return db_url
     else:
-        raise Exception(f"db_url {db_url} is invalid") 
+        raise Exception(f"db_url {db_url} is invalid")
 
 def load_engine(engine_url: str)->Engine:
     return create_engine(

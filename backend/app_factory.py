@@ -1,11 +1,13 @@
 import logging
 import os
 from collections.abc import Awaitable, Callable
-from backend.database import set_database_url
-from backend.routers import account, auth, health, mixtape, spotify
+
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
+from backend.database import set_database_url
+from backend.routers import account, auth, health, mixtape, spotify
 
 
 def create_app(database_url: str | None = None) -> FastAPI:

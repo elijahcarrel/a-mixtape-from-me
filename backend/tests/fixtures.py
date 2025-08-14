@@ -1,12 +1,15 @@
 from collections.abc import Generator
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, create_engine
+
 from backend.app_factory import create_app
 from backend.client.spotify import MockSpotifyClient
 from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
-from backend.routers import auth, spotify
+from backend.routers import spotify
+
 
 @pytest.fixture
 def engine(postgresql) -> Generator[Engine, None, None]:
@@ -20,7 +23,6 @@ def engine(postgresql) -> Generator[Engine, None, None]:
     engine = create_engine(db_url)
 
     # Import models to ensure they're registered with SQLModel metadata
-    from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
     # Create tables in this test database
     print(f"Creating tables in database: {db_url}")

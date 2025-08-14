@@ -1,5 +1,5 @@
 # TODO: rather than importing all intermediate fixtures, we should find a way to just import the top-level one we use (client).
-from backend.tests.fixtures import client, app, engine, auth_token_and_user
+from backend.tests.fixtures import client, app, engine, auth_token_and_user # noqa: F401
 
 def assert_track_details(track):
     assert "id" in track

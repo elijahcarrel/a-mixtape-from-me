@@ -1,11 +1,16 @@
-from collections.abc import Generator
-from backend.tests.assertion_utils import assert_response_created, assert_response_not_found, assert_response_success
-# TODO: rather than importing all intermediate fixtures, we should find a way to just import the top-level ones we use (client and app).
-from backend.tests.fixtures import client, app, engine, auth_token_and_user
+# TODO: disable F811 rule in this fule or figure out how to convince ruff that the fixtures are used.
+
 import httpx
-import pytest
 from fastapi.testclient import TestClient
+
 from backend.routers import auth
+from backend.tests.assertion_utils import (
+    assert_response_created,
+    assert_response_not_found,
+    assert_response_success,
+)
+# TODO: rather than importing all intermediate fixtures, we should find a way to just import the top-level ones we use (client and app).
+from backend.tests.fixtures import client, app, engine, auth_token_and_user # noqa: F401
 
 # --- TESTS ---
 def mixtape_payload(tracks: list) -> dict:

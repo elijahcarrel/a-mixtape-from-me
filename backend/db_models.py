@@ -1,9 +1,11 @@
 from datetime import datetime
+
 from sqlalchemy import (
     Index,
     UniqueConstraint,
 )
 from sqlmodel import Field, Relationship, SQLModel
+
 
 class Mixtape(SQLModel, table=True):
     __tablename__ = "Mixtape"
