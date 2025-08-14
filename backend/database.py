@@ -1,10 +1,13 @@
 from collections.abc import Generator
+from sqlalchemy import Engine
+from sqlmodel import Session, create_engine
 
-from sqlmodel import Session, SQLModel, create_engine
-
-# Import models to ensure they're registered with SQLModel metadata
-
-_engines = {}
+# Global variables holding the database URL and engine connection.
+# We assume there is only one global database connection to a single database. If in the future
+# we need to support multiple databases, this code will need to change.
+# TODO: make this thread-safe? Overkill since it only gets loaded on startup.
+# TODO: rather than global variables, instantiate these at a known time and pass them through the app.
+_current_engine: Engine | None = None
 _current_db_url: str | None = None
 
 def set_database_url(db_url: str | None):
@@ -12,36 +15,36 @@ def set_database_url(db_url: str | None):
     global _current_db_url
     _current_db_url = db_url
 
-def get_engine(db_url: str):
-    if not db_url:
-        raise RuntimeError('database URL must be set or provided to get_engine')
-    if db_url not in _engines:
-        # Convert psycopg URL to SQLAlchemy format if needed
-        if db_url.startswith('postgres://'):
-            # Convert to SQLAlchemy format
-            engine_url = db_url.replace('postgres://', 'postgresql://')
-        elif db_url.startswith('postgresql://'):
-            # Already in SQLAlchemy format
-            engine_url = db_url
-        elif db_url.startswith('postgresql+psycopg://'):
-            # Already in correct format
-            engine_url = db_url
-        else:
-            # Convert from psycopg format
-            engine_url = db_url.replace('postgresql://', 'postgresql+psycopg://')
+def normalize_db_url(db_url: str)->str:
+    # Convert Neon `postgres://` URL to SQLAlchemy `postgresql://` format if needed
+    if db_url.startswith('postgres://'):
+        # Convert to SQLAlchemy format
+        return db_url.replace('postgres://', 'postgresql://')
+    elif db_url.startswith('postgresql://'):
+        # Already in SQLAlchemy format
+        return db_url
+    elif db_url.startswith('postgresql+psycopg://') or db_url.startswith('postgresql+psycopg2://'):
+        # Already in correct psycopg format
+        return db_url
+    else:
+        raise Exception(f"db_url {db_url} is invalid") 
 
-        _engines[db_url] = create_engine(
-            engine_url,
-            pool_pre_ping=True,
-            pool_recycle=300,
-            echo=False  # Set to True for SQL debugging
-        )
-    return _engines[db_url]
+def load_engine(engine_url: str)->Engine:
+    return create_engine(
+        engine_url,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        echo=False  # Set to True for SQL debugging
+    )
 
-def create_tables(db_url: str):
-    """Create all tables defined in SQLModel models"""
-    engine = get_engine(db_url)
-    SQLModel.metadata.create_all(engine)
+def get_engine(db_url: str)->Engine:
+    global _current_engine
+    engine_url = normalize_db_url(db_url)
+    if _current_engine is None:
+        _current_engine = load_engine(engine_url)
+    elif str(_current_engine.url) != engine_url:
+        raise Exception(f"engine was already loaded with url {_current_engine.url}, cannot load a engine at different url {engine_url} (which is a normalized version of {db_url})")
+    return _current_engine
 
 # ------------------------------------------------------------
 # FastAPI dependency helpers

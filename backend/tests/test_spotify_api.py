@@ -1,11 +1,5 @@
-import pytest
-from fastapi.testclient import TestClient
-
-from backend.app_factory import create_app
-from backend.client.spotify import MockSpotifyClient
-from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
-from backend.routers import spotify
-
+# TODO: rather than importing all intermediate fixtures, we should find a way to just import the top-level one we use (client).
+from backend.tests.fixtures import client, app, engine, auth_token_and_user
 
 def assert_track_details(track):
     assert "id" in track
@@ -20,21 +14,8 @@ def assert_track_details(track):
         assert "url" in img and "width" in img and "height" in img
     assert "uri" in track
 
-@pytest.fixture
-def client():
-    app = create_app()
-    # Set up mock auth
-    mock_auth = MockStackAuthBackend()
-    fake_user = {"id": "user123", "email": "test@example.com", "name": "Test User"}
-    token = mock_auth.register_user(fake_user)
-    app.dependency_overrides[get_stack_auth_backend] = lambda: mock_auth
-    # Set up mock spotify
-    mock_spotify = MockSpotifyClient()
-    app.dependency_overrides[spotify.get_spotify_client] = lambda: mock_spotify
-    return TestClient(app), token, mock_spotify
-
 def test_search_tracks(client):
-    test_client, token, mock_spotify = client
+    test_client, token, _ = client
     resp = test_client.get("/api/spotify/search?query=Mock", headers={"x-stack-access-token": token})
     assert resp.status_code == 200
     data = resp.json()
@@ -48,8 +29,8 @@ def test_search_tracks(client):
     assert found
 
 def test_get_track(client):
-    test_client, token, mock_spotify = client
-    track_id = mock_spotify.tracks[0].id
+    test_client, token, _ = client
+    track_id = "track1"
     resp = test_client.get(f"/api/spotify/track/{track_id}", headers={"x-stack-access-token": token})
     assert resp.status_code == 200
     data = resp.json()
@@ -63,7 +44,7 @@ def test_get_track_not_found(client):
     assert "Failed to fetch track" in resp.text
 
 def test_search_tracks_without_auth(client):
-    test_client, _, mock_spotify = client
+    test_client, _, _ = client
     resp = test_client.get("/api/spotify/search?query=Mock")
     assert resp.status_code == 200
     data = resp.json()
@@ -77,8 +58,8 @@ def test_search_tracks_without_auth(client):
     assert found
 
 def test_get_track_without_auth(client):
-    test_client, _, mock_spotify = client
-    track_id = mock_spotify.tracks[0].id
+    test_client, _, _ = client
+    track_id = "track1"
     resp = test_client.get(f"/api/spotify/track/{track_id}")
     assert resp.status_code == 200
     data = resp.json()

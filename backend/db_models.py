@@ -1,13 +1,9 @@
-# db_models.py: SQLModel models for database tables
 from datetime import datetime
-
 from sqlalchemy import (
     Index,
     UniqueConstraint,
 )
 from sqlmodel import Field, Relationship, SQLModel
-
-# Remove User model
 
 class Mixtape(SQLModel, table=True):
     __tablename__ = "Mixtape"
@@ -72,5 +68,3 @@ class MixtapeAuditTrack(SQLModel, table=True):
     spotify_uri: str = Field(max_length=255)
     # Relationships
     mixtape_audit: "MixtapeAudit" = Relationship(back_populates="tracks")
-
-# Methods for insert/select/update will be added here for each class.
