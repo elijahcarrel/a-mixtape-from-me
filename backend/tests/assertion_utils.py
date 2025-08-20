@@ -1,5 +1,7 @@
-import httpx
 import traceback
+
+import httpx
+
 
 # Utility functions for better test assertions
 # TODO: consider an off-the-shelf library for this.

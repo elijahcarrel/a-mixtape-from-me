@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 
-from backend.apimodel.spotify import TrackDetails
+from backend.api_models.spotify import TrackDetails
 
 
 class MixtapeTrackRequest(BaseModel):

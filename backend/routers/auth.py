@@ -5,7 +5,7 @@ from backend.middleware.auth.user_cache import cache_user_info, remove_cached_us
 
 router = APIRouter()
 
-# TODO: all return values should use apimodel types.
+# TODO: all return values should use api_models types.
 
 @router.get("/me")
 # TODO: deduplicate with /account/me.

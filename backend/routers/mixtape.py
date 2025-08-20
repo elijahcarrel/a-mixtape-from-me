@@ -1,14 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 
-from backend.apimodel.mixtape import (
+from backend.api_models.mixtape import (
     MixtapeOverview,
     MixtapeRequest,
     MixtapeResponse,
     MixtapeTrackResponse,
 )
 from backend.client.spotify import SpotifyClient, get_spotify_client
-from backend.convert_client_apimodel.track import spotify_track_to_mixtape_track_details
+from backend.convert_client_api_models.track import (
+    spotify_track_to_mixtape_track_details,
+)
 from backend.db_models.mixtape import Mixtape
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
 from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
@@ -104,7 +106,7 @@ def list_my_mixtapes(
         for m in mixtapes
     ]
 
-def load_mixtape_apimodel_from_dbmodel(spotify_client: SpotifyClient, mixtape: Mixtape)->MixtapeResponse:
+def load_mixtape_api_models_from_dbmodel(spotify_client: SpotifyClient, mixtape: Mixtape)->MixtapeResponse:
     # Enrich tracks with TrackDetails
     enriched_tracks: list[MixtapeTrackResponse] = []
     for track in mixtape.tracks:
@@ -157,7 +159,7 @@ def get_mixtape(
         if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
 
-    return load_mixtape_apimodel_from_dbmodel(spotify_client, mixtape)
+    return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
 
 @router.put("/{public_id}", response_model=dict)
 def update_mixtape(

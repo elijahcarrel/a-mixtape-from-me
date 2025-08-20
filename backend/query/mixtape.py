@@ -7,7 +7,7 @@ from backend.db_models.mixtape import Mixtape
 
 
 class MixtapeQuery:
-    def __init__(self, session: Session, for_update = False):
+    def __init__(self, session: Session, for_update: bool = False):
         self.session = session
         self.for_update = for_update
 

@@ -1,4 +1,4 @@
-from backend.apimodel.spotify import (
+from backend.api_models.spotify import (
     TrackAlbum,
     TrackAlbumImage,
     TrackArtist,
