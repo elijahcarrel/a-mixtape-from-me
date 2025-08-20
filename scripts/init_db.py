@@ -13,7 +13,7 @@ from sqlmodel import SQLModel
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from backend.middleware.db_conn.global_db_conn import initialize_engine
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+import backend.db_models # noqa: F401
 
 def main():
     """Initialize the database with all tables"""
