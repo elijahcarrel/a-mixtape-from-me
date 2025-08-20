@@ -8,9 +8,6 @@ import requests
 
 from .client import (
     AbstractSpotifyClient,
-    SpotifyAlbum,
-    SpotifyAlbumImage,
-    SpotifyArtist,
     SpotifyTrack,
 )
 
@@ -56,18 +53,7 @@ class SpotifyClient(AbstractSpotifyClient):
         items = []
         # TODO: why do we check for both "tracks" and "items"? Should only need one.
         for item in data.get("tracks", {}).get("items", []):
-            # TODO: make the logic for casting from this json blob into SpotifyTrack
-            # a common function.
-            track = SpotifyTrack(
-                id=item["id"],
-                name=item["name"],
-                artists=[SpotifyArtist(name=a["name"]) for a in item.get("artists", [])],
-                album=SpotifyAlbum(
-                    name=item["album"]["name"],
-                    images=[SpotifyAlbumImage(url=img["url"], width=img["width"], height=img["height"]) for img in item["album"].get("images", [])]
-                ),
-                uri=item["uri"]
-            )
+            track = SpotifyTrack.from_dict(item)
             items.append(track)
         return items
 
@@ -83,18 +69,8 @@ class SpotifyClient(AbstractSpotifyClient):
         # from multiple threads. In golang there's a singleflight package we could use; this surely
         # exists in Python so we just need to find it.
         item = self.spotify_api_request(f"/tracks/{track_id}")
-        # TODO: make the logic for casting from this json blob into SpotifyTrack
-        # a common function.
-        track = SpotifyTrack(
-            id=item["id"],
-            name=item["name"],
-            artists=[SpotifyArtist(name=a["name"]) for a in item.get("artists", [])],
-            album=SpotifyAlbum(
-                name=item["album"]["name"],
-                images=[SpotifyAlbumImage(url=img["url"], width=img["width"], height=img["height"]) for img in item["album"].get("images", [])]
-            ),
-            uri=item["uri"]
-        )
+        track = SpotifyTrack.from_dict(item)
+
         with self._cache_lock:
             self.track_cache[track_id] = track
             if len(self.track_cache) > self.track_cache_size:

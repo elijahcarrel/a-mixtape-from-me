@@ -45,6 +45,19 @@ class SpotifyTrack:
             "album": self.album.to_dict(),
             "uri": self.uri
         }
+    
+    @classmethod
+    def from_dict(cls, raw_track: dict[str, Any])->"SpotifyTrack":
+        return cls(
+            id=raw_track["id"],
+            name=raw_track["name"],
+            artists=[SpotifyArtist(name=a["name"]) for a in raw_track.get("artists", [])],
+            album=SpotifyAlbum(
+                name=raw_track["album"]["name"],
+                images=[SpotifyAlbumImage(url=img["url"], width=img["width"], height=img["height"]) for img in raw_track["album"].get("images", [])]
+            ),
+            uri=raw_track["uri"]
+        )
 
 class AbstractSpotifyClient(ABC):
     @abstractmethod
