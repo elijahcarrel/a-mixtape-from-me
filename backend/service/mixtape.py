@@ -1,4 +1,3 @@
-# entity.py: Orchestrates multi-table operations for Mixtape and related tables using SQLModel
 import threading
 import uuid
 from datetime import UTC, datetime
@@ -28,7 +27,7 @@ def _maybe_pause_for_tests() -> None:
         _TEST_PAUSE_EVENT.wait()
 
 
-class MixtapeEntity:
+class MixtapeService:
     def __init__(self, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]):
         self.name = name
         self.intro_text = intro_text

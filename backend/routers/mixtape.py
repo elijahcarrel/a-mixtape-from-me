@@ -7,7 +7,7 @@ from backend.convert_client_apimodel.track import spotify_track_to_mixtape_track
 from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
 from backend.middleware.db_conn.dependency_helpers import get_readonly_session, get_write_session
 from backend.db_models import Mixtape
-from backend.entity.mixtape import MixtapeEntity
+from backend.service.mixtape import MixtapeService
 from backend.query.mixtape import MixtapeQuery
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
 
@@ -48,7 +48,7 @@ def create_mixtape(
     # For anonymous mixtapes, stack_auth_user_id will be None
     stack_auth_user_id = authenticated_user.get_user_id() if authenticated_user else None
     try:
-        public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
+        public_id = MixtapeService.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"public_id": public_id}
@@ -63,7 +63,7 @@ def claim_mixtape(
     stack_auth_user_id = authenticated_user.get_user_id()
 
     try:
-        new_version = MixtapeEntity.claim_mixtape(session, public_id, stack_auth_user_id)
+        new_version = MixtapeService.claim_mixtape(session, public_id, stack_auth_user_id)
     except ValueError as e:
         if "not found" in str(e).lower():
             raise HTTPException(status_code=404, detail="Mixtape not found")
@@ -196,7 +196,7 @@ def update_mixtape(
 
     # For anonymous mixtapes (stack_auth_user_id is None), anyone can edit
     try:
-        new_version = MixtapeEntity.update_in_db(session, public_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
+        new_version = MixtapeService.update_in_db(session, public_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
     except ValueError:
         raise HTTPException(status_code=404, detail="Mixtape not found")
     except Exception as e:
