@@ -1,4 +1,5 @@
 # TODO: rather than importing all intermediate fixtures, we should find a way to just import the top-level one we use (client).
+from backend.tests.assertion_utils import assert_response_success
 from backend.tests.fixtures import client, app, engine, auth_token_and_user # noqa: F401
 
 def assert_track_details(track):
@@ -17,7 +18,7 @@ def assert_track_details(track):
 def test_search_tracks(client):
     test_client, token, _ = client
     resp = test_client.get("/api/spotify/search?query=Mock", headers={"x-stack-access-token": token})
-    assert resp.status_code == 200
+    assert_response_success(resp)
     data = resp.json()
     assert isinstance(data, list)
     # Should match at least one track with 'Mock' in the name
@@ -32,7 +33,7 @@ def test_get_track(client):
     test_client, token, _ = client
     track_id = "track1"
     resp = test_client.get(f"/api/spotify/track/{track_id}", headers={"x-stack-access-token": token})
-    assert resp.status_code == 200
+    assert_response_success(resp)
     data = resp.json()
     assert data["id"] == track_id
     assert_track_details(data)
@@ -46,7 +47,7 @@ def test_get_track_not_found(client):
 def test_search_tracks_without_auth(client):
     test_client, _, _ = client
     resp = test_client.get("/api/spotify/search?query=Mock")
-    assert resp.status_code == 200
+    assert_response_success(resp)
     data = resp.json()
     assert isinstance(data, list)
     # Should match at least one track with 'Mock' in the name
@@ -61,7 +62,7 @@ def test_get_track_without_auth(client):
     test_client, _, _ = client
     track_id = "track1"
     resp = test_client.get(f"/api/spotify/track/{track_id}")
-    assert resp.status_code == 200
+    assert_response_success(resp)
     data = resp.json()
     assert data["id"] == track_id
     assert_track_details(data)

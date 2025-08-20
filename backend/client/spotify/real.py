@@ -10,10 +10,10 @@ from .client import (
     SpotifyAlbum,
     SpotifyAlbumImage,
     SpotifyArtist,
-    SpotifySearchResult,
     SpotifyTrack,
 )
 
+# TODO: move the cache into the abstract spotify client so that both real and mock use the cache?
 
 class SpotifyClient(AbstractSpotifyClient):
     def __init__(self):
@@ -50,10 +50,13 @@ class SpotifyClient(AbstractSpotifyClient):
             raise Exception(f"Spotify API error: {response.text}")
         return response.json()
 
-    def search_tracks(self, query: str):
+    def search_tracks(self, query: str)->list[SpotifyTrack]:
         data = self.spotify_api_request(f"/search?q={query}&type=track&limit=5")
         items = []
+        # TODO: why do we check for both "tracks" and "items"? Should only need one.
         for item in data.get("tracks", {}).get("items", []):
+            # TODO: make the logic for casting from this json blob into SpotifyTrack
+            # a common function.
             track = SpotifyTrack(
                 id=item["id"],
                 name=item["name"],
@@ -65,7 +68,7 @@ class SpotifyClient(AbstractSpotifyClient):
                 uri=item["uri"]
             )
             items.append(track)
-        return {"tracks": SpotifySearchResult(items)}
+        return items
 
     def get_track(self, track_id: str):
         with self._cache_lock:
@@ -74,7 +77,12 @@ class SpotifyClient(AbstractSpotifyClient):
                 self.track_cache[track_id] = track  # Mark as most recently used
                 return track
         # Not in cache, fetch from API (do not hold lock during network call)
+        # TODO: ensure we use a single flight so that we don't fetch the same track multiple times
+        # from multiple threads. In golang there's a singleflight package we could use; this surely
+        # exists in Python so we just need to find it.
         item = self.spotify_api_request(f"/tracks/{track_id}")
+        # TODO: make the logic for casting from this json blob into SpotifyTrack
+        # a common function.
         track = SpotifyTrack(
             id=item["id"],
             name=item["name"],

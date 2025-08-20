@@ -2,8 +2,6 @@
 import threading
 import uuid
 from datetime import UTC, datetime
-
-from sqlalchemy import desc, func
 from sqlmodel import Session, select
 
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeAuditTrack, MixtapeTrack

@@ -8,7 +8,7 @@ from backend.db_conn.dependency_helpers import get_readonly_session, get_write_s
 from backend.db_models import Mixtape
 from backend.entity.mixtape import MixtapeEntity
 from backend.query.mixtape import MixtapeQuery
-from backend.util.auth_middleware import get_current_user, get_optional_user
+from backend.auth_middleware.auth_middleware import AuthenticatedUser, get_user, get_optional_user
 
 router = APIRouter()
 
@@ -20,7 +20,7 @@ router = APIRouter()
 def create_mixtape(
     request: MixtapeRequest,
     session: Session = Depends(get_write_session),
-    user_info: dict | None = Depends(get_optional_user),
+    authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     # Validate and enrich tracks
@@ -39,13 +39,13 @@ def create_mixtape(
             "track_text": track.track_text,
             "spotify_uri": track.spotify_uri
         })
-    # Get database session from app state
-    # Prefer transaction-bound session if middleware attached it
-    stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
+    
     # Anonymous mixtapes must be public
-    if user_info is None and not request.is_public:
+    if authenticated_user is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
+
     # For anonymous mixtapes, stack_auth_user_id will be None
+    stack_auth_user_id = authenticated_user.get_user_id() if authenticated_user else None
     try:
         public_id = MixtapeEntity.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
     except Exception as e:
@@ -56,12 +56,11 @@ def create_mixtape(
 def claim_mixtape(
     public_id: str,
     session: Session = Depends(get_write_session),
-    user_info: dict = Depends(get_current_user),
+    authenticated_user: AuthenticatedUser = Depends(get_user),
 ):
     """Claim an anonymous mixtape, making the authenticated user the owner."""
-    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
-    if not stack_auth_user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    stack_auth_user_id = authenticated_user.get_user_id()
+
     try:
         new_version = MixtapeEntity.claim_mixtape(session, public_id, stack_auth_user_id)
     except ValueError as e:
@@ -78,14 +77,13 @@ def claim_mixtape(
 @router.get("", response_model=list[MixtapeOverview])
 def list_my_mixtapes(
     session: Session = Depends(get_readonly_session),
-    user_info: dict = Depends(get_current_user),
+    authenticated_user: AuthenticatedUser = Depends(get_user),
     q: str | None = Query(None, description="Search mixtape titles (partial match)"),
     limit: int = Query(20, ge=1, le=100, description="Max results to return"),
     offset: int = Query(0, ge=0, description="Results offset for pagination"),
 ):
-    stack_auth_user_id = user_info.get('user_id') or user_info.get('id')
-    if not stack_auth_user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    stack_auth_user_id = authenticated_user.get_user_id()
+
     mixtape_query = MixtapeQuery(session=session, for_update=False)
     mixtapes = mixtape_query.list_mixtapes_for_user(stack_auth_user_id, q=q, limit=limit, offset=offset)
     return [
@@ -135,7 +133,7 @@ def load_mixtape_apimodel_from_dbmodel(spotify_client: SpotifyClient, mixtape: M
 def get_mixtape(
     public_id: str,
     session: Session = Depends(get_readonly_session),
-    user_info: dict | None = Depends(get_optional_user),
+    authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     mixtape_query = MixtapeQuery(session=session, for_update=False)
@@ -146,7 +144,7 @@ def get_mixtape(
 
     # If mixtape not public, require authentication and ownership.
     if not mixtape.is_public:
-        stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
+        stack_auth_user_id = authenticated_user.get_user_id() if authenticated_user else None
         if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
 
@@ -157,7 +155,7 @@ def update_mixtape(
     public_id: str,
     request: MixtapeRequest,
     session: Session = Depends(get_write_session),
-    user_info: dict | None = Depends(get_optional_user),
+    authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     # Validate and enrich tracks
@@ -186,15 +184,14 @@ def update_mixtape(
     # Check ownership.
     if mixtape.stack_auth_user_id is not None:
         # For owned mixtapes, require authentication and ownership
-        stack_auth_user_id = (user_info or {}).get('user_id') or (user_info or {}).get('id')
-        if not stack_auth_user_id:
+        if authenticated_user is None:
             raise HTTPException(status_code=401, detail="Not authenticated")
-        if stack_auth_user_id != mixtape.stack_auth_user_id:
+        if authenticated_user.get_user_id() != mixtape.stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
 
     # Anonymous mixtapes cannot be made private
     if mixtape.stack_auth_user_id is None and not request.is_public:
-        raise HTTPException(status_code=400, detail="Anonymous mixtapes must remain public")
+        raise HTTPException(status_code=400, detail="Only claimed mixtapes can be made private; unclaimed mixtapes must remain public")
 
     # For anonymous mixtapes (stack_auth_user_id is None), anyone can edit
     try:

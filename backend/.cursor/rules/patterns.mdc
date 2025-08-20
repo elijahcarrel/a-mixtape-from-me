@@ -12,7 +12,7 @@
 ## API Patterns
 - Return class objects from business logic, convert to dicts only at router layer
 - Use dependency injection for external clients
-- Use `get_current_user` for protected endpoints, `get_optional_user` for optional auth
+- Use `get_user` for protected endpoints, `get_optional_user` for optional auth
 
 ## Testing
 - Use dependency overrides with explicit pre-defined general-purpose mock clients

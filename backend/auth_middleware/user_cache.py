@@ -32,6 +32,7 @@ def get_cached_user_info(access_token: str, stack_auth: AbstractStackAuthBackend
                     "user_info": user_info,
                     "cached_at": time.time()
                 }
+                user_info["access_token"] = access_token
                 return user_info
         except Exception:
             return None

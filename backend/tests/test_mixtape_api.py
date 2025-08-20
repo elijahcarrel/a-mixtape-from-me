@@ -329,7 +329,7 @@ def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClie
     }
     resp = test_client.put(f"/api/mixtape/{public_id}", json=payload)
     assert resp.status_code == 400
-    assert "Anonymous mixtapes must remain public" in resp.json()["detail"]
+    assert "Only claimed mixtapes can be made private; unclaimed mixtapes must remain public" in resp.json()["detail"]
     # Verify making it public still works
     payload["is_public"] = True
     resp = test_client.put(f"/api/mixtape/{public_id}", json=payload)

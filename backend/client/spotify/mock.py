@@ -3,7 +3,6 @@ from .client import (
     SpotifyAlbum,
     SpotifyAlbumImage,
     SpotifyArtist,
-    SpotifySearchResult,
     SpotifyTrack,
 )
 
@@ -69,11 +68,11 @@ class MockSpotifyClient(AbstractSpotifyClient):
     def add_track(self, track: SpotifyTrack):
         self.tracks.append(track)
 
-    def search_tracks(self, query: str):
+    def search_tracks(self, query: str)->list[SpotifyTrack]:
         results = [t for t in self.tracks if query.lower() in t.name.lower()]
-        return {"tracks": SpotifySearchResult(results)}
+        return results
 
-    def get_track(self, track_id: str):
+    def get_track(self, track_id: str)->SpotifyTrack:
         for t in self.tracks:
             if t.id == track_id:
                 return t
