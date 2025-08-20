@@ -11,8 +11,8 @@ class MockSpotifyClient(AbstractSpotifyClient):
     def __init__(self):
         self.reset_tracks()
 
-    def reset_tracks(self):
-        self.tracks = [
+    def reset_tracks(self)->None:
+        self.tracks: list[SpotifyTrack] = [
             SpotifyTrack(
                 id="track1",
                 name="Mock Song One",
@@ -65,7 +65,7 @@ class MockSpotifyClient(AbstractSpotifyClient):
             ),
         ]
 
-    def add_track(self, track: SpotifyTrack):
+    def add_track(self, track: SpotifyTrack)->None:
         self.tracks.append(track)
 
     def search_tracks(self, query: str)->list[SpotifyTrack]:
