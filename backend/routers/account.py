@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
 from backend.middleware.auth.dependency_helpers import get_user
 

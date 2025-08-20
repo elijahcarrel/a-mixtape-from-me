@@ -4,6 +4,7 @@ from backend.client.stack_auth import AbstractStackAuthBackend, get_stack_auth_b
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
 from backend.middleware.auth.user_cache import get_cached_user_info
 
+
 async def get_user(request: Request, stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend))->AuthenticatedUser:
     """
     Middleware function that extracts the access token from headers and returns the current user.

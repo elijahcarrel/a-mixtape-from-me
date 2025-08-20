@@ -1,5 +1,6 @@
 from backend.tests.assertion_utils import assert_response_success
 
+
 def assert_track_details(track):
     assert "id" in track
     assert "name" in track

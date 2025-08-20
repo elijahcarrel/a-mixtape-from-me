@@ -1,8 +1,10 @@
-from sqlalchemy import desc, func
-from sqlmodel import Session, select
 from collections.abc import Sequence
 
+from sqlalchemy import desc, func
+from sqlmodel import Session, select
+
 from backend.db_models.mixtape import Mixtape
+
 
 class MixtapeQuery:
     def __init__(self, session: Session, for_update = False):

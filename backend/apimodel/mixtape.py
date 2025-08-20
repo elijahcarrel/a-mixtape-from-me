@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
+
 from backend.apimodel.spotify import TrackDetails
+
 
 class MixtapeTrackRequest(BaseModel):
     track_position: int = Field(..., gt=0, description="Unique position of the track within the mixtape (1-based index)")

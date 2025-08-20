@@ -1,15 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 
-from backend.apimodel.mixtape import MixtapeOverview, MixtapeRequest, MixtapeResponse, MixtapeTrackResponse
+from backend.apimodel.mixtape import (
+    MixtapeOverview,
+    MixtapeRequest,
+    MixtapeResponse,
+    MixtapeTrackResponse,
+)
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_apimodel.track import spotify_track_to_mixtape_track_details
-from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
-from backend.middleware.db_conn.dependency_helpers import get_readonly_session, get_write_session
 from backend.db_models.mixtape import Mixtape
-from backend.service.mixtape import MixtapeService
-from backend.query.mixtape import MixtapeQuery
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
+from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
+from backend.middleware.db_conn.dependency_helpers import (
+    get_readonly_session,
+    get_write_session,
+)
+from backend.query.mixtape import MixtapeQuery
+from backend.service.mixtape import MixtapeService
 
 router = APIRouter()
 
@@ -40,7 +48,7 @@ def create_mixtape(
             "track_text": track.track_text,
             "spotify_uri": track.spotify_uri
         })
-    
+
     # Anonymous mixtapes must be public
     if authenticated_user is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
@@ -89,8 +97,8 @@ def list_my_mixtapes(
     mixtapes = mixtape_query.list_mixtapes_for_user(stack_auth_user_id, q=q, limit=limit, offset=offset)
     return [
         MixtapeOverview(
-            public_id=m.public_id, 
-            name=m.name, 
+            public_id=m.public_id,
+            name=m.name,
             last_modified_time=m.last_modified_time.isoformat(),
         )
         for m in mixtapes
@@ -181,7 +189,7 @@ def update_mixtape(
 
     if mixtape is None:
         raise HTTPException(status_code=404, detail="Mixtape not found")
-    
+
     # Check ownership.
     if mixtape.stack_auth_user_id is not None:
         # For owned mixtapes, require authentication and ownership

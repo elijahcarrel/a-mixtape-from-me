@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime
 
 from sqlalchemy import (
     Index,

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class Me(BaseModel):
     id: str = Field(..., description="Stack Auth User ID")
     email: str = Field(..., description="Email")

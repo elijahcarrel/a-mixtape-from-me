@@ -1,4 +1,9 @@
-from backend.apimodel.spotify import TrackAlbum, TrackAlbumImage, TrackArtist, TrackDetails
+from backend.apimodel.spotify import (
+    TrackAlbum,
+    TrackAlbumImage,
+    TrackArtist,
+    TrackDetails,
+)
 from backend.client.spotify.client import SpotifyTrack
 
 
