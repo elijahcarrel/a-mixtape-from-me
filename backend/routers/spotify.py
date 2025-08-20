@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from backend.apimodel.spotify import TrackDetails
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_apimodel.track import spotify_track_to_mixtape_track_details
-from backend.auth_middleware.auth_middleware import get_optional_user
+from backend.middleware.auth.dependency_helpers import get_optional_user
 
 router = APIRouter()
 

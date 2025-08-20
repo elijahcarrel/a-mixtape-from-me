@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from sqlmodel import Session
-from backend.db_conn.global_db_conn import get_current_engine
+from backend.middleware.db_conn.global_db_conn import get_current_engine
 
 # ------------------------------------------------------------
 # FastAPI dependency helpers

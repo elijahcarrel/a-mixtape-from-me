@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend.db_conn.global_db_conn import initialize_engine
+from backend.middleware.db_conn.global_db_conn import initialize_engine
 from backend.routers import account, auth, health, mixtape, spotify
 
 

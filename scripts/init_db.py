@@ -12,7 +12,7 @@ from sqlmodel import SQLModel
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from backend.db_conn.global_db_conn import initialize_engine
+from backend.middleware.db_conn.global_db_conn import initialize_engine
 from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
 
 def main():

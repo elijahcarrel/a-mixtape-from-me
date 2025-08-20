@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
-from backend.auth_middleware.auth_middleware import AuthenticatedUser, get_user
+from backend.middleware.auth.authenticated_user import AuthenticatedUser
+from backend.middleware.auth.dependency_helpers import get_user
 
 router = APIRouter()
 
