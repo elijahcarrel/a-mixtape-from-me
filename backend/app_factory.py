@@ -40,6 +40,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
     app.include_router(spotify.router, prefix=f"{api_prefix}/spotify", tags=["spotify"])
     app.include_router(mixtape.router, prefix=f"{api_prefix}/mixtape", tags=["mixtape"])
 
+    # TODO: delete some of this middleware or move it elsewhere.
     @app.get(f"{api_prefix}/")
     def root():
         return {"status": "ok", "env": os.getenv("VERCEL_ENV")}

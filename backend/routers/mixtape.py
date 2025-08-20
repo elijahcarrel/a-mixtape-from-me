@@ -6,7 +6,7 @@ from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_apimodel.track import spotify_track_to_mixtape_track_details
 from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
 from backend.middleware.db_conn.dependency_helpers import get_readonly_session, get_write_session
-from backend.db_models import Mixtape
+from backend.db_models.mixtape import Mixtape
 from backend.service.mixtape import MixtapeService
 from backend.query.mixtape import MixtapeQuery
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
