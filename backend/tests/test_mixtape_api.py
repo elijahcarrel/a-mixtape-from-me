@@ -5,6 +5,7 @@ from backend.routers import auth
 from backend.tests.assertion_utils import (
     assert_response_created,
     assert_response_not_found,
+    assert_response,
     assert_response_success,
 )
 
