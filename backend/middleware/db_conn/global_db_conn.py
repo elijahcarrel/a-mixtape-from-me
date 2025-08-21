@@ -20,7 +20,7 @@ def normalize_db_url(db_url: str)->str:
         # Already in correct psycopg format
         return db_url
     else:
-        raise Exception(f"db_url {db_url} is invalid")
+        raise Exception("db_url is invalid")
 
 def load_engine(engine_url: str)->Engine:
     return create_engine(
@@ -39,7 +39,7 @@ def initialize_engine(db_url: str)->Engine:
     if _current_engine is None:
         _current_engine = load_engine(engine_url)
     elif str(_current_engine.url) != engine_url:
-        raise Exception(f"engine was already loaded with url {_current_engine.url}, cannot load a engine at different url {engine_url} (which is a normalized version of {db_url})")
+        raise Exception("engine was already loaded with one url, cannot load a engine at different url")
     return _current_engine
 
 def get_current_engine()->Engine:

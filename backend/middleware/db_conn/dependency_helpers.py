@@ -4,9 +4,6 @@ from sqlmodel import Session
 
 from backend.middleware.db_conn.global_db_conn import get_current_engine
 
-# ------------------------------------------------------------
-# FastAPI dependency helpers
-# ------------------------------------------------------------
 
 def get_readonly_session() -> Generator[Session, None, None]:  # pragma: no cover – utility
     """FastAPI dependency that yields a *read-only* SQLModel session.
