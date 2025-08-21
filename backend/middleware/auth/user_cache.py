@@ -48,6 +48,7 @@ def get_cached_user_info(access_token: str, stack_auth: AbstractStackAuthBackend
     # Return user info with the current access token
     user_info = cache_entry["user_info"].copy()
     user_info["access_token"] = cache_entry["access_token"]
+    print(f"user_info: {user_info}")
     return user_info  # type: ignore[no-any-return]
 
 def cache_user_info(access_token: str, user_info: dict[str, Any]):

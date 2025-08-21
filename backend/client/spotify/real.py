@@ -60,9 +60,8 @@ class SpotifyClient(AbstractSpotifyClient):
     def get_track(self, track_id: str)->SpotifyTrack:
         with self._cache_lock:
             if track_id in self.track_cache:
-                track = self.track_cache.pop(track_id)
+                track: SpotifyTrack = self.track_cache.pop(track_id)
                 self.track_cache[track_id] = track  # Mark as most recently used
-                # TODO: for some reason the below line produces a mypy error: "error: Returning Any from function declared to return "SpotifyTrack"." I'm stumped because track_cache is fully typed?
                 return track
         # Not in cache, fetch from API (do not hold lock during network call)
         # TODO: ensure we use a single flight so that we don't fetch the same track multiple times

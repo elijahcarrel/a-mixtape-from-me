@@ -20,11 +20,7 @@ def assert_response(response: httpx.Response, expected_status: int) -> None:
                 error_detail += f"\nResponse body: {response.text}"
 
         # Create a custom exception that will show the calling line
-        caller_frame = traceback.extract_stack()
-        error_detail += f"\n\nCalled from: {caller_frame.filename}:{caller_frame.lineno} in {caller_frame.name}"
-        error_detail += f"\nLine: {caller_frame.line}"
-
-        raise AssertionError(error_detail)
+        raise AssertionError(traceback.format_stack())
 
 def assert_response_success(response: httpx.Response) -> None:
     """Assert that a response indicates success (200)"""
