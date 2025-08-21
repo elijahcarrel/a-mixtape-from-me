@@ -85,26 +85,6 @@
                 }
             }
         },
-        "/api/account/profile": {
-            "get": {
-                "tags": [
-                    "account"
-                ],
-                "summary": "Get Profile",
-                "description": "Get user profile information",
-                "operationId": "get_profile_api_account_profile_get",
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/health/db": {
             "get": {
                 "tags": [

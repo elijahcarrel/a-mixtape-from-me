@@ -299,20 +299,6 @@ export type GetAccountApiAccountMeGetResponses = {
     200: unknown;
 };
 
-export type GetProfileApiAccountProfileGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/account/profile';
-};
-
-export type GetProfileApiAccountProfileGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
 export type DbApiHealthDbGetData = {
     body?: never;
     path?: never;

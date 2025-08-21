@@ -45,7 +45,7 @@ class SpotifyTrack:
             "album": self.album.to_dict(),
             "uri": self.uri
         }
-    
+
     @classmethod
     def from_dict(cls, raw_track: dict[str, Any])->"SpotifyTrack":
         return cls(

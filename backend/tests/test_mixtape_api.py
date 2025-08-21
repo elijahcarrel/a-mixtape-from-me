@@ -345,7 +345,7 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     import time
 
     from backend.service import (
-        mixtape as mixtape_service,  # noqa: WPS433 – test-only import
+        mixtape as mixtape_service,
     )
 
     test_client, token, _ = client
