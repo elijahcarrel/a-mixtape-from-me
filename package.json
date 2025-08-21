@@ -14,6 +14,7 @@
     "build": "next build",
     "start": "next start",
     "frontend-lint": "next lint",
+    "frontend-lint-fix": "next lint --fix",
     "frontend-typecheck": "tsc --noEmit",
     "frontend-test": "jest",
     "backend-lint": "venv/bin/ruff check backend/",

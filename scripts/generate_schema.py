@@ -8,7 +8,7 @@ from sqlalchemy import create_mock_engine
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import models to ensure they're registered with SQLModel metadata
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+import backend.db_models # noqa: F401
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output', default='schema.gen.sql', help='Output file for generated schema')

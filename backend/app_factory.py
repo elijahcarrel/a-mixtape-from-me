@@ -6,23 +6,16 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from backend.middleware.db_conn.global_db_conn import initialize_engine
+from backend.routers import account, auth, health, mixtape, spotify
+
 
 def create_app(database_url: str | None = None) -> FastAPI:
     """Factory function to create FastAPI app with configurable database"""
 
-    # Set the database URL for this app instance
-
-    from backend.database import create_tables, set_database_url
-
-    set_database_url(database_url)
-
-    # Create tables if database URL is provided
-    if database_url:
-        try:
-            create_tables(database_url)
-        except Exception as e:
-            # Log the error but don't fail app creation (useful for tests)
-            print(f"Warning: Could not create tables: {e}")
+    # Initialize the database connection.
+    if database_url is not None:
+        initialize_engine(database_url)
 
     api_prefix = "/api"
 
@@ -40,18 +33,14 @@ def create_app(database_url: str | None = None) -> FastAPI:
         allow_headers=["*"],  # Allows all headers
     )
 
-    # Import routers
-    # Routers
-    from backend.routers import account, auth, health, mixtape, spotify
-
     # Include routers
     app.include_router(auth.router, prefix=f"{api_prefix}/auth", tags=["auth"])
     app.include_router(account.router, prefix=f"{api_prefix}/account", tags=["account"])
     app.include_router(health.router, prefix=f"{api_prefix}/health", tags=["health"])
     app.include_router(spotify.router, prefix=f"{api_prefix}/spotify", tags=["spotify"])
-
     app.include_router(mixtape.router, prefix=f"{api_prefix}/mixtape", tags=["mixtape"])
 
+    # TODO: delete some of this middleware or move it elsewhere.
     @app.get(f"{api_prefix}/")
     def root():
         return {"status": "ok", "env": os.getenv("VERCEL_ENV")}

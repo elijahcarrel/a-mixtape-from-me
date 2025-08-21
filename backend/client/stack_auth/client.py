@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+# TODO: add user_info type rather than just using dict[str, Any].
 
 class AbstractStackAuthBackend(ABC):
     @abstractmethod

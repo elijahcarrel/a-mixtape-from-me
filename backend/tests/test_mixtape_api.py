@@ -1,110 +1,13 @@
-from collections.abc import Generator
-
 import httpx
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.engine import Engine
-from sqlmodel import SQLModel, create_engine
 
-from backend.app_factory import create_app
-from backend.client.spotify import MockSpotifyClient
-from backend.client.stack_auth import MockStackAuthBackend, get_stack_auth_backend
-from backend.routers import auth, spotify
+from backend.routers import auth
+from backend.tests.assertion_utils import (
+    assert_response_created,
+    assert_response_not_found,
+    assert_response_success,
+)
 
-# Import models to ensure they're registered with SQLModel metadata
-
-
-# Utility functions for better test assertions
-def assert_response_success(response: httpx.Response, expected_status: int = 200) -> None:
-    """Assert that a response was successful with detailed error information"""
-    if response.status_code != expected_status:
-        error_detail = f"Expected status {expected_status}, got {response.status_code}"
-        if response.text:
-            try:
-                error_json = response.json()
-                if "detail" in error_json:
-                    error_detail += f"\nError detail: {error_json['detail']}"
-                else:
-                    error_detail += f"\nResponse body: {response.text}"
-            except: # noqa: E722
-                error_detail += f"\nResponse body: {response.text}"
-
-        # Create a custom exception that will show the calling line
-        import traceback
-        # Get the caller's frame (skip this function and the wrapper function)
-        caller_frame = traceback.extract_stack()[-3]  # -3 to skip this function and the wrapper
-        error_detail += f"\n\nCalled from: {caller_frame.filename}:{caller_frame.lineno} in {caller_frame.name}"
-        error_detail += f"\nLine: {caller_frame.line}"
-
-        raise AssertionError(error_detail)
-
-def assert_response_created(response: httpx.Response) -> None:
-    """Assert that a response indicates successful creation (201)"""
-    assert_response_success(response, 201)
-
-def assert_response_not_found(response: httpx.Response) -> None:
-    """Assert that a response indicates not found (404)"""
-    assert_response_success(response, 404)
-
-def assert_response_bad_request(response: httpx.Response) -> None:
-    """Assert that a response indicates bad request (400)"""
-    assert_response_success(response, 400)
-
-def assert_response_validation_error(response: httpx.Response) -> None:
-    """Assert that a response indicates validation error (422)"""
-    assert_response_success(response, 422)
-
-@pytest.fixture
-def engine(postgresql) -> Generator[Engine, None, None]:
-    """Create SQLAlchemy engine from pytest-postgresql fixture"""
-    # Build SQLAlchemy URL directly from postgresql attributes
-    if postgresql.info.password:
-        db_url = f"postgresql+psycopg://{postgresql.info.user}:{postgresql.info.password}@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
-    else:
-        db_url = f"postgresql+psycopg://{postgresql.info.user}@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
-
-    engine = create_engine(db_url)
-    # Create tables in this test database
-    print(f"Creating tables in database: {db_url}")
-    SQLModel.metadata.create_all(engine)
-    print("Tables created successfully")
-    yield engine
-    # No need to drop tables; the database will be destroyed after the test
-
-# @pytest.fixture(autouse=True)
-# def truncate_tables(engine: Engine) -> None:
-#     """Truncate all tables before each test"""
-#     with Session(engine) as session:
-#         meta = MetaData()
-#         connection = engine.connect()
-#         transaction = connection.begin()
-#         for table in meta.sorted_tables:
-#             connection.execute(table.delete())
-#         transaction.commit()
-
-@pytest.fixture
-def auth_token_and_user():
-    mock_auth = MockStackAuthBackend()
-    fake_user = {"id": "user123", "email": "test@example.com", "name": "Test User"}
-    token = mock_auth.register_user(fake_user)
-    return mock_auth, token, fake_user
-
-@pytest.fixture
-def app(engine: Engine, auth_token_and_user):
-    """Create FastAPI app with the test database and mock auth backend"""
-    db_url = str(engine.url)
-    app = create_app(db_url)
-    mock_auth, token, fake_user = auth_token_and_user
-    # Override auth backend for all routers
-    app.dependency_overrides[get_stack_auth_backend] = lambda: mock_auth
-    # Override spotify client with mock
-    app.dependency_overrides[spotify.get_spotify_client] = lambda: MockSpotifyClient()
-    return app
-
-@pytest.fixture
-def client(app, auth_token_and_user) -> tuple[TestClient, str, dict]:
-    """Create test client for the FastAPI app and provide token/user info"""
-    return TestClient(app), auth_token_and_user[1], auth_token_and_user[2]
 
 # --- TESTS ---
 def mixtape_payload(tracks: list) -> dict:
@@ -423,7 +326,7 @@ def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClie
     }
     resp = test_client.put(f"/api/mixtape/{public_id}", json=payload)
     assert resp.status_code == 400
-    assert "Anonymous mixtapes must remain public" in resp.json()["detail"]
+    assert "Only claimed mixtapes can be made private; unclaimed mixtapes must remain public" in resp.json()["detail"]
     # Verify making it public still works
     payload["is_public"] = True
     resp = test_client.put(f"/api/mixtape/{public_id}", json=payload)
@@ -432,7 +335,7 @@ def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClie
 def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient, str, dict]) -> None:
     """Simulate two concurrent PUT requests and verify they are processed in order.
 
-    We use the test pause mechanism in backend.entity to block the first request
+    We use the test pause mechanism in backend.service.mixtape to block the first request
     while it holds a row-level lock. The second request should wait until the
     first completes. After unblocking, we expect the second request's data to
     be the final state in the database and the mixtape version to increment
@@ -441,7 +344,9 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     import threading  # Local import to avoid affecting other tests
     import time
 
-    from backend import entity as mixtape_entity  # noqa: WPS433 – test-only import
+    from backend.service import (
+        mixtape as mixtape_service,
+    )
 
     test_client, token, _ = client
 
@@ -463,8 +368,8 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     public_id = resp_create.json()["public_id"]
 
     # Enable test pause mechanism before issuing PUT requests
-    mixtape_entity._TEST_PAUSE_EVENT = threading.Event()
-    mixtape_entity._TEST_PAUSE_ENABLED = True
+    mixtape_service._TEST_PAUSE_EVENT = threading.Event()
+    mixtape_service._TEST_PAUSE_ENABLED = True
 
     results: list[tuple[str, httpx.Response]] = []
 
@@ -499,9 +404,9 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     assert t2.is_alive(), "Second update should be blocked by row lock"
 
     # Unblock the first request, allowing both to finish sequentially
-    mixtape_entity._TEST_PAUSE_ENABLED = False
-    assert mixtape_entity._TEST_PAUSE_EVENT is not None  # mypy reassurance
-    mixtape_entity._TEST_PAUSE_EVENT.set()
+    mixtape_service._TEST_PAUSE_ENABLED = False
+    assert mixtape_service._TEST_PAUSE_EVENT is not None  # mypy reassurance
+    mixtape_service._TEST_PAUSE_EVENT.set()
 
     t1.join(timeout=5)
     t2.join(timeout=5)
@@ -522,8 +427,8 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     assert data_final["name"] == "SecondUpdate", "Latest update should win"
 
     # Clean up test pause globals to avoid side effects on other tests
-    mixtape_entity._TEST_PAUSE_EVENT = None
-    mixtape_entity._TEST_PAUSE_ENABLED = False
+    mixtape_service._TEST_PAUSE_EVENT = None
+    mixtape_service._TEST_PAUSE_ENABLED = False
 
     # TODO: Once version history endpoint exists, assert that version 2 has
     #       name == "FirstUpdate" and version 3 has name == "SecondUpdate".

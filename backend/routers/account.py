@@ -1,36 +1,17 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 
-from backend.client.stack_auth import AbstractStackAuthBackend, get_stack_auth_backend
-from backend.util.account_middleware import (
-    AuthenticatedRequest,
-    authenticate_account_request,
-)
+from backend.middleware.auth.authenticated_user import AuthenticatedUser
+from backend.middleware.auth.dependency_helpers import get_user
 
 router = APIRouter()
 
-async def get_authenticated_request(
-    request: Request,
-    stack_auth: AbstractStackAuthBackend = Depends(get_stack_auth_backend)
-) -> AuthenticatedRequest:
-    """Dependency that provides authenticated request context for all account endpoints"""
-    return await authenticate_account_request(request, stack_auth)
-
+# TODO: deduplicate with /auth/me.
 @router.get("/me")
-def get_account(auth_request: AuthenticatedRequest = Depends(get_authenticated_request)):
+def get_account(auth_request: AuthenticatedUser = Depends(get_user)):
     """Get current user account information"""
     return {
         "id": auth_request.get_user_id(),
         "email": auth_request.get_user_email(),
         "name": auth_request.get_user_name(),
         "user_info": auth_request.user_info
-    }
-
-@router.get("/profile")
-def get_profile(auth_request: AuthenticatedRequest = Depends(get_authenticated_request)):
-    """Get user profile information"""
-    return {
-        "id": auth_request.get_user_id(),
-        "email": auth_request.get_user_email(),
-        "name": auth_request.get_user_name(),
-        "profile": auth_request.user_info
     }

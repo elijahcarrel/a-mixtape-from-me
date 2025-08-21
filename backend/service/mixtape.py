@@ -1,12 +1,15 @@
-# entity.py: Orchestrates multi-table operations for Mixtape and related tables using SQLModel
 import threading
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import desc, func
 from sqlmodel import Session, select
 
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeAuditTrack, MixtapeTrack
+from backend.db_models.mixtape import (
+    Mixtape,
+    MixtapeAudit,
+    MixtapeAuditTrack,
+    MixtapeTrack,
+)
 
 # --- TESTING CONCURRENCY SUPPORT ---
 # These globals are used ONLY during tests to deterministically pause execution
@@ -30,7 +33,7 @@ def _maybe_pause_for_tests() -> None:
         _TEST_PAUSE_EVENT.wait()
 
 
-class MixtapeEntity:
+class MixtapeService:
     def __init__(self, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]):
         self.name = name
         self.intro_text = intro_text
@@ -86,10 +89,10 @@ class MixtapeEntity:
         )
         session.add(audit)
         session.flush()  # Get the audit ID
-
-        # Create tracks
         if audit.id is None:
             raise ValueError("audit.id is None after flush; cannot create audit tracks")
+
+        # Create tracks
         for track_data in tracks:
             track = MixtapeTrack(
                 mixtape_id=mixtape.id,
@@ -109,40 +112,6 @@ class MixtapeEntity:
 
         session.commit()
         return public_id
-
-    @staticmethod
-    def load_by_public_id(session: Session, public_id: str, include_owner: bool = False) -> dict:
-        # Get mixtape with tracks
-        statement = select(Mixtape).where(Mixtape.public_id == public_id)
-        mixtape = session.exec(statement).first()
-
-        if not mixtape:
-            raise ValueError("Mixtape not found")
-
-        # Get tracks (they should be loaded via relationship)
-        tracks = mixtape.tracks
-
-        result = {
-            "public_id": mixtape.public_id,
-            "name": mixtape.name,
-            "intro_text": mixtape.intro_text,
-            "subtitle1": mixtape.subtitle1,
-            "subtitle2": mixtape.subtitle2,
-            "subtitle3": mixtape.subtitle3,
-            "is_public": mixtape.is_public,
-            "create_time": mixtape.create_time.isoformat(),
-            "last_modified_time": mixtape.last_modified_time.isoformat(),
-            "tracks": [
-                {
-                    "track_position": t.track_position,
-                    "track_text": t.track_text,
-                    "spotify_uri": t.spotify_uri
-                } for t in tracks
-            ]
-        }
-        if include_owner:
-            result["stack_auth_user_id"] = mixtape.stack_auth_user_id
-        return result
 
     @staticmethod
     def update_in_db(session: Session, public_id: str, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]) -> int:
@@ -286,28 +255,5 @@ class MixtapeEntity:
 
         session.commit()
         return mixtape.version
-
-    @staticmethod
-    def list_mixtapes_for_user(session: Session, stack_auth_user_id: str, q: str | None = None, limit: int = 20, offset: int = 0) -> list:
-        """
-        List all mixtapes for a user, ordered by last_modified_time descending, with optional search and pagination.
-        q: partial match on name (case-insensitive)
-        limit: max results
-        offset: pagination offset
-        Returns a list of dicts with public_id, name, last_modified_time.
-        """
-        statement = select(Mixtape).where(Mixtape.stack_auth_user_id == stack_auth_user_id)
-        if q:
-            statement = statement.where(func.lower(Mixtape.name).contains(func.lower(q)))
-        statement = statement.order_by(desc(Mixtape.last_modified_time)).limit(limit).offset(offset)  # type: ignore[arg-type]
-        mixtapes = session.exec(statement).all()
-        return [
-            {
-                "public_id": m.public_id,
-                "name": m.name,
-                "last_modified_time": m.last_modified_time.isoformat(),
-            }
-            for m in mixtapes
-        ]
 
 # Additional helpers for DAG management and field propagation will be added here.

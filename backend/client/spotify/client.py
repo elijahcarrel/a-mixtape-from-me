@@ -46,16 +46,22 @@ class SpotifyTrack:
             "uri": self.uri
         }
 
-class SpotifySearchResult:
-    def __init__(self, items: list[SpotifyTrack]):
-        self.items = items
-
-    def to_dict(self) -> dict[str, Any]:
-        return {"items": [track.to_dict() for track in self.items]}
+    @classmethod
+    def from_dict(cls, raw_track: dict[str, Any])->"SpotifyTrack":
+        return cls(
+            id=raw_track["id"],
+            name=raw_track["name"],
+            artists=[SpotifyArtist(name=a["name"]) for a in raw_track.get("artists", [])],
+            album=SpotifyAlbum(
+                name=raw_track["album"]["name"],
+                images=[SpotifyAlbumImage(url=img["url"], width=img["width"], height=img["height"]) for img in raw_track["album"].get("images", [])]
+            ),
+            uri=raw_track["uri"]
+        )
 
 class AbstractSpotifyClient(ABC):
     @abstractmethod
-    def search_tracks(self, query: str) -> dict[str, SpotifySearchResult]:
+    def search_tracks(self, query: str) -> list[SpotifyTrack]:
         """
         Returns a dictionary with a single key 'tracks' mapping to a SpotifySearchResult.
         Example: { 'tracks': SpotifySearchResult([...]) }

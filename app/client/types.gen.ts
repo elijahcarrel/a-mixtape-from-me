@@ -11,6 +11,24 @@ export type HttpValidationError = {
 };
 
 /**
+ * MixtapeOverview
+ */
+export type MixtapeOverview = {
+    /**
+     * Public Id
+     */
+    public_id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Last Modified Time
+     */
+    last_modified_time: string;
+};
+
+/**
  * MixtapeRequest
  */
 export type MixtapeRequest = {
@@ -281,20 +299,6 @@ export type GetAccountApiAccountMeGetResponses = {
     200: unknown;
 };
 
-export type GetProfileApiAccountProfileGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/account/profile';
-};
-
-export type GetProfileApiAccountProfileGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
 export type DbApiHealthDbGetData = {
     body?: never;
     path?: never;
@@ -421,9 +425,7 @@ export type ListMyMixtapesApiMixtapeGetResponses = {
      * Response List My Mixtapes Api Mixtape Get
      * Successful Response
      */
-    200: Array<{
-        [key: string]: unknown;
-    }>;
+    200: Array<MixtapeOverview>;
 };
 
 export type ListMyMixtapesApiMixtapeGetResponse = ListMyMixtapesApiMixtapeGetResponses[keyof ListMyMixtapesApiMixtapeGetResponses];

@@ -12,8 +12,8 @@ from sqlmodel import SQLModel
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from backend.database import create_tables, get_engine
-from backend.db_models import Mixtape, MixtapeAudit, MixtapeTrack, MixtapeAuditTrack
+from backend.middleware.db_conn.global_db_conn import initialize_engine
+import backend.db_models # noqa: F401
 
 def main():
     """Initialize the database with all tables"""
@@ -29,11 +29,11 @@ def main():
     
 
     try:
-        engine = get_engine(database_url)
+        engine = initialize_engine(database_url)
         print(f"Dropping tables in database: {database_url}")
         SQLModel.metadata.drop_all(engine) 
         print(f"Creating tables in database: {database_url}")
-        create_tables(database_url)
+        SQLModel.metadata.create_all(engine)
         print("✅ Database tables created successfully!")
 
     except Exception as e:
