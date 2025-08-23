@@ -15,6 +15,7 @@ import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { FormValues } from './MixtapeEditorForm';
+import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
 
 interface MixtapeEditorToolbarProps {
   mixtape: MixtapeResponse;
@@ -35,6 +36,7 @@ export default function MixtapeEditorToolbar({
 }: MixtapeEditorToolbarProps) {
   const router = useRouter();
   const { theme } = useTheme();
+  const { makeRequest } = useAuthenticatedRequest();
 
   // Prefetch viewer route for faster navigation
   useEffect(() => {
@@ -78,20 +80,12 @@ export default function MixtapeEditorToolbar({
     
     setIsUndoing(true);
     try {
-      const response = await fetch(`/api/mixtape/${mixtape.public_id}/undo`, {
+      const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/undo`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
       
-      if (response.ok) {
-        const updatedMixtape = await response.json();
-        onUndoRedo(updatedMixtape);
-        showToast('Undo successful');
-      } else {
-        showToast('Failed to undo');
-      }
+      onUndoRedo(updatedMixtape);
+      showToast('Undo successful');
     } catch (error) {
       console.error('Error undoing:', error);
       showToast('Error undoing changes');
@@ -105,20 +99,12 @@ export default function MixtapeEditorToolbar({
     
     setIsRedoing(true);
     try {
-      const response = await fetch(`/api/mixtape/${mixtape.public_id}/redo`, {
+      const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/redo`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
       
-      if (response.ok) {
-        const updatedMixtape = await response.json();
-        onUndoRedo(updatedMixtape);
-        showToast('Redo successful');
-      } else {
-        showToast('Failed to redo');
-      }
+      onUndoRedo(updatedMixtape);
+      showToast('Redo successful');
     } catch (error) {
       console.error('Error redoing:', error);
       showToast('Error redoing changes');

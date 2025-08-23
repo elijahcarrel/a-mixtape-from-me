@@ -69,13 +69,12 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   }
 
   return (
-    <MixtapeContext.Provider value={{ mixtape: currentMixtape, refetch: handleRefetch }}>
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, { onMixtapeUpdated: handleMixtapeUpdate } as any);
-        }
-        return child;
-      })}
+    <MixtapeContext.Provider value={{ 
+      mixtape: currentMixtape, 
+      refetch: handleRefetch,
+      onMixtapeUpdated: handleMixtapeUpdate
+    }}>
+      {children}
     </MixtapeContext.Provider>
   );
 }

@@ -4,14 +4,9 @@ import { useMixtape } from '../../MixtapeContext';
 import MixtapeEditor from '../../../components/MixtapeEditor';
 import MainContainer from '../../../components/layout/MainContainer';
 import ContentPane from '../../../components/layout/ContentPane';
-import { MixtapeResponse } from '../../../client';
 
-interface EditMixtapePageProps {
-  onMixtapeUpdated?: (updatedMixtape: MixtapeResponse) => void;
-}
-
-export default function EditMixtapePage({ onMixtapeUpdated }: EditMixtapePageProps) {
-  const { mixtape, refetch } = useMixtape();
+export default function EditMixtapePage() {
+  const { mixtape, refetch, onMixtapeUpdated } = useMixtape();
 
   return (
     <MainContainer>

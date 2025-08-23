@@ -9,6 +9,12 @@ interface MixtapeContextValue {
    * data without forcing a full navigation or refresh.
    */
   refetch: () => void;
+  /**
+   * Callback to update the mixtape in the context with new data from API responses.
+   * This is used by the editor to propagate changes (save, undo, redo) to all
+   * components that consume the mixtape context.
+   */
+  onMixtapeUpdated: (updatedMixtape: MixtapeResponse) => void;
 }
 
 // We intentionally initialise with "undefined" so that we can throw a helpful

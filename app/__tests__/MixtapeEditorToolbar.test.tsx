@@ -16,8 +16,13 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock fetch
-global.fetch = jest.fn();
+// Mock useAuthenticatedRequest
+const mockMakeRequest = jest.fn();
+jest.mock('../hooks/useAuthenticatedRequest', () => ({
+  useAuthenticatedRequest: () => ({
+    makeRequest: mockMakeRequest,
+  }),
+}));
 
 const mockMixtape: MixtapeResponse = {
   public_id: 'test-mixtape-123',
@@ -79,7 +84,7 @@ const renderWithTheme = (component: React.ReactElement) => {
 describe('MixtapeEditorToolbar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockClear();
+    mockMakeRequest.mockClear();
   });
 
   it('renders all toolbar buttons', () => {
@@ -124,10 +129,7 @@ describe('MixtapeEditorToolbar', () => {
 
   it('calls undo endpoint when undo button is clicked', async () => {
     const mockResponse = { ...mockMixtape, version: 4, can_undo: false, can_redo: true };
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    mockMakeRequest.mockResolvedValueOnce(mockResponse);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
     
@@ -135,13 +137,10 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(undoButton);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mockMakeRequest).toHaveBeenCalledWith(
         '/api/mixtape/test-mixtape-123/undo',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
         }
       );
     });
@@ -153,10 +152,7 @@ describe('MixtapeEditorToolbar', () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
     const mockResponse = { ...mixtapeWithRedo, version: 6, can_undo: true, can_redo: false };
     
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    mockMakeRequest.mockResolvedValueOnce(mockResponse);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
     
@@ -164,13 +160,10 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(redoButton);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mockMakeRequest).toHaveBeenCalledWith(
         '/api/mixtape/test-mixtape-123/redo',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
         }
       );
     });
@@ -179,9 +172,7 @@ describe('MixtapeEditorToolbar', () => {
   });
 
   it('shows error toast when undo request fails', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-    });
+    mockMakeRequest.mockRejectedValueOnce(new Error('Failed to undo'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
     
@@ -189,15 +180,13 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(undoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to undo')).toBeInTheDocument();
+      expect(screen.getByText('Error undoing changes')).toBeInTheDocument();
     });
   });
 
   it('shows error toast when redo request fails', async () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-    });
+    mockMakeRequest.mockRejectedValueOnce(new Error('Failed to redo'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
     
@@ -205,12 +194,12 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(redoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to redo')).toBeInTheDocument();
+      expect(screen.getByText('Error redoing changes')).toBeInTheDocument();
     });
   });
 
   it('shows error toast when undo request throws an error', async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+    mockMakeRequest.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
     
@@ -224,7 +213,7 @@ describe('MixtapeEditorToolbar', () => {
 
   it('shows error toast when redo request throws an error', async () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+    mockMakeRequest.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
     
@@ -237,12 +226,12 @@ describe('MixtapeEditorToolbar', () => {
   });
 
   it('disables undo button while undo request is in progress', async () => {
-    let resolveFetch: (value: any) => void;
-    const fetchPromise = new Promise((resolve) => {
-      resolveFetch = resolve;
+    let resolveRequest: (value: any) => void;
+    const requestPromise = new Promise((resolve) => {
+      resolveRequest = resolve;
     });
     
-    (global.fetch as jest.Mock).mockReturnValueOnce(fetchPromise);
+    mockMakeRequest.mockReturnValueOnce(requestPromise);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
     
@@ -252,11 +241,8 @@ describe('MixtapeEditorToolbar', () => {
     // Button should be disabled while request is in progress
     expect(undoButton).toBeDisabled();
 
-    // Resolve the fetch
-    resolveFetch!({
-      ok: true,
-      json: async () => mockMixtape,
-    });
+    // Resolve the request
+    resolveRequest!(mockMixtape);
 
     await waitFor(() => {
       expect(undoButton).not.toBeDisabled();
@@ -266,12 +252,12 @@ describe('MixtapeEditorToolbar', () => {
   it('disables redo button while redo request is in progress', async () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
     
-    let resolveFetch: (value: any) => void;
-    const fetchPromise = new Promise((resolve) => {
-      resolveFetch = resolve;
+    let resolveRequest: (value: any) => void;
+    const requestPromise = new Promise((resolve) => {
+      resolveRequest = resolve;
     });
     
-    (global.fetch as jest.Mock).mockReturnValueOnce(fetchPromise);
+    mockMakeRequest.mockReturnValueOnce(requestPromise);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
     
@@ -281,11 +267,8 @@ describe('MixtapeEditorToolbar', () => {
     // Button should be disabled while request is in progress
     expect(redoButton).toBeDisabled();
 
-    // Resolve the fetch
-    resolveFetch!({
-      ok: true,
-      json: async () => mockMixtape,
-    });
+    // Resolve the request
+    resolveRequest!(mockMixtape);
 
     await waitFor(() => {
       expect(redoButton).not.toBeDisabled();
@@ -294,10 +277,7 @@ describe('MixtapeEditorToolbar', () => {
 
   it('shows success toast when undo is successful', async () => {
     const mockResponse = { ...mockMixtape, version: 4, can_undo: false, can_redo: true };
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    mockMakeRequest.mockResolvedValueOnce(mockResponse);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
     
@@ -313,10 +293,7 @@ describe('MixtapeEditorToolbar', () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
     const mockResponse = { ...mixtapeWithRedo, version: 6, can_undo: true, can_redo: false };
     
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    mockMakeRequest.mockResolvedValueOnce(mockResponse);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
     
