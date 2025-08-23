@@ -16,7 +16,7 @@ from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_api_models.track import (
     spotify_track_to_mixtape_track_details,
 )
-from backend.db_models.mixtape import Mixtape, MixtapeTrack, MixtapeSnapshot
+from backend.db_models.mixtape import Mixtape, MixtapeTrack
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
 from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
 from backend.middleware.db_conn.dependency_helpers import (
@@ -30,21 +30,21 @@ router = APIRouter()
 def parse_track(track: MixtapeTrackRequest, spotify_client: SpotifyClient) -> MixtapeTrack:
     """
     Parse and validate a track request, converting it to a database model.
-    
+
     This function validates that the Spotify track exists and converts the API request
     model to a database model. It performs a lookup against Spotify to ensure the
     track URI is valid before allowing it to be saved.
-    
+
     Args:
         track: API request model containing track information
         spotify_client: Spotify client for validating track existence
-        
+
     Returns:
         MixtapeTrack: Database model instance ready for persistence
-        
+
     Raises:
         HTTPException 400: If the Spotify URI is invalid or the track doesn't exist
-        
+
     Note:
         The function extracts the track ID from the Spotify URI format "spotify:track:ID"
         and validates it against the Spotify API before proceeding.
@@ -166,23 +166,23 @@ def list_my_mixtapes(
 def load_mixtape_api_models_from_dbmodel(spotify_client: SpotifyClient, mixtape: Mixtape) -> MixtapeResponse:
     """
     Convert a database mixtape model to an API response model.
-    
+
     This function enriches the mixtape data by:
     1. Fetching detailed track information from Spotify for each track
     2. Converting database models to API response models
     3. Computing the can_undo and can_redo flags based on version pointers
     4. Formatting datetime fields as ISO strings
-    
+
     Args:
         spotify_client: Spotify client for fetching track details
         mixtape: Database model instance of the mixtape
-        
+
     Returns:
         MixtapeResponse: API response model with enriched track data and undo/redo flags
-        
+
     Raises:
         HTTPException 500: If track details cannot be fetched from Spotify
-        
+
     Note:
         The can_undo flag is True if undo_to_version is not None
         The can_redo flag is True if redo_to_version is not None
@@ -326,25 +326,25 @@ def undo_mixtape(
 ):
     """
     Undo the last action on a mixtape, restoring it to a previous version.
-    
+
     This endpoint implements undo functionality by:
     1. Loading the target version from the snapshot history
     2. Restoring the mixtape and tracks to that previous state
     3. Updating the undo/redo pointers to maintain the version chain
     4. Breaking the redo chain (since a new edit would create a new branch)
-    
+
     The undo operation follows the doubly-linked list structure stored in the
     mixtape_snapshot table, where each version points to its undo/redo targets.
-    
+
     Args:
         public_id: The public identifier of the mixtape to undo
         session: Database session with write access
         authenticated_user: Optional authenticated user (required for private mixtapes)
         spotify_client: Spotify client for enriching track details
-        
+
     Returns:
         MixtapeResponse: The restored mixtape with updated can_undo/can_redo flags
-        
+
     Raises:
         HTTPException 400: If the mixtape cannot be undone (no previous version)
         HTTPException 401: If the mixtape is private and user lacks authorization
@@ -371,6 +371,9 @@ def undo_mixtape(
         if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
 
+    if mixtape.id is None:
+        raise HTTPException(status_code=500, detail="Got unexpected null Mixtape ID")
+
     # Load the target snapshot
     target_snapshot = mixtape_query.load_snapshot_by_version(mixtape.id, mixtape.undo_to_version)
     if target_snapshot is None:
@@ -378,7 +381,6 @@ def undo_mixtape(
 
     # Store current state for redo
     current_version = mixtape.version
-    current_undo_to_version = mixtape.undo_to_version
 
     # Restore mixtape from snapshot
     mixtape.restore_from_snapshot(target_snapshot)
@@ -403,10 +405,10 @@ def undo_mixtape(
 
     session.add(mixtape)
     session.add(target_snapshot)
-    
+
     # Pause before releasing the lock for deterministic concurrency tests.
     _maybe_pause_for_tests()
-    
+
     session.commit()
 
     return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
@@ -420,26 +422,26 @@ def redo_mixtape(
 ):
     """
     Redo the last undone action on a mixtape, restoring it to a later version.
-    
+
     This endpoint implements redo functionality by:
     1. Loading the target version from the snapshot history
     2. Restoring the mixtape and tracks to that later state
     3. Updating the undo/redo pointers to maintain the version chain
     4. Preserving the ability to undo back to the current version
-    
+
     The redo operation follows the doubly-linked list structure stored in the
     mixtape_snapshot table, where each version points to its undo/redo targets.
     Redo is only available after an undo operation and before any new edits.
-    
+
     Args:
         public_id: The public identifier of the mixtape to redo
         session: Database session with write access
         authenticated_user: Optional authenticated user (required for private mixtapes)
         spotify_client: Spotify client for enriching track details
-        
+
     Returns:
         MixtapeResponse: The restored mixtape with updated can_undo/can_redo flags
-        
+
     Raises:
         HTTPException 400: If the mixtape cannot be redone (no later version)
         HTTPException 401: If the mixtape is private and user lacks authorization
@@ -466,6 +468,9 @@ def redo_mixtape(
         if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
             raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
 
+    if mixtape.id is None:
+        raise HTTPException(status_code=500, detail="Got unexpected null Mixtape ID")
+
     # Load the target snapshot
     target_snapshot = mixtape_query.load_snapshot_by_version(mixtape.id, mixtape.redo_to_version)
     if target_snapshot is None:
@@ -473,7 +478,6 @@ def redo_mixtape(
 
     # Store current state for undo
     current_version = mixtape.version
-    current_redo_to_version = mixtape.redo_to_version
 
     # Restore mixtape from snapshot
     mixtape.restore_from_snapshot(target_snapshot)
@@ -498,10 +502,10 @@ def redo_mixtape(
 
     session.add(mixtape)
     session.add(target_snapshot)
-    
+
     # Pause before releasing the lock for deterministic concurrency tests.
     _maybe_pause_for_tests()
-    
+
     session.commit()
 
     return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
