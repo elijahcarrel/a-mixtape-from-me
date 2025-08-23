@@ -432,3 +432,367 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
 
     # TODO: Once version history endpoint exists, assert that version 2 has
     #       name == "FirstUpdate" and version 3 has name == "SecondUpdate".
+
+# --- UNDO/REDO TESTS ---
+
+def test_undo_mixtape_basic(client: tuple[TestClient, str, dict]) -> None:
+    """Test basic undo functionality."""
+    test_client, token, _ = client
+    
+    # Create mixtape
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Edit mixtape
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"},
+        {"track_position": 2, "track_text": "New", "spotify_uri": "spotify:track:track2"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Modified Mixtape", "intro_text": "Modified!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Undo should restore to original state
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    
+    assert data["name"] == "Test Mixtape"
+    assert data["intro_text"] == "Intro!"
+    assert len(data["tracks"]) == 1
+    assert data["tracks"][0]["track_text"] == "First"
+    assert data["can_undo"] is False  # Can't undo further
+    assert data["can_redo"] is True   # Can redo
+
+def test_redo_mixtape_basic(client: tuple[TestClient, str, dict]) -> None:
+    """Test basic redo functionality."""
+    test_client, token, _ = client
+    
+    # Create and edit mixtape
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Modified Mixtape", "intro_text": "Modified!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Undo
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Redo should restore to modified state
+    resp = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    
+    assert data["name"] == "Modified Mixtape"
+    assert data["intro_text"] == "Modified!"
+    assert len(data["tracks"]) == 1
+    assert data["tracks"][0]["track_text"] == "Modified"
+    assert data["can_undo"] is True   # Can undo again
+    assert data["can_redo"] is False  # Can't redo further
+
+def test_undo_redo_chain(client: tuple[TestClient, str, dict]) -> None:
+    """Test a chain of undo/redo operations."""
+    test_client, token, _ = client
+    
+    # Create mixtape
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Edit 1: Add track
+    new_tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"},
+        {"track_position": 2, "track_text": "Second", "spotify_uri": "spotify:track:track2"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Two Tracks", "intro_text": "Two!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Edit 2: Change name
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Final Name", "intro_text": "Two!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Undo 1: Should go back to "Two Tracks"
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Two Tracks"
+    assert data["can_undo"] is True
+    assert data["can_redo"] is True
+    
+    # Undo 2: Should go back to "Test Mixtape"
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Test Mixtape"
+    assert data["can_undo"] is False
+    assert data["can_redo"] is True
+    
+    # Redo 1: Should go to "Two Tracks"
+    resp = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Two Tracks"
+    assert data["can_undo"] is True
+    assert data["can_redo"] is True
+    
+    # Redo 2: Should go to "Final Name"
+    resp = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Final Name"
+    assert data["can_undo"] is True
+    assert data["can_redo"] is False
+
+def test_edit_breaks_redo_chain(client: tuple[TestClient, str, dict]) -> None:
+    """Test that editing after undo breaks the redo chain."""
+    test_client, token, _ = client
+    
+    # Create and edit mixtape
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Modified Mixtape", "intro_text": "Modified!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Undo
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    assert resp.json()["can_redo"] is True
+    
+    # Edit again - this should break the redo chain
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "New Edit", "intro_text": "New!", "is_public": True, "tracks": tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Should not be able to redo anymore
+    resp = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["can_redo"] is False
+    assert data["can_undo"] is True
+
+def test_cannot_undo_new_mixtape(client: tuple[TestClient, str, dict]) -> None:
+    """Test that a newly created mixtape cannot be undone."""
+    test_client, token, _ = client
+    
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Try to undo - should fail
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert resp.status_code == 400
+    assert "Cannot undo: no previous version available" in resp.json()["detail"]
+
+def test_cannot_redo_mixtape_without_undo(client: tuple[TestClient, str, dict]) -> None:
+    """Test that a mixtape cannot be redone without first undoing."""
+    test_client, token, _ = client
+    
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Try to redo - should fail
+    resp = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert resp.status_code == 400
+    assert "Cannot redo: no later version available" in resp.json()["detail"]
+
+def test_undo_redo_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> None:
+    """Test undo/redo on anonymous mixtapes."""
+    test_client, token, _ = client
+    
+    # Create anonymous mixtape
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Edit anonymous mixtape
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Modified Mixtape", "intro_text": "Modified!", "is_public": True, "tracks": new_tracks})
+    assert_response_success(resp)
+    
+    # Undo should work
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo")
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Test Mixtape"
+    assert data["can_redo"] is True
+    
+    # Redo should work
+    resp = test_client.post(f"/api/mixtape/{public_id}/redo")
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Modified Mixtape"
+
+def test_undo_redo_private_mixtape_requires_auth(client: tuple[TestClient, str, dict], app) -> None:
+    """Test that undo/redo on private mixtapes requires authentication."""
+    test_client, token, user = client
+    
+    # Create private mixtape
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json={"name": "Private Mixtape", "intro_text": "Private!", "is_public": False, "tracks": tracks}, headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Edit to create undo history
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Modified Private", "intro_text": "Modified!", "is_public": False, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Register a second user
+    mock_auth = app.dependency_overrides[auth.get_stack_auth_backend]()
+    user2 = {"id": "user456", "email": "other@example.com", "name": "Other User"}
+    token2 = mock_auth.register_user(user2)
+    
+    # Try to undo as user2 - should fail
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token2})
+    assert resp.status_code == 401
+    
+    # Try to undo as unauthenticated - should fail
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo")
+    assert resp.status_code == 401
+    
+    # Undo as owner should work
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+
+def test_undo_redo_preserves_tracks(client: tuple[TestClient, str, dict]) -> None:
+    """Test that undo/redo correctly restores track information."""
+    test_client, token, _ = client
+    
+    # Create mixtape with tracks
+    tracks = [
+        {"track_position": 1, "track_text": "First Track", "spotify_uri": "spotify:track:track1"},
+        {"track_position": 2, "track_text": "Second Track", "spotify_uri": "spotify:track:track2"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Edit tracks
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified First", "spotify_uri": "spotify:track:track1"},
+        {"track_position": 3, "track_text": "New Third", "spotify_uri": "spotify:track:track3"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Modified Mixtape", "intro_text": "Modified!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Undo should restore original tracks
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    
+    assert len(data["tracks"]) == 2
+    assert data["tracks"][0]["track_position"] == 1
+    assert data["tracks"][0]["track_text"] == "First Track"
+    assert data["tracks"][1]["track_position"] == 2
+    assert data["tracks"][1]["track_text"] == "Second Track"
+    
+    # Verify track details are present
+    for track in data["tracks"]:
+        assert "track" in track
+        assert track["track"]["id"] == f"{track['track']['uri'].replace('spotify:track:', '')}"
+
+def test_undo_redo_concurrent_requests(client: tuple[TestClient, str, dict]) -> None:
+    """Test that concurrent undo/redo requests are handled correctly."""
+    import threading
+    import time
+    
+    from backend.routers import mixtape as mixtape_router
+    
+    test_client, token, _ = client
+    
+    # Create and edit mixtape
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    new_tracks = [
+        {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Modified Mixtape", "intro_text": "Modified!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    
+    # Enable test pause mechanism
+    mixtape_router._TEST_PAUSE_EVENT = threading.Event()
+    mixtape_router._TEST_PAUSE_ENABLED = True
+    
+    results: list[tuple[str, httpx.Response]] = []
+    
+    def send_undo() -> None:
+        resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+        results.append(("undo", resp))
+    
+    def send_redo() -> None:
+        resp = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+        results.append(("redo", resp))
+    
+    # Start undo thread (will acquire lock and then pause)
+    t1 = threading.Thread(target=send_undo, daemon=True)
+    t1.start()
+    
+    time.sleep(0.5)  # Give t1 time to reach the pause
+    assert t1.is_alive(), "First undo should be waiting due to test pause"
+    
+    # Start redo thread (should block on SELECT FOR UPDATE)
+    t2 = threading.Thread(target=send_redo, daemon=True)
+    t2.start()
+    
+    time.sleep(0.5)
+    assert t2.is_alive(), "Second redo should be blocked by row lock"
+    
+    # Unblock the first request
+    mixtape_router._TEST_PAUSE_ENABLED = False
+    assert mixtape_router._TEST_PAUSE_EVENT is not None
+    mixtape_router._TEST_PAUSE_EVENT.set()
+    
+    t1.join(timeout=5)
+    t2.join(timeout=5)
+    
+    assert not t1.is_alive() and not t2.is_alive(), "Both operations should have completed"
+    
+    # Validate responses
+    for _name, resp in results:
+        assert resp.status_code in [200, 400], f"Expected 200 or 400, got {resp.status_code}"
+    
+    # Clean up test pause globals
+    mixtape_router._TEST_PAUSE_EVENT = None
+    mixtape_router._TEST_PAUSE_ENABLED = False
