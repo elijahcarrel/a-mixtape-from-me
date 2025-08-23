@@ -2,8 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent } from './test-utils';
 import '@testing-library/jest-dom';
 import MixtapeTrackViewer from '../MixtapeTrackViewer';
+import { MixtapeResponse, TrackDetails } from '@/app/client';
 
-const mockTrackDetails1 = {
+const mockTrackDetails1: TrackDetails = {
   id: 'track111',
   name: 'Mock Song One',
   artists: [{ name: 'Mock Artist' }],
@@ -13,7 +14,7 @@ const mockTrackDetails1 = {
   },
   uri: 'spotify:track:111',
 };
-const mockTrackDetails2 = {
+const mockTrackDetails2: TrackDetails = {
   id: 'track222',
   name: 'Another Track',
   artists: [{ name: 'Another Artist' }],
@@ -24,7 +25,7 @@ const mockTrackDetails2 = {
   uri: 'spotify:track:222',
 };
 
-const mockMixtape = {
+const mockMixtape: MixtapeResponse = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
@@ -47,6 +48,8 @@ const mockMixtape = {
       track: mockTrackDetails2,
     },
   ],
+  can_undo: true,
+  can_redo: false,
 };
 
 jest.mock('../EditButton', () => {

@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import EditButton from './EditButton';
 import ThemeProvider from './ThemeProvider';
 import '@testing-library/jest-dom';
+import { MixtapeResponse } from '../client';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
@@ -19,7 +20,7 @@ jest.mock('../hooks/useAuth', () => ({
 }));
 
 describe('EditButton', () => {
-  const mixtape = {
+  const mixtape: MixtapeResponse = {
     public_id: 'abc123',
     stack_auth_user_id: 'user1',
     name: 'Test',
@@ -31,6 +32,8 @@ describe('EditButton', () => {
     create_time: '',
     last_modified_time: '',
     tracks: [],
+    can_undo: true,
+    can_redo: false,
   };
 
   beforeEach(() => {

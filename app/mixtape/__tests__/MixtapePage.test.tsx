@@ -43,6 +43,8 @@ const mockMixtapeData: MixtapeResponse = {
   subtitle2: 'Subtitle 2',
   subtitle3: 'Subtitle 3',
   is_public: false,
+  can_undo: true,
+  can_redo: false,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
   tracks: [
