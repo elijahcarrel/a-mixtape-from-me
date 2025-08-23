@@ -94,7 +94,7 @@ describe('MixtapeEditorToolbar', () => {
     expect(screen.getByTestId('redo-button')).toBeInTheDocument();
     expect(screen.getByTestId('share-button')).toBeInTheDocument();
     expect(screen.getByTestId('preview-button')).toBeInTheDocument();
-    expect(screen.getByTestId('saving-indicator')).toBeInTheDocument();
+    expect(screen.getByTestId('status-indicator')).toBeInTheDocument();
   });
 
   it('enables undo button when can_undo is true', () => {
@@ -275,9 +275,58 @@ describe('MixtapeEditorToolbar', () => {
     });
   });
 
-  it('shows success toast when undo is successful', async () => {
-    const mockResponse = { ...mockMixtape, version: 4, can_undo: false, can_redo: true };
-    mockMakeRequest.mockResolvedValueOnce(mockResponse);
+  it('shows undo status in status indicator when undoing', async () => {
+    let resolveRequest: (value: any) => void;
+    const requestPromise = new Promise((resolve) => {
+      resolveRequest = resolve;
+    });
+    
+    mockMakeRequest.mockReturnValueOnce(requestPromise);
+
+    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+    
+    const undoButton = screen.getByTestId('undo-button');
+    fireEvent.click(undoButton);
+
+    // Should show "Undoing..." status
+    expect(screen.getByText('Undoing...')).toBeInTheDocument();
+    
+    // Resolve the request
+    resolveRequest!(mockMixtape);
+
+    await waitFor(() => {
+      expect(screen.getByText('Undo successful')).toBeInTheDocument();
+    });
+  });
+
+  it('shows redo status in status indicator when redoing', async () => {
+    const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
+    
+    let resolveRequest: (value: any) => void;
+    const requestPromise = new Promise((resolve) => {
+      resolveRequest = resolve;
+    });
+    
+    mockMakeRequest.mockReturnValueOnce(requestPromise);
+
+    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
+    
+    const redoButton = screen.getByTestId('redo-button');
+    fireEvent.click(redoButton);
+
+    // Should show "Redoing..." status
+    expect(screen.getByText('Redoing...')).toBeInTheDocument();
+    
+    // Resolve the request
+    resolveRequest!(mockMixtape);
+
+    await waitFor(() => {
+      expect(screen.getByText('Redo successful')).toBeInTheDocument();
+    });
+  });
+
+  it('shows failure status in status indicator when undo fails', async () => {
+    mockMakeRequest.mockRejectedValueOnce(new Error('Failed to undo'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
     
@@ -285,15 +334,13 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(undoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Undo successful')).toBeInTheDocument();
+      expect(screen.getByText('Undo failed')).toBeInTheDocument();
     });
   });
 
-  it('shows success toast when redo is successful', async () => {
+  it('shows failure status in status indicator when redo fails', async () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
-    const mockResponse = { ...mixtapeWithRedo, version: 6, can_undo: true, can_redo: false };
-    
-    mockMakeRequest.mockResolvedValueOnce(mockResponse);
+    mockMakeRequest.mockRejectedValueOnce(new Error('Failed to redo'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
     
@@ -301,8 +348,20 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(redoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Redo successful')).toBeInTheDocument();
+      expect(screen.getByText('Redo failed')).toBeInTheDocument();
     });
+  });
+
+  it('shows saving status when isSaving is true', () => {
+    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} isSaving={true} />);
+    
+    expect(screen.getByText('Saving...')).toBeInTheDocument();
+  });
+
+  it('shows saved status by default', () => {
+    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+    
+    expect(screen.getByText('Saved')).toBeInTheDocument();
   });
 
   it('toggles public visibility and saves when checkbox is changed', () => {

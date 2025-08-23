@@ -8,6 +8,7 @@ import {
   Eye,
   RefreshCcw,
   CloudCheck,
+  History,
   X,
 } from 'lucide-react';
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
@@ -45,11 +46,13 @@ export default function MixtapeEditorToolbar({
 
   // Share dialog state
   const [isShareOpen, setIsShareOpen] = useState(false);
-  // Toast message state
+  // Toast message state (only for errors now)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   // Undo/redo loading states
   const [isUndoing, setIsUndoing] = useState(false);
   const [isRedoing, setIsRedoing] = useState(false);
+  // Status text state for the status indicator
+  const [statusText, setStatusText] = useState<string>('Saved');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -79,16 +82,22 @@ export default function MixtapeEditorToolbar({
     if (!mixtape.can_undo || isUndoing) return;
     
     setIsUndoing(true);
+    setStatusText('Undoing...');
     try {
       const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/undo`, {
         method: 'POST',
       });
       
       onUndoRedo(updatedMixtape);
-      showToast('Undo successful');
+      setStatusText('Undo successful');
+      // Clear success message after 3 seconds
+      setTimeout(() => setStatusText('Saved'), 3000);
     } catch (error) {
       console.error('Error undoing:', error);
+      setStatusText('Undo failed');
       showToast('Error undoing changes');
+      // Clear failure message after 3 seconds
+      setTimeout(() => setStatusText('Saved'), 3000);
     } finally {
       setIsUndoing(false);
     }
@@ -98,16 +107,22 @@ export default function MixtapeEditorToolbar({
     if (!mixtape.can_redo || isRedoing) return;
     
     setIsRedoing(true);
+    setStatusText('Redoing...');
     try {
       const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/redo`, {
         method: 'POST',
       });
       
       onUndoRedo(updatedMixtape);
-      showToast('Redo successful');
+      setStatusText('Redo successful');
+      // Clear success message after 3 seconds
+      setTimeout(() => setStatusText('Saved'), 3000);
     } catch (error) {
       console.error('Error redoing:', error);
+      setStatusText('Redo failed');
       showToast('Error redoing changes');
+      // Clear failure message after 3 seconds
+      setTimeout(() => setStatusText('Saved'), 3000);
     } finally {
       setIsRedoing(false);
     }
@@ -147,14 +162,29 @@ export default function MixtapeEditorToolbar({
           {/* Status */}
           <div
             className="flex items-center space-x-1 ml-2 text-xs sm:text-sm"
-            data-testid="saving-indicator"
+            data-testid="status-indicator"
           >
-            {isSaving ? (
-              <RefreshCcw size={16} className="animate-spin" />
+            {isUndoing ? (
+              <>
+                <History size={16} className="animate-spin" />
+                <span>Undoing...</span>
+              </>
+            ) : isRedoing ? (
+              <>
+                <History size={16} className="animate-spin scale-x-[-1]" />
+                <span>Redoing...</span>
+              </>
+            ) : isSaving ? (
+              <>
+                <RefreshCcw size={16} className="animate-spin" />
+                <span>Saving...</span>
+              </>
             ) : (
-              <CloudCheck size={16} />
+              <>
+                <CloudCheck size={16} />
+                <span>{statusText}</span>
+              </>
             )}
-            <span>{isSaving ? 'Saving...' : 'Saved'}</span>
           </div>
         </div>
 
