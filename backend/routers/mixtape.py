@@ -255,7 +255,7 @@ def validate_mixtape_access(mixtape: Mixtape | None, authenticated_user: Authent
             raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
         if not(mixtape.is_public):
             raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
-    
+
     return mixtape
 
 @router.get("/{public_id}", response_model=MixtapeResponse)

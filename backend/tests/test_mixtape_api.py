@@ -791,7 +791,18 @@ def test_undo_redo_concurrent_requests(client: tuple[TestClient, str, dict]) -> 
 
     # Validate responses
     for _name, resp in results:
-        assert resp.status_code in [200, 400], f"Expected 200 or 400, got {resp.status_code}"
+        assert_response_success(resp)
+
+    # Assert that the mixtape is back to the updated state.
+    resp = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["name"] == "Modified Mixtape"
+    assert data["intro_text"] == "Modified!"
+    assert len(data["tracks"]) == 1
+    assert data["tracks"][0]["track_text"] == "Modified"
+    assert data["can_undo"] is True
+    assert data["can_redo"] is False
 
     # Clean up test pause globals
     mixtape_router._TEST_PAUSE_EVENT = None
