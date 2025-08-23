@@ -49,10 +49,12 @@ def run_migration(database_url: str, dry_run: bool = False) -> None:
         # Add columns to mixtape table
         "ALTER TABLE mixtape ADD COLUMN IF NOT EXISTS undo_to_version INTEGER",
         "ALTER TABLE mixtape ADD COLUMN IF NOT EXISTS redo_to_version INTEGER",
+        "ALTER TABLE mixtape ADD COLUMN IF NOT EXISTS resembles_version INTEGER",
         
         # Add columns to mixtape_snapshot table  
         "ALTER TABLE mixtape_snapshot ADD COLUMN IF NOT EXISTS undo_to_version INTEGER",
         "ALTER TABLE mixtape_snapshot ADD COLUMN IF NOT EXISTS redo_to_version INTEGER",
+        "ALTER TABLE mixtape_snapshot ADD COLUMN IF NOT EXISTS resembles_version INTEGER",
     ]
     
     print(f"Running migration on database: {database_url}")
@@ -80,9 +82,11 @@ def run_migration(database_url: str, dry_run: bool = False) -> None:
     print("\nMigration completed successfully!")
     print("\nNew columns added:")
     print("- mixtape.undo_to_version")
-    print("- mixtape.redo_to_version") 
+    print("- mixtape.redo_to_version")
+    print("- mixtape.resembles_version")
     print("- mixtape_snapshot.undo_to_version")
     print("- mixtape_snapshot.redo_to_version")
+    print("- mixtape_snapshot.resembles_version")
     print("\nNote: These columns will be NULL for existing records, which is correct.")
     print("Undo/redo functionality will work for new edits going forward.")
 

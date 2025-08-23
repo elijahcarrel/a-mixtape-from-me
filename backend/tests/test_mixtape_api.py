@@ -807,3 +807,190 @@ def test_undo_redo_concurrent_requests(client: tuple[TestClient, str, dict]) -> 
     # Clean up test pause globals
     mixtape_router._TEST_PAUSE_EVENT = None
     mixtape_router._TEST_PAUSE_ENABLED = False
+
+# --- APPEND-ONLY VERSION HISTORY TESTS ---
+
+def test_append_only_version_history_basic_scenario(client: tuple[TestClient, str, dict]) -> None:
+    """Test the append-only version history with the exact scenario from the user requirements."""
+    test_client, token, _ = client
+    
+    # Create mixtape (version 1)
+    tracks = [
+        {"track_position": 1, "track_text": "Original Track", "spotify_uri": "spotify:track:track1"}
+    ]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    # Verify initial state
+    resp = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["version"] == 1
+    assert data["can_undo"] is False
+    assert data["can_redo"] is False
+    
+    # Make 4 PUT requests (versions 2, 3, 4, 5)
+    for i in range(2, 6):
+        new_tracks = [
+            {"track_position": 1, "track_text": f"Track Version {i}", "spotify_uri": "spotify:track:track1"}
+        ]
+        resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": f"Mixtape V{i}", "intro_text": "Updated!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+        assert_response_success(resp)
+        assert resp.json()["version"] == i
+        
+        # Verify the state
+        resp = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
+        assert_response_success(resp)
+        data = resp.json()
+        assert data["version"] == i
+        assert data["name"] == f"Mixtape V{i}"
+        assert data["tracks"][0]["track_text"] == f"Track Version {i}"
+        assert data["can_undo"] is True
+        assert data["can_redo"] is False
+    
+    # Now at version 5, undo (should create version 6 that resembles version 4)
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["version"] == 6  # New version created
+    assert data["name"] == "Mixtape V4"  # Content from version 4
+    assert data["tracks"][0]["track_text"] == "Track Version 4"
+    assert data["can_undo"] is True  # Can undo to version 3
+    assert data["can_redo"] is True  # Can redo to version 5
+
+def test_append_only_double_undo_scenario(client: tuple[TestClient, str, dict]) -> None:
+    """Test double undo scenario: undo twice from version 5."""
+    test_client, token, _ = client
+    
+    # Setup: Create mixtape and make 4 edits to reach version 5
+    tracks = [{"track_position": 1, "track_text": "Original", "spotify_uri": "spotify:track:track1"}]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    for i in range(2, 6):
+        new_tracks = [{"track_position": 1, "track_text": f"Version {i}", "spotify_uri": "spotify:track:track1"}]
+        resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": f"Name V{i}", "intro_text": "Test", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+        assert_response_success(resp)
+    
+    # First undo: version 5 -> version 6 (resembles version 4)
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["version"] == 6
+    assert data["name"] == "Name V4"
+    assert data["tracks"][0]["track_text"] == "Version 4"
+    
+    # Second undo: version 6 -> version 7 (resembles version 3)
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["version"] == 7
+    assert data["name"] == "Name V3"
+    assert data["tracks"][0]["track_text"] == "Version 3"
+    assert data["can_undo"] is True  # Can undo to version 2
+    assert data["can_redo"] is True  # Can redo to version 4 (via version 6)
+
+def test_append_only_redo_after_undo_scenario(client: tuple[TestClient, str, dict]) -> None:
+    """Test redo scenario: undo then redo from version 5."""
+    test_client, token, _ = client
+    
+    # Setup: Create mixtape and make 4 edits to reach version 5
+    tracks = [{"track_position": 1, "track_text": "Original", "spotify_uri": "spotify:track:track1"}]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    for i in range(2, 6):
+        new_tracks = [{"track_position": 1, "track_text": f"Version {i}", "spotify_uri": "spotify:track:track1"}]
+        resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": f"Name V{i}", "intro_text": "Test", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+        assert_response_success(resp)
+    
+    # Undo: version 5 -> version 6 (resembles version 4)
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    assert resp.json()["version"] == 6
+    
+    # Redo: version 6 -> version 7 (resembles version 5)
+    resp = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["version"] == 7
+    assert data["name"] == "Name V5"
+    assert data["tracks"][0]["track_text"] == "Version 5"
+    assert data["can_undo"] is True  # Can undo to version 4 (via version 6)
+    assert data["can_redo"] is False  # No more redo available
+
+def test_append_only_edit_after_undo_breaks_chain(client: tuple[TestClient, str, dict]) -> None:
+    """Test that editing after undo breaks the redo chain and creates proper version."""
+    test_client, token, _ = client
+    
+    # Setup: Create mixtape and make 4 edits to reach version 5
+    tracks = [{"track_position": 1, "track_text": "Original", "spotify_uri": "spotify:track:track1"}]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    for i in range(2, 6):
+        new_tracks = [{"track_position": 1, "track_text": f"Version {i}", "spotify_uri": "spotify:track:track1"}]
+        resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": f"Name V{i}", "intro_text": "Test", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+        assert_response_success(resp)
+    
+    # Undo: version 5 -> version 6 (resembles version 4)
+    resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["version"] == 6
+    assert data["can_redo"] is True
+    
+    # Edit: version 6 -> version 7 (new content, breaks redo chain)
+    new_tracks = [{"track_position": 1, "track_text": "New Branch", "spotify_uri": "spotify:track:track1"}]
+    resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": "Branched Edit", "intro_text": "New!", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    assert resp.json()["version"] == 7
+    
+    # Verify the state
+    resp = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
+    assert_response_success(resp)
+    data = resp.json()
+    assert data["version"] == 7
+    assert data["name"] == "Branched Edit"
+    assert data["tracks"][0]["track_text"] == "New Branch"
+    assert data["can_undo"] is True  # Can undo to version 6
+    assert data["can_redo"] is False  # Redo chain is broken
+
+def test_append_only_versions_always_increment(client: tuple[TestClient, str, dict]) -> None:
+    """Test that version numbers always increment, never go backwards."""
+    test_client, token, _ = client
+    
+    # Create mixtape
+    tracks = [{"track_position": 1, "track_text": "Track", "spotify_uri": "spotify:track:track1"}]
+    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+    
+    expected_version = 1
+    
+    # Make several edits
+    for i in range(2, 5):
+        new_tracks = [{"track_position": 1, "track_text": f"Edit {i}", "spotify_uri": "spotify:track:track1"}]
+        resp = test_client.put(f"/api/mixtape/{public_id}", json={"name": f"Name {i}", "intro_text": "Test", "is_public": True, "tracks": new_tracks}, headers={"x-stack-access-token": token})
+        assert_response_success(resp)
+        expected_version = i
+        assert resp.json()["version"] == expected_version
+    
+    # Perform undo/redo operations and verify version always increments
+    operations = [
+        ("undo", lambda: test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})),
+        ("undo", lambda: test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})),
+        ("redo", lambda: test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})),
+        ("edit", lambda: test_client.put(f"/api/mixtape/{public_id}", json={"name": "Final", "intro_text": "Test", "is_public": True, "tracks": tracks}, headers={"x-stack-access-token": token})),
+    ]
+    
+    for op_name, op_func in operations:
+        resp = op_func()
+        assert_response_success(resp)
+        expected_version += 1
+        actual_version = resp.json()["version"]
+        assert actual_version == expected_version, f"After {op_name}, expected version {expected_version}, got {actual_version}"

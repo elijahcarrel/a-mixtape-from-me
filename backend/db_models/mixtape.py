@@ -27,6 +27,7 @@ class Mixtape(SQLModel, table=True):
     version: int = Field(default=1)
     undo_to_version: int | None = Field(default=None, description="Version to go to when undoing from this version")
     redo_to_version: int | None = Field(default=None, description="Version to go to when redoing from this version")
+    resembles_version: int | None = Field(default=None, description="The version this current state resembles (for undo/redo operations)")
     # Relationships
     tracks: list["MixtapeTrack"] = Relationship(back_populates="mixtape", cascade_delete=True)
     snapshots: list["MixtapeSnapshot"] = Relationship(back_populates="mixtape")
@@ -50,29 +51,34 @@ class Mixtape(SQLModel, table=True):
             stack_auth_user_id=self.stack_auth_user_id,
             undo_to_version=self.undo_to_version,
             redo_to_version=self.redo_to_version,
+            resembles_version=self.resembles_version,
         )
 
-    def finalize(self):
+    def finalize(self, is_undo_redo_operation: bool = False):
         """
         Finalize the mixtape update by incrementing version and creating snapshots.
-
+        
         This method should be called as the last step before committing changes to
         the database. It handles:
         1. Version management (increment for updates, set to 1 for new mixtapes)
         2. Timestamp updates (create_time for new, last_modified_time for all)
-        3. Undo/redo pointer management (clear redo chain after edits)
+        3. Undo/redo pointer management (clear redo chain after normal edits)
         4. Snapshot generation for audit trail
-
+        
+        Args:
+            is_undo_redo_operation: If True, preserves undo/redo pointers as set by caller.
+                                  If False, clears redo chain for normal edits.
+        
         For new mixtapes:
         - Sets create_time and last_modified_time to current time
         - Sets version to 1
         - Initializes undo/redo pointers to None (no history)
-
+        
         For existing mixtapes:
         - Increments version number
         - Updates last_modified_time
-        - Clears redo_to_version to break the redo chain
-        - Preserves undo_to_version for undo functionality
+        - For normal edits: Clears redo_to_version to break the redo chain
+        - For undo/redo: Preserves undo/redo pointers set by caller
         """
         now = datetime.now(UTC)
         if self.id is None:
@@ -82,11 +88,15 @@ class Mixtape(SQLModel, table=True):
             # New mixtapes have no undo/redo history
             self.undo_to_version = None
             self.redo_to_version = None
+            self.resembles_version = None  # New content, doesn't resemble any previous version
         else:
             # Mixtape is being updated.
             self.version += 1
-            # After an edit, break the redo chain
-            self.redo_to_version = None
+            if not is_undo_redo_operation:
+                # After a normal edit, break the redo chain and clear resembles_version
+                self.redo_to_version = None
+                self.resembles_version = None
+                # Note: undo_to_version and other fields are preserved for undo/redo operations
 
         self.last_modified_time = now
         self._generate_snapshots()
@@ -120,6 +130,7 @@ class Mixtape(SQLModel, table=True):
         self.version = snapshot.version
         self.undo_to_version = snapshot.undo_to_version
         self.redo_to_version = snapshot.redo_to_version
+        self.resembles_version = snapshot.resembles_version
 
     def _generate_snapshots(self):
         """
@@ -181,6 +192,7 @@ class MixtapeSnapshot(SQLModel, table=True):
     stack_auth_user_id: str | None = Field(default=None, description="Stack Auth User ID of the owner (None for anonymous)")
     undo_to_version: int | None = Field(default=None, description="Version to go to when undoing from this version")
     redo_to_version: int | None = Field(default=None, description="Version to go to when redoing from this version")
+    resembles_version: int | None = Field(default=None, description="The version this current state resembles (for undo/redo operations)")
     # Relationships
     mixtape: "Mixtape" = Relationship(back_populates="snapshots")
     tracks: list["MixtapeSnapshotTrack"] = Relationship(back_populates="mixtape_snapshot", cascade_delete=True)

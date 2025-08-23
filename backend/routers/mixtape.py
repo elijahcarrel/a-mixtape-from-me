@@ -215,6 +215,7 @@ def load_mixtape_api_models_from_dbmodel(spotify_client: SpotifyClient, mixtape:
         create_time=mixtape.create_time.isoformat(),
         last_modified_time=mixtape.last_modified_time.isoformat(),
         stack_auth_user_id=mixtape.stack_auth_user_id,
+        version=mixtape.version,
         tracks=enriched_tracks,
         can_undo=mixtape.undo_to_version is not None,
         can_redo=mixtape.redo_to_version is not None,
@@ -386,22 +387,28 @@ def undo_mixtape(
     if mixtape.id is None:
         raise HTTPException(status_code=500, detail="Got unexpected null Mixtape ID")
 
-    # Load the target snapshot
+    # Load the target snapshot (version we want to resemble)
     target_snapshot = mixtape_query.load_snapshot_by_version(mixtape.id, mixtape.undo_to_version)
     if target_snapshot is None:
         raise HTTPException(status_code=500, detail="Target version not found in snapshots")
 
-    # Store current state for redo
+    # Store current version for redo chain
     current_version = mixtape.version
+    
+    # Set up new state: copy content from target snapshot but create new version
+    mixtape.name = target_snapshot.name
+    mixtape.intro_text = target_snapshot.intro_text
+    mixtape.subtitle1 = target_snapshot.subtitle1
+    mixtape.subtitle2 = target_snapshot.subtitle2
+    mixtape.subtitle3 = target_snapshot.subtitle3
+    mixtape.is_public = target_snapshot.is_public
+    
+    # Set up undo/redo pointers for the new version
+    mixtape.undo_to_version = target_snapshot.undo_to_version  # Point to where target could undo
+    mixtape.redo_to_version = current_version  # Can redo back to where we came from
+    mixtape.resembles_version = target_snapshot.version  # This new version resembles the target
 
-    # Restore mixtape from snapshot
-    mixtape.restore_from_snapshot(target_snapshot)
-
-    # Update undo/redo pointers
-    mixtape.redo_to_version = current_version
-    # The undo_to_version is already set from the snapshot
-
-    # Restore tracks from snapshot
+    # Restore tracks from target snapshot
     mixtape.tracks.clear()
     for snapshot_track in target_snapshot.tracks:
         track = MixtapeTrack(
@@ -412,11 +419,9 @@ def undo_mixtape(
         )
         mixtape.tracks.append(track)
 
-    # Update the snapshot's redo pointer to point back to the current version
-    target_snapshot.redo_to_version = current_version
-
+    # Finalize to create new version and snapshot (preserve undo/redo pointers)
+    mixtape.finalize(is_undo_redo_operation=True)
     session.add(mixtape)
-    session.add(target_snapshot)
 
     # Pause before releasing the lock for deterministic concurrency tests.
     _maybe_pause_for_tests()
@@ -476,22 +481,28 @@ def redo_mixtape(
     if mixtape.id is None:
         raise HTTPException(status_code=500, detail="Got unexpected null Mixtape ID")
 
-    # Load the target snapshot
+    # Load the target snapshot (version we want to resemble)
     target_snapshot = mixtape_query.load_snapshot_by_version(mixtape.id, mixtape.redo_to_version)
     if target_snapshot is None:
         raise HTTPException(status_code=500, detail="Target version not found in snapshots")
 
-    # Store current state for undo
+    # Store current version for undo chain
     current_version = mixtape.version
+    
+    # Set up new state: copy content from target snapshot but create new version
+    mixtape.name = target_snapshot.name
+    mixtape.intro_text = target_snapshot.intro_text
+    mixtape.subtitle1 = target_snapshot.subtitle1
+    mixtape.subtitle2 = target_snapshot.subtitle2
+    mixtape.subtitle3 = target_snapshot.subtitle3
+    mixtape.is_public = target_snapshot.is_public
+    
+    # Set up undo/redo pointers for the new version
+    mixtape.undo_to_version = current_version  # Can undo back to where we came from
+    mixtape.redo_to_version = target_snapshot.redo_to_version  # Point to where target could redo
+    mixtape.resembles_version = target_snapshot.version  # This new version resembles the target
 
-    # Restore mixtape from snapshot
-    mixtape.restore_from_snapshot(target_snapshot)
-
-    # Update undo/redo pointers
-    mixtape.undo_to_version = current_version
-    # The redo_to_version is already set from the snapshot
-
-    # Restore tracks from snapshot
+    # Restore tracks from target snapshot
     mixtape.tracks.clear()
     for snapshot_track in target_snapshot.tracks:
         track = MixtapeTrack(
@@ -502,11 +513,9 @@ def redo_mixtape(
         )
         mixtape.tracks.append(track)
 
-    # Update the snapshot's undo pointer to point back to the current version
-    target_snapshot.undo_to_version = current_version
-
+    # Finalize to create new version and snapshot (preserve undo/redo pointers)
+    mixtape.finalize(is_undo_redo_operation=True)
     session.add(mixtape)
-    session.add(target_snapshot)
 
     # Pause before releasing the lock for deterministic concurrency tests.
     _maybe_pause_for_tests()
