@@ -31,24 +31,25 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
   // Local state to track mixtape updates from editor
   const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(null);
+  // Handle updates from the editor (save, undo, redo)
+  const handleMixtapeUpdateViaAnotherEndpoint = useCallback((updatedMixtape: MixtapeResponse) => {
+    setLocalMixtape(updatedMixtape);
+  }, []);
 
   // Use local state if available, otherwise use API response
   const currentMixtape = localMixtape || mixtape;
 
-  // Handle updates from the editor (save, undo, redo)
-  const handleMixtapeUpdate = useCallback((updatedMixtape: MixtapeResponse) => {
-    setLocalMixtape(updatedMixtape);
-  }, []);
-
-  // Reset local state when refetching from server
   const handleRefetch = useCallback(async () => {
-    setLocalMixtape(null);
     await refetch();
+    // Now that the mixtape has been refetched, we can clear the local state.
+    setLocalMixtape(null);
   }, [refetch]);
 
   if (loading) {
     return <LoadingDisplay message="Loading mixtape..." />;
   }
+
+  console.log('currentMixtape?.intro_text:', currentMixtape?.intro_text);
 
   if (error || !currentMixtape) {
     return (
@@ -72,7 +73,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
     <MixtapeContext.Provider value={{ 
       mixtape: currentMixtape, 
       refetch: handleRefetch,
-      onMixtapeUpdated: handleMixtapeUpdate
+      onMixtapeUpdated: handleMixtapeUpdateViaAnotherEndpoint
     }}>
       {children}
     </MixtapeContext.Provider>

@@ -164,7 +164,11 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpda
           is_public: mixtape.is_public,
           tracks: mixtape.tracks
         }}
-        enableReinitialize={true}
+        // We use optimistic UI updates, so the values are usually the most up to date
+        // whereas the mixtape values from the MixtapeContext are sometimes slightly stale.
+        // If we left this enabled, we would see a flash of the stale data when the mixtape
+        // auto-saves.
+        enableReinitialize={false}
         onSubmit={() => {}} // We handle saving via our custom handlers
       >
         {({ values, setFieldValue }) => (
