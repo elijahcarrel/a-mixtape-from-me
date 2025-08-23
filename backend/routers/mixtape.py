@@ -223,8 +223,8 @@ def update_mixtape(
     # Wipe existing tracks so we can insert new ones.
     # TODO: we should be able to use sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     # to accomplish this instead. For now, this will do.
-    session.exec(
-        delete(MixtapeTrack).where(MixtapeTrack.mixtape_id == mixtape.id)
+    session.execute(
+        delete(MixtapeTrack).where(MixtapeTrack.mixtape_id == mixtape.id) # type: ignore[arg-type]
     )
 
     # Validate and enrich tracks
