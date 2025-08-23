@@ -219,6 +219,7 @@
                     "mixtape"
                 ],
                 "summary": "Create Mixtape",
+                "description": "Creates a new mixtape (with tracks).\nIf user is authenticated, the mixtape will be associated with them. If not, it\nwill remain an anonymous mixtape.\nReturns the mixtape's generated public ID.\nTODO: rethink the return value (maybe make an explicit for it?)",
                 "operationId": "create_mixtape_api_mixtape_post",
                 "requestBody": {
                     "required": true,
@@ -260,6 +261,7 @@
                     "mixtape"
                 ],
                 "summary": "List My Mixtapes",
+                "description": "Lists all mixtapes owned by the current user, taking into account the specified query parameters.\nDoes not return the entire mixtape, just an overview.",
                 "operationId": "list_my_mixtapes_api_mixtape_get",
                 "parameters": [
                     {
@@ -387,6 +389,7 @@
                     "mixtape"
                 ],
                 "summary": "Get Mixtape",
+                "description": "Gets the mixtape with the given public ID.",
                 "operationId": "get_mixtape_api_mixtape__public_id__get",
                 "parameters": [
                     {
@@ -427,6 +430,7 @@
                     "mixtape"
                 ],
                 "summary": "Update Mixtape",
+                "description": "Updates the mixtape with the given ID.\nReturns the new mixtape version.\nTODO: rethink the return value.",
                 "operationId": "update_mixtape_api_mixtape__public_id__put",
                 "parameters": [
                     {
