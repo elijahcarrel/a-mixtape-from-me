@@ -22,7 +22,7 @@ CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON "Mixtape" (stac
 
 CREATE INDEX "ix_Mixtape_stack_auth_user_id" ON "Mixtape" (stack_auth_user_id);
 
-CREATE TABLE "MixtapeAudit" (
+CREATE TABLE "MixtapeSnapshot" (
 	id SERIAL NOT NULL, 
 	mixtape_id INTEGER NOT NULL, 
 	public_id VARCHAR NOT NULL, 
@@ -40,7 +40,7 @@ CREATE TABLE "MixtapeAudit" (
 	FOREIGN KEY(mixtape_id) REFERENCES "Mixtape" (id)
 );
 
-CREATE INDEX "ix_MixtapeAudit_public_id" ON "MixtapeAudit" (public_id);
+CREATE INDEX "ix_MixtapeSnapshot_public_id" ON "MixtapeSnapshot" (public_id);
 
 CREATE TABLE "MixtapeTrack" (
 	id SERIAL NOT NULL, 
@@ -53,13 +53,13 @@ CREATE TABLE "MixtapeTrack" (
 	FOREIGN KEY(mixtape_id) REFERENCES "Mixtape" (id)
 );
 
-CREATE TABLE "MixtapeAuditTrack" (
+CREATE TABLE "MixtapeSnapshotTrack" (
 	id SERIAL NOT NULL, 
-	mixtape_audit_id INTEGER NOT NULL, 
+	mixtape_snapshot_id INTEGER NOT NULL, 
 	track_position INTEGER NOT NULL, 
 	track_text VARCHAR, 
 	spotify_uri VARCHAR(255) NOT NULL, 
 	PRIMARY KEY (id), 
-	FOREIGN KEY(mixtape_audit_id) REFERENCES "MixtapeAudit" (id)
+	FOREIGN KEY(mixtape_snapshot_id) REFERENCES "MixtapeSnapshot" (id)
 );
 

@@ -8,7 +8,7 @@
 ## Database Models
 - All models in `backend/db_models` using SQLModel
 - Use lower_snake_case for table names and columns
-- Include audit trails for data changes via the `_snapshot` tables
+- Include snapshot trails for data changes via the `_snapshot` tables
 
 ## Service/Router Patterns
 - Use class objects at all times, never dicts
