@@ -1,17 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session
-
+from datetime import datetime, UTC
 from backend.api_models.mixtape import (
     MixtapeOverview,
     MixtapeRequest,
     MixtapeResponse,
+    MixtapeTrackRequest,
     MixtapeTrackResponse,
 )
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_api_models.track import (
     spotify_track_to_mixtape_track_details,
 )
-from backend.db_models.mixtape import Mixtape
+from backend.db_models.mixtape import Mixtape, MixtapeTrack
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
 from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
 from backend.middleware.db_conn.dependency_helpers import (
@@ -19,13 +21,28 @@ from backend.middleware.db_conn.dependency_helpers import (
     get_write_session,
 )
 from backend.query.mixtape import MixtapeQuery
-from backend.service.mixtape import MixtapeService
+from uuid import uuid4
+import threading
 
 router = APIRouter()
 
 # POST /mixtape: Create a new mixtape (with tracks)
 # GET /mixtape/{public_id}: Retrieve a mixtape (with tracks)
 # PUT /mixtape/{public_id}: Update a mixtape (with tracks)
+
+def parse_track(track: MixtapeTrackRequest, spotify_client: SpotifyClient)->MixtapeTrack:
+    # Look up TrackDetails to verify track is valid.
+    track_id = track.spotify_uri.replace('spotify:track:', '')
+    details = spotify_client.get_track(track_id)
+    if not details:
+        raise HTTPException(status_code=400, detail=f"Invalid Spotify URI or failed lookup for track with position {track.track_position}: {track.spotify_uri}")
+    return MixtapeTrack(
+        track_position=track.track_position,
+        track_text=track.track_text,
+        spotify_uri=track.spotify_uri,
+    )
+
+
 
 @router.post("", response_model=dict, status_code=201)
 def create_mixtape(
@@ -34,33 +51,35 @@ def create_mixtape(
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
-    # Validate and enrich tracks
-    enriched_tracks = []
-    for track in request.tracks:
-        try:
-            # Look up TrackDetails
-            track_id = track.spotify_uri.replace('spotify:track:', '')
-            details = spotify_client.get_track(track_id)
-            if not details:
-                raise Exception("Track not found")
-        except Exception:
-            raise HTTPException(status_code=400, detail=f"Invalid Spotify URI or failed lookup: {track.spotify_uri}")
-        enriched_tracks.append({
-            "track_position": track.track_position,
-            "track_text": track.track_text,
-            "spotify_uri": track.spotify_uri
-        })
-
     # Anonymous mixtapes must be public
     if authenticated_user is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
 
     # For anonymous mixtapes, stack_auth_user_id will be None
     stack_auth_user_id = authenticated_user.get_user_id() if authenticated_user else None
-    try:
-        public_id = MixtapeService.create_in_db(session, stack_auth_user_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+
+    # Validate and enrich tracks
+    tracks = [parse_track(track, spotify_client) for track in request.tracks]
+
+    # Generate a public ID
+    public_id=str(uuid4())
+
+    mixtape = Mixtape(
+        stack_auth_user_id=stack_auth_user_id,
+        public_id=public_id,
+        name=request.name,
+        intro_text=request.intro_text,
+        subtitle1=request.subtitle1,
+        subtitle2=request.subtitle2,
+        subtitle3=request.subtitle3,
+        is_public=request.is_public,
+        tracks=tracks,
+    )
+
+    mixtape.finalize()
+    session.add(mixtape) # add root object if not already present.
+    session.commit()
+
     return {"public_id": public_id}
 
 @router.post("/{public_id}/claim", response_model=dict)
@@ -72,18 +91,26 @@ def claim_mixtape(
     """Claim an anonymous mixtape, making the authenticated user the owner."""
     stack_auth_user_id = authenticated_user.get_user_id()
 
-    try:
-        new_version = MixtapeService.claim_mixtape(session, public_id, stack_auth_user_id)
-    except ValueError as e:
-        if "not found" in str(e).lower():
-            raise HTTPException(status_code=404, detail="Mixtape not found")
-        elif "already claimed" in str(e).lower():
-            raise HTTPException(status_code=400, detail="Mixtape is already claimed")
-        else:
-            raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return {"version": new_version}
+    mixtape_query = MixtapeQuery(
+        session=session, 
+        options=[selectinload(Mixtape.tracks)], # type: ignore[arg-type]
+        for_update=True, 
+    )
+    mixtape = mixtape_query.load_by_public_id(public_id)
+
+    if mixtape is None:
+        raise HTTPException(status_code=404, detail="Mixtape not found")
+
+    if mixtape.stack_auth_user_id is not None:
+        raise HTTPException(status_code=400, detail="Mixtape is already claimed")
+
+    mixtape.stack_auth_user_id = stack_auth_user_id
+
+    mixtape.finalize()
+    session.add(mixtape) # add root object if not already present.
+    session.commit()
+
+    return {"version": mixtape.version}
 
 @router.get("", response_model=list[MixtapeOverview])
 def list_my_mixtapes(
@@ -169,24 +196,12 @@ def update_mixtape(
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
-    # Validate and enrich tracks
-    enriched_tracks = []
-    for track in request.tracks:
-        try:
-            # Look up TrackDetails
-            track_id = track.spotify_uri.replace('spotify:track:', '')
-            details = spotify_client.get_track(track_id)
-            if not details:
-                raise Exception("Track not found")
-        except Exception:
-            raise HTTPException(status_code=400, detail=f"Invalid Spotify URI or failed lookup: {track.spotify_uri}")
-        enriched_tracks.append({
-            "track_position": track.track_position,
-            "track_text": track.track_text,
-            "spotify_uri": track.spotify_uri
-        })
 
-    mixtape_query = MixtapeQuery(session=session, for_update=True)
+    mixtape_query = MixtapeQuery(
+        session=session, 
+        options=[selectinload(Mixtape.tracks)], # type: ignore[arg-type]
+        for_update=True, 
+    )
     mixtape = mixtape_query.load_by_public_id(public_id)
 
     if mixtape is None:
@@ -204,11 +219,46 @@ def update_mixtape(
     if mixtape.stack_auth_user_id is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Only claimed mixtapes can be made private; unclaimed mixtapes must remain public")
 
-    # For anonymous mixtapes (stack_auth_user_id is None), anyone can edit
-    try:
-        new_version = MixtapeService.update_in_db(session, public_id, request.name, request.intro_text, request.subtitle1, request.subtitle2, request.subtitle3, request.is_public, enriched_tracks)
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Mixtape not found")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return {"version": new_version}
+    # Validate and enrich tracks
+    tracks = [parse_track(track, spotify_client) for track in request.tracks]
+
+    mixtape.name=request.name
+    mixtape.intro_text=request.intro_text
+    mixtape.subtitle1=request.subtitle1
+    mixtape.subtitle2=request.subtitle2
+    mixtape.subtitle3=request.subtitle3
+    mixtape.is_public=request.is_public
+    # This implicitly wipes the existing tracks and replaces them with new ones,
+    # because we have cascade="all, delete-orphan" configured in this DB model.
+    mixtape.tracks=tracks
+
+    mixtape.finalize()
+    session.add(mixtape) # add root object if not already present.
+
+    # Pause before releasing the lock for deterministic concurrency tests.
+    _maybe_pause_for_tests()
+
+    session.commit()
+
+    return {"version": mixtape.version}
+
+# --- TESTING CONCURRENCY SUPPORT ---
+# These globals are used ONLY during tests to deterministically pause execution
+# in the middle of an update/claim operation while holding a row-level lock.
+# They have *no effect* in normal operation because _TEST_PAUSE_ENABLED is False
+# by default and production code never toggles it.
+_TEST_PAUSE_ENABLED: bool = False
+_TEST_PAUSE_EVENT: threading.Event | None = None
+
+
+def _maybe_pause_for_tests() -> None:
+    """Block execution if the test pause flag/event is enabled.
+
+    This allows tests to hold the row-level lock acquired by SELECT FOR UPDATE
+    while another concurrent request attempts to obtain the lock. In production
+    the function is a no-op.
+    """
+    global _TEST_PAUSE_ENABLED, _TEST_PAUSE_EVENT
+    if _TEST_PAUSE_ENABLED and _TEST_PAUSE_EVENT is not None:
+        # Wait until the event is set by the test to resume execution.
+        _TEST_PAUSE_EVENT.wait()
