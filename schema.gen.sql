@@ -18,11 +18,11 @@ CREATE TABLE mixtape (
 	PRIMARY KEY (id)
 );
 
+CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON mixtape (stack_auth_user_id, last_modified_time);
+
 CREATE UNIQUE INDEX ix_mixtape_public_id ON mixtape (public_id);
 
 CREATE INDEX ix_mixtape_stack_auth_user_id ON mixtape (stack_auth_user_id);
-
-CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON mixtape (stack_auth_user_id, last_modified_time);
 
 CREATE TABLE mixtape_snapshot (
 	id SERIAL NOT NULL, 
