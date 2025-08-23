@@ -7,9 +7,10 @@ from sqlalchemy import (
 from sqlmodel import Field, Relationship, SQLModel
 
 
-# Captures the state of a “mixtape” created by a user. A mixtape is basically a
-# playlist: a collection of songs along with metadata such as commentary that
-# goes along with the songs as well as other customizable features.
+# The mixtape table captures the state of a “mixtape” created by a user. A
+# mixtape is basically a playlist: a collection of songs along with metadata
+# such as commentary that goes along with the songs as well as other
+# customizable features.
 class Mixtape(SQLModel, table=True):
     __tablename__ = "mixtape"
     id: int | None = Field(default=None, primary_key=True)
@@ -74,16 +75,17 @@ class Mixtape(SQLModel, table=True):
             new_snapshot.tracks.append(snapshot_track)  # sets mixtape_snapshot_id automatically
 
 
-#  MixtapeSnapshot is an snapshot log for the Mixtape table, capturing a snapshot of
-#  each entry in the Mixtape table as it has existed at every moment it gets
-#  updated throughout history, including the current values, with the exception
-#  of immutable columns like id and public_id. This means that the current
-#  information is always duplicated in both tables (which is a bit wasteful),
-#  but provides full snapshot trails for version history. This means that for a
-#  given Mixtape entry, there should be at least one MixtapeSnapshot entries (the
-#  only time it would only have exactly one if was created once and never
-#  modified after that). This is an internal database table not exposed to
-#  clients (unless/until we build a way to see version history).
+#  The mixtape_snapshot table is an audit/version log for the mixtape table,
+#  capturing a snapshot of each entry in the mixtape table as it has existed at
+#  every moment it gets updated throughout history, including the current
+#  values, with the exception of immutable columns like id and public_id. This
+#  means that the current information is always duplicated in both tables (which
+#  is a bit wasteful), but provides full snapshot trails for version history.
+#  This means that for a given mixtape entry, there should be at least one
+#  mixtape_snapshot entry (the only time it would only have exactly one if was
+#  created once and never modified after that). This is an internal database
+#  table not exposed to clients (unless/until we build a way to see version
+#  history).
 class MixtapeSnapshot(SQLModel, table=True):
     __tablename__ = "mixtape_snapshot"
     id: int | None = Field(default=None, primary_key=True)
@@ -103,7 +105,7 @@ class MixtapeSnapshot(SQLModel, table=True):
     mixtape: "Mixtape" = Relationship(back_populates="snapshots")
     tracks: list["MixtapeSnapshotTrack"] = Relationship(back_populates="mixtape_snapshot", cascade_delete=True)
 
-# MixtapeTrack represents a single track within a single playlist.
+# The mixtape_track table represents a single track within a single playlist.
 class MixtapeTrack(SQLModel, table=True):
     __tablename__ = "mixtape_track"
     id: int | None = Field(default=None, primary_key=True)
@@ -124,17 +126,17 @@ class MixtapeTrack(SQLModel, table=True):
             spotify_uri=self.spotify_uri,
         )
 
-# MixtapeSnapshotTrack is an snapshot log for the MixtapeTrack table, capturing a
-# snapshot of each entry in the MixtapeTrack table as it has existed at every
-# moment the Mixtape gets updated throughout history. This means that the
-# current information is always duplicated in both tables (which is a bit
-# wasteful), but provides full snapshot trails for version history. Note that it is
-# a “child” of the Mixtape table in that it has a foreign key to the
-# MixtapeSnapshot table. This allows us to not worry about maintaining our own Version,
-# CreateTime, or LastModifiedTime entries here; rather, we can just determine
-# that from joining this with the “parent” MixtapeSnapshot table. This is an
-# internal database table not exposed to clients (unless/until we build a way to
-# see version history).
+# The mixtape_snapshot_track table is a snapshot for the mixtape_track table,
+# capturing a snapshot of each entry in the mixtape_track table as it has
+# existed at every moment the mixtape gets updated throughout history. This
+# means that the current information is always duplicated in both tables (which
+# is a bit wasteful), but provides full snapshot trails for version history.
+# Note that it is a “child” of the mixtape table in that it has a foreign key to
+# the mixtape_snapshot table. This allows us to not worry about maintaining our
+# own version, create_time, or last_modified_time entries here; rather, we can
+# just determine that from joining this with the “parent” mixtape_snapshot
+# table. This is an internal database table not exposed to clients (unless/until
+# we build a way to see version history).
 class MixtapeSnapshotTrack(SQLModel, table=True):
     __tablename__ = "mixtape_snapshot_track"
     id: int | None = Field(default=None, primary_key=True)
