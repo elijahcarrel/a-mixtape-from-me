@@ -15,9 +15,10 @@ import { MixtapeEditorForm, FormValues } from './MixtapeEditorForm';
 export interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
   onMixtapeClaimed?: () => void;
+  onMixtapeUpdated?: (updatedMixtape: MixtapeResponse) => void;
 }
 
-export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEditorProps) {
+export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpdated }: MixtapeEditorProps) {
   const [isSaving, setIsSaving] = useState(false); // request in-flight
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -55,7 +56,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   const immediateSave = useCallback(async (values: FormValues) => {
     setIsSaving(true);
     try {
-      await makeRequest(`/api/mixtape/${mixtape.public_id}`, {
+      const response = await makeRequest(`/api/mixtape/${mixtape.public_id}`, {
         method: 'PUT',
         body: {
           name: values.name,
@@ -67,6 +68,12 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
           tracks: values.tracks.map(normalizeTrackToRequest)
         }
       });
+      
+      // Use the response directly to update the layout context
+      if (response && onMixtapeUpdated) {
+        onMixtapeUpdated(response);
+      }
+      
       // Saved successfully
       setHasUnsavedChanges(false);
     } catch (error) {
@@ -74,7 +81,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     } finally {
       setIsSaving(false);
     }
-  }, [mixtape.public_id, makeRequest]);
+  }, [mixtape.public_id, makeRequest, onMixtapeUpdated]);
 
   // Debounced save function for text changes
   // TODO: fix this. Error is "React Hook useCallback received a function whose dependencies are unknown. Pass an inline function instead..
@@ -97,6 +104,13 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
       debouncedSave(values);
     }
   }, [immediateSave, debouncedSave]);
+
+  // Handle undo/redo responses
+  const handleUndoRedo = useCallback((updatedMixtape: MixtapeResponse) => {
+    if (onMixtapeUpdated) {
+      onMixtapeUpdated(updatedMixtape);
+    }
+  }, [onMixtapeUpdated]);
 
   return (
     <div className="space-y-4 sm:space-y-6 relative">
@@ -162,6 +176,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
               values={values}
               setFieldValue={setFieldValue}
               handleSave={handleSave}
+              onUndoRedo={handleUndoRedo}
             />
 
             <MixtapeEditorForm

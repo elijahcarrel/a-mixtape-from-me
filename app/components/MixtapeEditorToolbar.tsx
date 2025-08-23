@@ -22,6 +22,7 @@ interface MixtapeEditorToolbarProps {
   values: FormValues;
   setFieldValue: (field: string, value: any) => void;
   handleSave: (values: FormValues, immediate: boolean) => void;
+  onUndoRedo: (updatedMixtape: MixtapeResponse) => void;
 }
 
 export default function MixtapeEditorToolbar({
@@ -30,6 +31,7 @@ export default function MixtapeEditorToolbar({
   values,
   setFieldValue,
   handleSave,
+  onUndoRedo,
 }: MixtapeEditorToolbarProps) {
   const router = useRouter();
   const { theme } = useTheme();
@@ -43,6 +45,9 @@ export default function MixtapeEditorToolbar({
   const [isShareOpen, setIsShareOpen] = useState(false);
   // Toast message state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Undo/redo loading states
+  const [isUndoing, setIsUndoing] = useState(false);
+  const [isRedoing, setIsRedoing] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -68,6 +73,60 @@ export default function MixtapeEditorToolbar({
     handleSave({ ...values, is_public: newValue }, false);
   };
 
+  const handleUndo = async () => {
+    if (!mixtape.can_undo || isUndoing) return;
+    
+    setIsUndoing(true);
+    try {
+      const response = await fetch(`/api/mixtape/${mixtape.public_id}/undo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const updatedMixtape = await response.json();
+        onUndoRedo(updatedMixtape);
+        showToast('Undo successful');
+      } else {
+        showToast('Failed to undo');
+      }
+    } catch (error) {
+      console.error('Error undoing:', error);
+      showToast('Error undoing changes');
+    } finally {
+      setIsUndoing(false);
+    }
+  };
+
+  const handleRedo = async () => {
+    if (!mixtape.can_redo || isRedoing) return;
+    
+    setIsRedoing(true);
+    try {
+      const response = await fetch(`/api/mixtape/${mixtape.public_id}/redo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const updatedMixtape = await response.json();
+        onUndoRedo(updatedMixtape);
+        showToast('Redo successful');
+      } else {
+        showToast('Failed to redo');
+      }
+    } catch (error) {
+      console.error('Error redoing:', error);
+      showToast('Error redoing changes');
+    } finally {
+      setIsRedoing(false);
+    }
+  };
+
   const commonBtnStyles = '';// styles are handled by ToolbarButton components
 
   return (
@@ -76,10 +135,22 @@ export default function MixtapeEditorToolbar({
       <HeaderContainer>
         <div className="flex items-center space-x-1 sm:space-x-2">
           {/* Undo */}
-          <ToolbarButton icon={<Undo2 size={20} />} tooltip="Undo" onClick={() => {}} />
+          <ToolbarButton 
+            icon={<Undo2 size={20} />} 
+            tooltip="Undo" 
+            onClick={handleUndo}
+            disabled={!mixtape.can_undo || isUndoing}
+            data-testid="undo-button"
+          />
 
           {/* Redo */}
-          <ToolbarButton icon={<Redo2 size={20} />} tooltip="Redo" onClick={() => {}} />
+          <ToolbarButton 
+            icon={<Redo2 size={20} />} 
+            tooltip="Redo" 
+            onClick={handleRedo}
+            disabled={!mixtape.can_redo || isRedoing}
+            data-testid="redo-button"
+          />
 
           {/* Share */}
           <ToolbarButton icon={<Share2 size={20} />} tooltip="Share" onClick={() => setIsShareOpen(true)} data-testid="share-button" />
