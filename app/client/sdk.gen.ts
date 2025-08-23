@@ -106,6 +106,8 @@ export const getTrackApiSpotifyTrackTrackIdGet = <ThrowOnError extends boolean =
 
 /**
  * List My Mixtapes
+ * Lists all mixtapes owned by the current user, taking into account the specified query parameters.
+ * Does not return the entire mixtape, just an overview.
  */
 export const listMyMixtapesApiMixtapeGet = <ThrowOnError extends boolean = false>(options?: Options<ListMyMixtapesApiMixtapeGetData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<ListMyMixtapesApiMixtapeGetResponses, ListMyMixtapesApiMixtapeGetErrors, ThrowOnError>({
@@ -116,6 +118,11 @@ export const listMyMixtapesApiMixtapeGet = <ThrowOnError extends boolean = false
 
 /**
  * Create Mixtape
+ * Creates a new mixtape (with tracks).
+ * If user is authenticated, the mixtape will be associated with them. If not, it
+ * will remain an anonymous mixtape.
+ * Returns the mixtape's generated public ID.
+ * TODO: rethink the return value (maybe make an explicit for it?)
  */
 export const createMixtapeApiMixtapePost = <ThrowOnError extends boolean = false>(options: Options<CreateMixtapeApiMixtapePostData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<CreateMixtapeApiMixtapePostResponses, CreateMixtapeApiMixtapePostErrors, ThrowOnError>({
@@ -141,6 +148,7 @@ export const claimMixtapeApiMixtapePublicIdClaimPost = <ThrowOnError extends boo
 
 /**
  * Get Mixtape
+ * Gets the mixtape with the given public ID.
  */
 export const getMixtapeApiMixtapePublicIdGet = <ThrowOnError extends boolean = false>(options: Options<GetMixtapeApiMixtapePublicIdGetData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<GetMixtapeApiMixtapePublicIdGetResponses, GetMixtapeApiMixtapePublicIdGetErrors, ThrowOnError>({
@@ -151,6 +159,9 @@ export const getMixtapeApiMixtapePublicIdGet = <ThrowOnError extends boolean = f
 
 /**
  * Update Mixtape
+ * Updates the mixtape with the given ID.
+ * Returns the new mixtape version.
+ * TODO: rethink the return value.
  */
 export const updateMixtapeApiMixtapePublicIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateMixtapeApiMixtapePublicIdPutData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).put<UpdateMixtapeApiMixtapePublicIdPutResponses, UpdateMixtapeApiMixtapePublicIdPutErrors, ThrowOnError>({
