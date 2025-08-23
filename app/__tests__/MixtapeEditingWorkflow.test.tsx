@@ -105,6 +105,9 @@ const mockMixtapeData: MixtapeResponse = {
       },
     },
   ],
+  can_undo: true,
+  can_redo: false,
+  version: 5,
 };
 
 describe('Mixtape Editing Workflow', () => {

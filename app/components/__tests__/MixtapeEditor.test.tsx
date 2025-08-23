@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from './test-utils';
 import '@testing-library/jest-dom';
 import MixtapeEditor from '../MixtapeEditor';
+import { MixtapeResponse, MixtapeTrackResponse, TrackDetails } from '@/app/client';
 
 // Mock useAuthenticatedRequest
 const mockMakeRequest = jest.fn();
@@ -117,7 +118,7 @@ jest.mock('../layout/HeaderContainer', () => {
   };
 });
 
-const mockTrackDetails = {
+const mockTrackDetails: TrackDetails = {
   id: 'track123',
   name: 'Test Track 1',
   artists: [{ name: 'Artist 1' }],
@@ -127,7 +128,7 @@ const mockTrackDetails = {
   },
   uri: 'spotify:track:123',
 };
-const mockTrackDetails2 = {
+const mockTrackDetails2: TrackDetails = {
   id: 'track456',
   name: 'Test Track 2',
   artists: [{ name: 'Artist 2' }],
@@ -138,7 +139,7 @@ const mockTrackDetails2 = {
   uri: 'spotify:track:456',
 };
 
-const mockMixtapeData = {
+const mockMixtapeData: MixtapeResponse = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
@@ -156,9 +157,12 @@ const mockMixtapeData = {
       track: mockTrackDetails,
     },
   ],
+  can_undo: true,
+  can_redo: false,
+  version: 5,
 };
 
-const mockAnonymousMixtapeData = {
+const mockAnonymousMixtapeData: MixtapeResponse = {
   public_id: 'test-mixtape-123',
   name: 'Test Mixtape',
   intro_text: 'A test mixtape',
@@ -176,10 +180,13 @@ const mockAnonymousMixtapeData = {
       track: mockTrackDetails,
     },
   ],
+  can_undo: true,
+  can_redo: false,
+  version: 5,
 };
 
 // In tests that simulate adding a track, use:
-const newTrackDetails = {
+const newTrackDetails: TrackDetails = {
   id: 'track456',
   name: 'Test Track 2',
   artists: [{ name: 'Artist 2' }],
@@ -189,7 +196,7 @@ const newTrackDetails = {
   },
   uri: 'spotify:track:456',
 };
-const newTrack = {
+const newTrack: MixtapeTrackResponse = {
   track_position: 2,
   track_text: 'You played this for me on our first date. <3',
   track: newTrackDetails,

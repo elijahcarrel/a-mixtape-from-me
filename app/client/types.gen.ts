@@ -114,9 +114,24 @@ export type MixtapeResponse = {
      */
     stack_auth_user_id: string | null;
     /**
+     * Version
+     * Current version number of the mixtape
+     */
+    version: number;
+    /**
      * Tracks
      */
     tracks: Array<MixtapeTrackResponse>;
+    /**
+     * Can Undo
+     * Whether this mixtape can be undone
+     */
+    can_undo: boolean;
+    /**
+     * Can Redo
+     * Whether this mixtape can be redone
+     */
+    can_redo: boolean;
 };
 
 /**
@@ -553,6 +568,66 @@ export type UpdateMixtapeApiMixtapePublicIdPutResponses = {
 };
 
 export type UpdateMixtapeApiMixtapePublicIdPutResponse = UpdateMixtapeApiMixtapePublicIdPutResponses[keyof UpdateMixtapeApiMixtapePublicIdPutResponses];
+
+export type UndoMixtapeApiMixtapePublicIdUndoPostData = {
+    body?: never;
+    path: {
+        /**
+         * Public Id
+         */
+        public_id: string;
+    };
+    query?: never;
+    url: '/api/mixtape/{public_id}/undo';
+};
+
+export type UndoMixtapeApiMixtapePublicIdUndoPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UndoMixtapeApiMixtapePublicIdUndoPostError = UndoMixtapeApiMixtapePublicIdUndoPostErrors[keyof UndoMixtapeApiMixtapePublicIdUndoPostErrors];
+
+export type UndoMixtapeApiMixtapePublicIdUndoPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: MixtapeResponse;
+};
+
+export type UndoMixtapeApiMixtapePublicIdUndoPostResponse = UndoMixtapeApiMixtapePublicIdUndoPostResponses[keyof UndoMixtapeApiMixtapePublicIdUndoPostResponses];
+
+export type RedoMixtapeApiMixtapePublicIdRedoPostData = {
+    body?: never;
+    path: {
+        /**
+         * Public Id
+         */
+        public_id: string;
+    };
+    query?: never;
+    url: '/api/mixtape/{public_id}/redo';
+};
+
+export type RedoMixtapeApiMixtapePublicIdRedoPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RedoMixtapeApiMixtapePublicIdRedoPostError = RedoMixtapeApiMixtapePublicIdRedoPostErrors[keyof RedoMixtapeApiMixtapePublicIdRedoPostErrors];
+
+export type RedoMixtapeApiMixtapePublicIdRedoPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: MixtapeResponse;
+};
+
+export type RedoMixtapeApiMixtapePublicIdRedoPostResponse = RedoMixtapeApiMixtapePublicIdRedoPostResponses[keyof RedoMixtapeApiMixtapePublicIdRedoPostResponses];
 
 export type RootApiGetData = {
     body?: never;

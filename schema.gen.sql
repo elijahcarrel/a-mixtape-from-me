@@ -13,12 +13,15 @@ CREATE TABLE mixtape (
 	create_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	last_modified_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	version INTEGER NOT NULL, 
+	undo_to_version INTEGER, 
+	redo_to_version INTEGER, 
+	resembles_version INTEGER, 
 	PRIMARY KEY (id)
 );
 
-CREATE INDEX ix_mixtape_stack_auth_user_id ON mixtape (stack_auth_user_id);
-
 CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON mixtape (stack_auth_user_id, last_modified_time);
+
+CREATE INDEX ix_mixtape_stack_auth_user_id ON mixtape (stack_auth_user_id);
 
 CREATE UNIQUE INDEX ix_mixtape_public_id ON mixtape (public_id);
 
@@ -36,7 +39,11 @@ CREATE TABLE mixtape_snapshot (
 	last_modified_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	version INTEGER NOT NULL, 
 	stack_auth_user_id VARCHAR, 
+	undo_to_version INTEGER, 
+	redo_to_version INTEGER, 
+	resembles_version INTEGER, 
 	PRIMARY KEY (id), 
+	CONSTRAINT distinct_versions UNIQUE (mixtape_id, version), 
 	FOREIGN KEY(mixtape_id) REFERENCES mixtape (id)
 );
 

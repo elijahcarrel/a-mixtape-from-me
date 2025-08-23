@@ -479,6 +479,92 @@
                 }
             }
         },
+        "/api/mixtape/{public_id}/undo": {
+            "post": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Undo Mixtape",
+                "description": "Undo the last action on a mixtape, restoring it to a previous version.\n\nThis endpoint implements undo functionality by:\n1. Loading the target version from the snapshot history\n2. Restoring the mixtape and tracks to that previous state\n3. Updating the undo/redo pointers to maintain the version chain\n4. Breaking the redo chain (since a new edit would create a new branch)\n\nThe undo operation follows the doubly-linked list structure stored in the\nmixtape_snapshot table, where each version points to its undo/redo targets.\n\nArgs:\n    public_id: The public identifier of the mixtape to undo\n    session: Database session with write access\n    authenticated_user: Optional authenticated user (required for private mixtapes)\n    spotify_client: Spotify client for enriching track details\n\nReturns:\n    MixtapeResponse: The restored mixtape with updated can_undo/can_redo flags\n\nRaises:\n    HTTPException 400: If the mixtape cannot be undone (no previous version)\n    HTTPException 401: If the mixtape is private and user lacks authorization\n    HTTPException 404: If the mixtape doesn't exist\n    HTTPException 500: If the target version snapshot cannot be found",
+                "operationId": "undo_mixtape_api_mixtape__public_id__undo_post",
+                "parameters": [
+                    {
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Public Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MixtapeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mixtape/{public_id}/redo": {
+            "post": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Redo Mixtape",
+                "description": "Redo the last undone action on a mixtape, restoring it to a later version.\n\nThis endpoint implements redo functionality by:\n1. Loading the target version from the snapshot history\n2. Restoring the mixtape and tracks to that later state\n3. Updating the undo/redo pointers to maintain the version chain\n4. Preserving the ability to undo back to the current version\n\nThe redo operation follows the doubly-linked list structure stored in the\nmixtape_snapshot table, where each version points to its undo/redo targets.\nRedo is only available after an undo operation and before any new edits.\n\nArgs:\n    public_id: The public identifier of the mixtape to redo\n    session: Database session with write access\n    authenticated_user: Optional authenticated user (required for private mixtapes)\n    spotify_client: Spotify client for enriching track details\n\nReturns:\n    MixtapeResponse: The restored mixtape with updated can_undo/can_redo flags\n\nRaises:\n    HTTPException 400: If the mixtape cannot be redone (no later version)\n    HTTPException 401: If the mixtape is private and user lacks authorization\n    HTTPException 404: If the mixtape doesn't exist\n    HTTPException 500: If the target version snapshot cannot be found",
+                "operationId": "redo_mixtape_api_mixtape__public_id__redo_post",
+                "parameters": [
+                    {
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Public Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MixtapeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/": {
             "get": {
                 "summary": "Root",
@@ -709,12 +795,27 @@
                         ],
                         "title": "Stack Auth User Id"
                     },
+                    "version": {
+                        "type": "integer",
+                        "title": "Version",
+                        "description": "Current version number of the mixtape"
+                    },
                     "tracks": {
                         "items": {
                             "$ref": "#/components/schemas/MixtapeTrackResponse"
                         },
                         "type": "array",
                         "title": "Tracks"
+                    },
+                    "can_undo": {
+                        "type": "boolean",
+                        "title": "Can Undo",
+                        "description": "Whether this mixtape can be undone"
+                    },
+                    "can_redo": {
+                        "type": "boolean",
+                        "title": "Can Redo",
+                        "description": "Whether this mixtape can be redone"
                     }
                 },
                 "type": "object",
@@ -729,7 +830,10 @@
                     "create_time",
                     "last_modified_time",
                     "stack_auth_user_id",
-                    "tracks"
+                    "version",
+                    "tracks",
+                    "can_undo",
+                    "can_redo"
                 ],
                 "title": "MixtapeResponse"
             },
