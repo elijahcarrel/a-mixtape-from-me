@@ -7,7 +7,7 @@ from sqlalchemy import (
 from sqlmodel import Field, Relationship, SQLModel
 
 
-# The mixtape table captures the state of a “mixtape” created by a user. A
+# The mixtape table captures the state of a "mixtape" created by a user. A
 # mixtape is basically a playlist: a collection of songs along with metadata
 # such as commentary that goes along with the songs as well as other
 # customizable features.
@@ -25,6 +25,8 @@ class Mixtape(SQLModel, table=True):
     create_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     last_modified_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     version: int = Field(default=1)
+    undo_to_version: int | None = Field(default=None, description="Version to go to when undoing from this version")
+    redo_to_version: int | None = Field(default=None, description="Version to go to when redoing from this version")
     # Relationships
     tracks: list["MixtapeTrack"] = Relationship(back_populates="mixtape", cascade_delete=True)
     snapshots: list["MixtapeSnapshot"] = Relationship(back_populates="mixtape")
@@ -46,25 +48,97 @@ class Mixtape(SQLModel, table=True):
             last_modified_time=self.last_modified_time,
             version=self.version,
             stack_auth_user_id=self.stack_auth_user_id,
+            undo_to_version=self.undo_to_version,
+            redo_to_version=self.redo_to_version,
         )
 
-    # finalize increments the version, sets the last modified time to the
-    # current timestamp, and generates snapshot entries for the update. It should
-    # be the last command called before the updates are flushed to the database.
     def finalize(self):
+        """
+        Finalize the mixtape update by incrementing version and creating snapshots.
+        
+        This method should be called as the last step before committing changes to
+        the database. It handles:
+        1. Version management (increment for updates, set to 1 for new mixtapes)
+        2. Timestamp updates (create_time for new, last_modified_time for all)
+        3. Undo/redo pointer management (clear redo chain after edits)
+        4. Snapshot generation for audit trail
+        
+        For new mixtapes:
+        - Sets create_time and last_modified_time to current time
+        - Sets version to 1
+        - Initializes undo/redo pointers to None (no history)
+        
+        For existing mixtapes:
+        - Increments version number
+        - Updates last_modified_time
+        - Clears redo_to_version to break the redo chain
+        - Preserves undo_to_version for undo functionality
+        """
         now = datetime.now(UTC)
         if self.id is None:
             # Mixtape is being created for the first time.
             self.create_time = now
             self.version = 1
+            # New mixtapes have no undo/redo history
+            self.undo_to_version = None
+            self.redo_to_version = None
         else:
             # Mixtape is being updated.
             self.version += 1
+            # After an edit, break the redo chain
+            self.redo_to_version = None
 
         self.last_modified_time = now
         self._generate_snapshots()
 
+    def restore_from_snapshot(self, snapshot: "MixtapeSnapshot") -> None:
+        """
+        Restore the mixtape to the state captured in the given snapshot.
+        
+        This method performs a complete restoration of the mixtape's state from
+        a historical snapshot, including all metadata fields and undo/redo pointers.
+        The tracks are not restored here - that must be done separately by the
+        calling code to maintain proper relationship management.
+        
+        Args:
+            snapshot: The MixtapeSnapshot instance containing the state to restore
+            
+        Note:
+            This method modifies the current mixtape instance in-place. The tracks
+            relationship should be managed separately to avoid SQLAlchemy relationship
+            conflicts. The mixtape_id field is preserved to maintain database
+            referential integrity.
+        """
+        self.name = snapshot.name
+        self.intro_text = snapshot.intro_text
+        self.subtitle1 = snapshot.subtitle1
+        self.subtitle2 = snapshot.subtitle2
+        self.subtitle3 = snapshot.subtitle3
+        self.is_public = snapshot.is_public
+        self.create_time = snapshot.create_time
+        self.last_modified_time = snapshot.last_modified_time
+        self.version = snapshot.version
+        self.undo_to_version = snapshot.undo_to_version
+        self.redo_to_version = snapshot.redo_to_version
+
     def _generate_snapshots(self):
+        """
+        Generate snapshot records for the current mixtape state.
+        
+        This private method creates audit trail snapshots by:
+        1. Creating a new MixtapeSnapshot with the current mixtape state
+        2. Creating MixtapeSnapshotTrack records for each track
+        3. Establishing bidirectional relationships between snapshots and tracks
+        
+        The snapshots are automatically linked to the mixtape via SQLAlchemy
+        relationship management. This method is called by finalize() to ensure
+        every version change is captured in the audit trail.
+        
+        Note:
+            This method relies on SQLAlchemy's relationship management to set
+            foreign key fields automatically when objects are appended to
+            relationship collections.
+        """
         # Build a new MixtapeSnapshot and attach to mixtape
         new_snapshot = self._to_snapshot()    # this fills everything except mixtape_id
         self.snapshots.append(new_snapshot)  # sets new_snapshot.mixtape_id automatically
@@ -101,6 +175,8 @@ class MixtapeSnapshot(SQLModel, table=True):
     last_modified_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     version: int
     stack_auth_user_id: str | None = Field(default=None, description="Stack Auth User ID of the owner (None for anonymous)")
+    undo_to_version: int | None = Field(default=None, description="Version to go to when undoing from this version")
+    redo_to_version: int | None = Field(default=None, description="Version to go to when redoing from this version")
     # Relationships
     mixtape: "Mixtape" = Relationship(back_populates="snapshots")
     tracks: list["MixtapeSnapshotTrack"] = Relationship(back_populates="mixtape_snapshot", cascade_delete=True)
@@ -125,6 +201,25 @@ class MixtapeTrack(SQLModel, table=True):
             track_text=self.track_text,
             spotify_uri=self.spotify_uri,
         )
+
+    def restore_from_snapshot(self, snapshot_track: "MixtapeSnapshotTrack") -> None:
+        """
+        Restore the track to the state captured in the given snapshot.
+        
+        This method restores the track's state from a historical snapshot,
+        updating all mutable fields while preserving the database relationship
+        to the parent mixtape.
+        
+        Args:
+            snapshot_track: The MixtapeSnapshotTrack instance containing the state to restore
+            
+        Note:
+            This method modifies the current track instance in-place. The mixtape_id
+            field is preserved to maintain database referential integrity.
+        """
+        self.track_position = snapshot_track.track_position
+        self.track_text = snapshot_track.track_text
+        self.spotify_uri = snapshot_track.spotify_uri
 
 # The mixtape_snapshot_track table is a snapshot for the mixtape_track table,
 # capturing a snapshot of each entry in the mixtape_track table as it has
