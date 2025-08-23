@@ -27,7 +27,7 @@ def load_engine(engine_url: str)->Engine:
         engine_url,
         pool_pre_ping=True,
         pool_recycle=300,
-        echo=False  # Set to True for SQL debugging
+        echo=True,
     )
 
 def initialize_engine(db_url: str)->Engine:

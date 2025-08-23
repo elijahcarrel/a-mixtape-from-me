@@ -28,6 +28,13 @@ class Entity(ABC):
         pass
 
     @abstractmethod
+    def get_reference_fields(self) -> list["ReferenceField"]:
+        """
+        Returns a list of reference fields from dependent entities that this entity will use.
+        """
+        pass
+
+    @abstractmethod
     def get_uuid(self) -> UUID:
         """
         Returns the uuid of this entity.
@@ -65,17 +72,20 @@ class BaseEntity(Entity):
     def __init__(self, session: Session):
         self.uuid = uuid4()
         self.session = session
-        self.dependencies: list["Entity"] = []
+        self.dependencies: list[Entity] = []
         self.reference_fields: list[ReferenceField] = []
         self.state: EntityState = EntityState.NOT_VALIDATED
+    
+    def __str__(self):
+        return f"entity {self.__class__.__name__} with uuid {self.uuid}"
 
-    def get_dependencies(self) -> list["Entity"]:
+    def get_dependencies(self) -> list[Entity]:
         """
         Returns a list of dependencies that this entity depends on.
         """
         return self.dependencies
 
-    def add_dependency(self, dependency: "Entity") -> None:
+    def add_dependency(self, dependency: Entity) -> None:
         self.dependencies.append(dependency)
 
     def get_reference_fields(self) -> list[ReferenceField]:
@@ -97,7 +107,7 @@ class BaseEntity(Entity):
         return self.uuid
 
     # TODO: is this the cleanest way to do this?
-    def execute() -> None:
+    def execute(self, session: Session) -> None:
         raise ValueError("Needs to be implemented by the descendant class")
 
 # --- TESTING CONCURRENCY SUPPORT ---
@@ -135,13 +145,13 @@ class Executor:
                 self.entities.append(entity)
             return
         if entity.get_state() == EntityState.PROCESSING:
-            raise ValueError(f"Circular dependency detected on entity with uuid: {str(entity.get_uuid())}")
+            raise ValueError(f"Circular dependency detected on {str(entity)}")
         if entity.get_state() == EntityState.EXECUTED:
-            raise ValueError(f"Entity with uuid: {str(entity.get_uuid())} is already finished")
+            raise ValueError(f"{str(entity)} is already executed")
 
         entity.set_state(EntityState.PROCESSING)
         if entity.get_state() != EntityState.PROCESSING:
-            raise ValueError(f"set_state on entity with uuid: {str(entity.get_uuid())} failed to move it to the processing state")
+            raise ValueError(f"set_state on {str(entity)} failed to move it to the processing state")
         
         for dependency in entity.get_dependencies():
             self.add_entity(dependency)
@@ -149,24 +159,24 @@ class Executor:
         self.entities.append(entity)
         entity.set_state(EntityState.VALIDATED)
         if entity.get_state() != EntityState.VALIDATED:
-            raise ValueError(f"set_state on entity with uuid: {str(entity.get_uuid())} failed to move it to the validated state")
+            raise ValueError(f"set_state on {str(entity)} failed to move it to the validated state")
 
-    def execute_all(self, entities: list[Entity]) -> None:
+    def execute_all(self) -> None:
         # Pause after all modifications but *before* releasing the lock to allow
         # test cases to control concurrency ordering deterministically.
         _maybe_pause_for_tests()
 
-        for entity in entities:
+        for entity in self.entities:
             reference_fields = entity.get_reference_fields()
             for reference_field in reference_fields:
                 if reference_field.entity.get_state() != EntityState.EXECUTED:
-                    raise ValueError(f"Error during execution of entity {str(entity.get_uuid())}: reference field entity with uuid: {str(reference_field.entity.get_uuid())} has not already been executed")
+                    raise ValueError(f"Error during execution of {str(entity)}: reference field for {str(reference_field.entity)} has not already been executed")
                 id = reference_field.entity.get_database_id()
                 if id is None:
-                    raise ValueError(f"Error during execution of entity {str(entity.get_uuid())}: reference field entity with uuid: {str(reference_field.entity.get_uuid())} has no database id")
+                    raise ValueError(f"Error during execution of {str(entity)}: reference field for {str(reference_field.entity)} has no database id")
                 reference_field.setter(id)
 
-            entity.execute(self.session)
+            entity.execute()
             entity.set_state(EntityState.EXECUTED)
             if entity.get_state() != EntityState.EXECUTED:
-                raise ValueError(f"set_state on entity with uuid: {str(entity.get_uuid())} failed to move it to the executed state")
+                raise ValueError(f"set_state on {str(entity)} failed to move it to the executed state")

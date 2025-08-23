@@ -344,7 +344,7 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     import threading  # Local import to avoid affecting other tests
     import time
 
-    from backend.entity.base import (
+    from backend.entity.base.base import (
         _TEST_PAUSE_ENABLED,
         _TEST_PAUSE_EVENT,
     )

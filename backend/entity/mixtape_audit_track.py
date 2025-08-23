@@ -10,3 +10,4 @@ class MixtapeAuditTrackEntity(BaseEntity):
 
     def execute(self):
         self.session.add(self.mixtape_audit_track)
+        self.session.flush()

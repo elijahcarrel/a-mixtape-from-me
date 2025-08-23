@@ -8,8 +8,9 @@ class MixtapeEntity(BaseEntity, DatabaseIdEntity):
         super().__init__(session)
         self.mixtape = mixtape
 
-    def get_database_id(self) -> int:
+    def get_database_id(self) -> int | None:
         return self.mixtape.id
 
     def execute(self):
         self.session.add(self.mixtape)
+        self.session.flush()

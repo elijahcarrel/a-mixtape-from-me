@@ -78,7 +78,7 @@ class MixtapeTrack(SQLModel, table=True):
 
     def to_audit(self)->"MixtapeAuditTrack":
         return MixtapeAuditTrack(
-            track_position=self.track_position
+            track_position=self.track_position,
             track_text=self.track_text,
             spotify_uri=self.spotify_uri,
         )

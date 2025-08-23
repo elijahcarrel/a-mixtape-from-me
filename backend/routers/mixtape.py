@@ -12,6 +12,9 @@ from backend.convert_client_api_models.track import (
     spotify_track_to_mixtape_track_details,
 )
 from backend.db_models.mixtape import Mixtape
+from backend.entity.base.base import Executor
+from backend.entity.dependency_helpers import get_executor
+from backend.entity.mixtape_orchestrator import MixtapeOrchestratorEntity
 from backend.middleware.auth.authenticated_user import AuthenticatedUser
 from backend.middleware.auth.dependency_helpers import get_optional_user, get_user
 from backend.middleware.db_conn.dependency_helpers import (
@@ -67,23 +70,37 @@ def create_mixtape(
 def claim_mixtape(
     public_id: str,
     session: Session = Depends(get_write_session),
+    executor: Executor = Depends(get_executor),
     authenticated_user: AuthenticatedUser = Depends(get_user),
 ):
     """Claim an anonymous mixtape, making the authenticated user the owner."""
     stack_auth_user_id = authenticated_user.get_user_id()
 
+    print(f"Querying for mixtape {public_id}")
+    mixtape_query = MixtapeQuery(session=session, for_update=True)
+    mixtape = mixtape_query.load_by_public_id(public_id)
+    
+    print(f"Got mixtape {str(mixtape)}")
+
+    if mixtape is None:
+        raise HTTPException(status_code=404, detail="Mixtape not found")
+
+    if mixtape.stack_auth_user_id is not None:
+        raise HTTPException(status_code=404, detail="Mixtape is already claimed")
+
+    print(f"Setting stack_auth_user_id of mixtape")
+    print(f"Set stack_auth_user_id of mixtape")
     try:
-        new_version = MixtapeService.claim_mixtape(session, public_id, stack_auth_user_id)
-    except ValueError as e:
-        if "not found" in str(e).lower():
-            raise HTTPException(status_code=404, detail="Mixtape not found")
-        elif "already claimed" in str(e).lower():
-            raise HTTPException(status_code=400, detail="Mixtape is already claimed")
-        else:
-            raise HTTPException(status_code=400, detail=str(e))
+        print("Creating orchestrator")
+        orchestrator = MixtapeOrchestratorEntity(session, mixtape)
+        print("Created orchestrator")
+        orchestrator.set_tracks(mixtape.tracks)
+        executor.add_entity(orchestrator)
+        print("Added orchestrator to executor")
+        executor.execute_all()
+        print("Executed all")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return {"version": new_version}
 
 @router.get("", response_model=list[MixtapeOverview])
 def list_my_mixtapes(
