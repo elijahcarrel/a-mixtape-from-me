@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import selectinload
-from sqlmodel import Session
+from sqlmodel import Session, delete
 from datetime import datetime, UTC
 from backend.api_models.mixtape import (
     MixtapeOverview,
@@ -31,7 +31,7 @@ router = APIRouter()
 # PUT /mixtape/{public_id}: Update a mixtape (with tracks)
 
 def parse_track(track: MixtapeTrackRequest, spotify_client: SpotifyClient)->MixtapeTrack:
-    # Look up TrackDetails to verify track is valid.
+    # Look up TrackDetails just to verify track is valid.
     track_id = track.spotify_uri.replace('spotify:track:', '')
     details = spotify_client.get_track(track_id)
     if not details:
@@ -219,6 +219,13 @@ def update_mixtape(
     if mixtape.stack_auth_user_id is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Only claimed mixtapes can be made private; unclaimed mixtapes must remain public")
 
+    # Wipe existing tracks so we can insert new ones.
+    # TODO: we should be able to use sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    # to accomplish this instead. For now, this will do.
+    session.exec(
+        delete(MixtapeTrack).where(MixtapeTrack.mixtape_id == mixtape.id)
+    )
+
     # Validate and enrich tracks
     tracks = [parse_track(track, spotify_client) for track in request.tracks]
 
@@ -228,8 +235,6 @@ def update_mixtape(
     mixtape.subtitle2=request.subtitle2
     mixtape.subtitle3=request.subtitle3
     mixtape.is_public=request.is_public
-    # This implicitly wipes the existing tracks and replaces them with new ones,
-    # because we have cascade="all, delete-orphan" configured in this DB model.
     mixtape.tracks=tracks
 
     mixtape.finalize()
