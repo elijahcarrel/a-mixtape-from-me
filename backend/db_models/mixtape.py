@@ -101,17 +101,19 @@ class Mixtape(SQLModel, table=True):
         self.last_modified_time = now
         self._generate_snapshots()
 
-    def restore_from_snapshot(self, snapshot: "MixtapeSnapshot") -> None:
+    def restore_from_snapshot(self, target_snapshot: "MixtapeSnapshot", is_undo: bool) -> None:
         """
         Restore the mixtape to the state captured in the given snapshot.
 
         This method performs a complete restoration of the mixtape's state from
-        a historical snapshot, including all metadata fields and undo/redo pointers.
+        a historical snapshot, including all metadata fields, while handling
+        undo/redo pointers appropriately.
         The tracks are not restored here - that must be done separately by the
         calling code to maintain proper relationship management.
 
         Args:
             snapshot: The MixtapeSnapshot instance containing the state to restore
+            is_undo: Whether this is an undo or redo operation
 
         Note:
             This method modifies the current mixtape instance in-place. The tracks
@@ -119,18 +121,26 @@ class Mixtape(SQLModel, table=True):
             conflicts. The mixtape_id field is preserved to maintain database
             referential integrity.
         """
-        self.name = snapshot.name
-        self.intro_text = snapshot.intro_text
-        self.subtitle1 = snapshot.subtitle1
-        self.subtitle2 = snapshot.subtitle2
-        self.subtitle3 = snapshot.subtitle3
-        self.is_public = snapshot.is_public
-        self.create_time = snapshot.create_time
-        self.last_modified_time = snapshot.last_modified_time
-        self.version = snapshot.version
-        self.undo_to_version = snapshot.undo_to_version
-        self.redo_to_version = snapshot.redo_to_version
-        self.resembles_version = snapshot.resembles_version
+        # Store current version for redo chain
+        current_version = self.version
+
+        # Set up new state: copy content from target snapshot but create new version
+        self.name = target_snapshot.name
+        self.intro_text = target_snapshot.intro_text
+        self.subtitle1 = target_snapshot.subtitle1
+        self.subtitle2 = target_snapshot.subtitle2
+        self.subtitle3 = target_snapshot.subtitle3
+        self.is_public = target_snapshot.is_public
+
+        # Set up undo/redo pointers for the new version
+        self.resembles_version = target_snapshot.version  # This new version resembles the target
+
+        if is_undo:
+            self.undo_to_version = target_snapshot.undo_to_version  # Point to where target could undo
+            self.redo_to_version = current_version  # Can redo back to where we came from
+        else:
+            self.undo_to_version = current_version  # Point to where target could undo
+            self.redo_to_version = target_snapshot.redo_to_version  # Can redo back to where we came from
 
     def _generate_snapshots(self):
         """
@@ -218,25 +228,6 @@ class MixtapeTrack(SQLModel, table=True):
             spotify_uri=self.spotify_uri,
         )
 
-    def restore_from_snapshot(self, snapshot_track: "MixtapeSnapshotTrack") -> None:
-        """
-        Restore the track to the state captured in the given snapshot.
-
-        This method restores the track's state from a historical snapshot,
-        updating all mutable fields while preserving the database relationship
-        to the parent mixtape.
-
-        Args:
-            snapshot_track: The MixtapeSnapshotTrack instance containing the state to restore
-
-        Note:
-            This method modifies the current track instance in-place. The mixtape_id
-            field is preserved to maintain database referential integrity.
-        """
-        self.track_position = snapshot_track.track_position
-        self.track_text = snapshot_track.track_text
-        self.spotify_uri = snapshot_track.spotify_uri
-
 # The mixtape_snapshot_track table is a snapshot for the mixtape_track table,
 # capturing a snapshot of each entry in the mixtape_track table as it has
 # existed at every moment the mixtape gets updated throughout history. This
@@ -257,3 +248,20 @@ class MixtapeSnapshotTrack(SQLModel, table=True):
     spotify_uri: str = Field(max_length=255)
     # Relationships
     mixtape_snapshot: "MixtapeSnapshot" = Relationship(back_populates="tracks")
+
+    def to_restored_track(self, mixtape_id: int)->"MixtapeTrack":
+        """
+        Convert this snapshot track to a restored track.
+
+        Args:
+            mixtape_id: The ID of the mixtape to restore the track to
+
+        Returns:
+            A MixtapeTrack instance with the same state as this snapshot track
+        """
+        return MixtapeTrack(
+            mixtape_id=mixtape_id,
+            track_position=self.track_position,
+            track_text=self.track_text,
+            spotify_uri=self.spotify_uri,
+        )

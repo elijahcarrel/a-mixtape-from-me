@@ -308,6 +308,7 @@ def update_mixtape(
     # Wipe existing tracks so we can insert new ones.
     # TODO: we should be able to use sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     # to accomplish this instead. For now, this will do.
+    # Alternatively, maybe mixtape.tracks.clear() would work?
     session.execute(
         delete(MixtapeTrack).where(MixtapeTrack.mixtape_id == mixtape.id) # type: ignore[arg-type]
     )
@@ -392,32 +393,12 @@ def undo_mixtape(
     if target_snapshot is None:
         raise HTTPException(status_code=500, detail="Target version not found in snapshots")
 
-    # Store current version for redo chain
-    current_version = mixtape.version
-
     # Set up new state: copy content from target snapshot but create new version
-    mixtape.name = target_snapshot.name
-    mixtape.intro_text = target_snapshot.intro_text
-    mixtape.subtitle1 = target_snapshot.subtitle1
-    mixtape.subtitle2 = target_snapshot.subtitle2
-    mixtape.subtitle3 = target_snapshot.subtitle3
-    mixtape.is_public = target_snapshot.is_public
-
-    # Set up undo/redo pointers for the new version
-    mixtape.undo_to_version = target_snapshot.undo_to_version  # Point to where target could undo
-    mixtape.redo_to_version = current_version  # Can redo back to where we came from
-    mixtape.resembles_version = target_snapshot.version  # This new version resembles the target
+    mixtape.restore_from_snapshot(target_snapshot, is_undo=True)
 
     # Restore tracks from target snapshot
     mixtape.tracks.clear()
-    for snapshot_track in target_snapshot.tracks:
-        track = MixtapeTrack(
-            mixtape_id=mixtape.id,
-            track_position=snapshot_track.track_position,
-            track_text=snapshot_track.track_text,
-            spotify_uri=snapshot_track.spotify_uri,
-        )
-        mixtape.tracks.append(track)
+    mixtape.tracks = [snapshot_track.to_restored_track(mixtape.id) for snapshot_track in target_snapshot.tracks]
 
     # Finalize to create new version and snapshot (preserve undo/redo pointers)
     mixtape.finalize(is_undo_redo_operation=True)
@@ -486,32 +467,13 @@ def redo_mixtape(
     if target_snapshot is None:
         raise HTTPException(status_code=500, detail="Target version not found in snapshots")
 
-    # Store current version for undo chain
-    current_version = mixtape.version
-
     # Set up new state: copy content from target snapshot but create new version
-    mixtape.name = target_snapshot.name
-    mixtape.intro_text = target_snapshot.intro_text
-    mixtape.subtitle1 = target_snapshot.subtitle1
-    mixtape.subtitle2 = target_snapshot.subtitle2
-    mixtape.subtitle3 = target_snapshot.subtitle3
-    mixtape.is_public = target_snapshot.is_public
-
-    # Set up undo/redo pointers for the new version
-    mixtape.undo_to_version = current_version  # Can undo back to where we came from
-    mixtape.redo_to_version = target_snapshot.redo_to_version  # Point to where target could redo
-    mixtape.resembles_version = target_snapshot.version  # This new version resembles the target
+    # This will also set up the undo/redo pointers for the new version.
+    mixtape.tracks.clear()
+    mixtape.restore_from_snapshot(target_snapshot, is_undo=False)
 
     # Restore tracks from target snapshot
-    mixtape.tracks.clear()
-    for snapshot_track in target_snapshot.tracks:
-        track = MixtapeTrack(
-            mixtape_id=mixtape.id,
-            track_position=snapshot_track.track_position,
-            track_text=snapshot_track.track_text,
-            spotify_uri=snapshot_track.spotify_uri,
-        )
-        mixtape.tracks.append(track)
+    mixtape.tracks = [snapshot_track.to_restored_track(mixtape.id) for snapshot_track in target_snapshot.tracks]
 
     # Finalize to create new version and snapshot (preserve undo/redo pointers)
     mixtape.finalize(is_undo_redo_operation=True)
