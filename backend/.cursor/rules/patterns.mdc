@@ -10,6 +10,9 @@
 - Use lower_snake_case for table names and columns
 - Include snapshot trails for data changes via the `_snapshot` tables
 
+## Querying the database
+- Query classes and methods are defined in `backend/query` to standardize query logic
+
 ## Service/Router Patterns
 - Use class objects at all times, never dicts
 - Use dependency injection for external clients
