@@ -10,6 +10,8 @@ from .client import (
 class MockSpotifyClient(AbstractSpotifyClient):
     def __init__(self):
         self.reset_tracks()
+        self.playlists: dict[str, dict] = {}  # uri -> {'title': str, 'description': str, 'tracks': list[str]}
+        self._playlist_counter = 1
 
     def reset_tracks(self)->None:
         self.tracks: list[SpotifyTrack] = [
@@ -71,6 +73,31 @@ class MockSpotifyClient(AbstractSpotifyClient):
     def search_tracks(self, query: str)->list[SpotifyTrack]:
         results = [t for t in self.tracks if query.lower() in t.name.lower()]
         return results
+
+    # --- Playlist methods ---
+    def _generate_playlist_uri(self)->str:
+        uri = f"spotify:playlist:mock{self._playlist_counter}"
+        self._playlist_counter += 1
+        return uri
+
+    def create_playlist(self, title: str, description: str, track_uris: list[str])->str:
+        uri = self._generate_playlist_uri()
+        self.playlists[uri] = {
+            'title': title,
+            'description': description,
+            'tracks': track_uris.copy()
+        }
+        return uri
+
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str])->None:
+        if playlist_uri not in self.playlists:
+            # Treat as create if not exist
+            self.playlists[playlist_uri] = {}
+        self.playlists[playlist_uri].update({
+            'title': title,
+            'description': description,
+            'tracks': track_uris.copy()
+        })
 
     def get_track(self, track_id: str)->SpotifyTrack:
         for t in self.tracks:

@@ -76,5 +76,19 @@ class SpotifyClient(AbstractSpotifyClient):
                 self.track_cache.popitem(last=False)  # Remove least recently used
         return track
 
+    # --- Playlist methods ---
+    def create_playlist(self, title: str, description: str, track_uris: list[str]) -> str:  # pragma: no cover
+        """Create a playlist in the authorized Spotify account. Returns playlist Spotify URI.
+
+        NOTE: This implementation uses application credentials flow which typically does not
+        permit modifying user playlists. In production you would need OAuth with proper scopes.
+        Here we raise NotImplementedError because unit tests use MockSpotifyClient.
+        """
+        raise NotImplementedError("Real Spotify playlist creation requires OAuth flow not implemented in backend.")
+
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> None:  # pragma: no cover
+        """Update an existing playlist. Not implemented for real client."""
+        raise NotImplementedError("Real Spotify playlist update requires OAuth flow not implemented in backend.")
+
 def get_spotify_client():
     return SpotifyClient()

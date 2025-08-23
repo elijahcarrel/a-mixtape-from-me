@@ -216,6 +216,7 @@ def load_mixtape_api_models_from_dbmodel(spotify_client: SpotifyClient, mixtape:
         last_modified_time=mixtape.last_modified_time.isoformat(),
         stack_auth_user_id=mixtape.stack_auth_user_id,
         version=mixtape.version,
+        spotify_playlist_uri=mixtape.spotify_playlist_uri,
         tracks=enriched_tracks,
         can_undo=mixtape.undo_to_version is not None,
         can_redo=mixtape.redo_to_version is not None,
@@ -482,6 +483,63 @@ def redo_mixtape(
     # Pause before releasing the lock for deterministic concurrency tests.
     _maybe_pause_for_tests()
 
+    session.commit()
+
+    return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
+
+# --- SPOTIFY PLAYLIST EXPORT ---
+
+@router.post("/{public_id}/spotify-export", response_model=MixtapeResponse)
+def export_to_spotify(
+    public_id: str,
+    session: Session = Depends(get_write_session),
+    authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    """Create or update a Spotify playlist that represents this mixtape.
+
+    The operation is idempotent – if a playlist URI is already recorded, the
+    existing playlist is updated. Otherwise a new playlist is created and the
+    newly generated Spotify playlist URI is persisted to the mixtape record.
+    """
+
+    mixtape_query = MixtapeQuery(
+        session=session,
+        options=[selectinload(Mixtape.tracks)],  # type: ignore[arg-type]
+        for_update=True,
+    )
+    mixtape = mixtape_query.load_by_public_id(public_id)
+
+    mixtape = validate_mixtape_access(mixtape, authenticated_user, is_write=True)
+
+    # Build playlist metadata
+    title = mixtape.name
+    subtitle_parts = [p for p in [mixtape.subtitle1, mixtape.subtitle2, mixtape.subtitle3] if p]
+    description_parts: list[str] = []
+    if subtitle_parts:
+        description_parts.append(" | ".join(subtitle_parts))
+    if mixtape.intro_text:
+        description_parts.append(mixtape.intro_text)
+    description = " - ".join(description_parts)
+
+    track_uris = [t.spotify_uri for t in sorted(mixtape.tracks, key=lambda x: x.track_position)]
+
+    # Create or update playlist via spotify client
+    if mixtape.spotify_playlist_uri is None:
+        try:
+            playlist_uri = spotify_client.create_playlist(title, description, track_uris)
+        except NotImplementedError:
+            # In environments without real Spotify capabilities, fall back to mock behavior
+            raise HTTPException(status_code=500, detail="Spotify playlist creation not supported in this environment")
+        mixtape.spotify_playlist_uri = playlist_uri
+    else:
+        try:
+            spotify_client.update_playlist(mixtape.spotify_playlist_uri, title, description, track_uris)
+        except NotImplementedError:
+            raise HTTPException(status_code=500, detail="Spotify playlist update not supported in this environment")
+
+    # Persist the mixtape change (no version bump – external metadata only)
+    session.add(mixtape)
     session.commit()
 
     return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)

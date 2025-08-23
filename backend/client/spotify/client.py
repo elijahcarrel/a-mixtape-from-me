@@ -74,3 +74,12 @@ class AbstractSpotifyClient(ABC):
         Returns a SpotifyTrack object for the given track_id.
         """
         pass
+
+    # --- New for playlist export ---
+    @abstractmethod
+    def create_playlist(self, title: str, description: str, track_uris: list[str]) -> str:
+        """Create a new playlist with the given metadata and tracks. Returns playlist Spotify URI."""
+
+    @abstractmethod
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> None:
+        """Update existing playlist metadata and replace tracks atomically."""
