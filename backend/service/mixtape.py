@@ -1,4 +1,3 @@
-import threading
 import uuid
 from datetime import UTC, datetime
 
@@ -10,28 +9,6 @@ from backend.db_models.mixtape import (
     MixtapeAuditTrack,
     MixtapeTrack,
 )
-
-# --- TESTING CONCURRENCY SUPPORT ---
-# These globals are used ONLY during tests to deterministically pause execution
-# in the middle of an update/claim operation while holding a row-level lock.
-# They have *no effect* in normal operation because _TEST_PAUSE_ENABLED is False
-# by default and production code never toggles it.
-_TEST_PAUSE_ENABLED: bool = False
-_TEST_PAUSE_EVENT: threading.Event | None = None
-
-
-def _maybe_pause_for_tests() -> None:
-    """Block execution if the test pause flag/event is enabled.
-
-    This allows tests to hold the row-level lock acquired by SELECT FOR UPDATE
-    while another concurrent request attempts to obtain the lock. In production
-    the function is a no-op.
-    """
-    global _TEST_PAUSE_ENABLED, _TEST_PAUSE_EVENT
-    if _TEST_PAUSE_ENABLED and _TEST_PAUSE_EVENT is not None:
-        # Wait until the event is set by the test to resume execution.
-        _TEST_PAUSE_EVENT.wait()
-
 
 class MixtapeService:
     def __init__(self, name: str, intro_text: str | None, subtitle1: str | None, subtitle2: str | None, subtitle3: str | None, is_public: bool, tracks: list[dict]):
@@ -187,9 +164,6 @@ class MixtapeService:
             )
             session.add(audit_track)
 
-        # Pause after all modifications but *before* releasing the lock to allow
-        # test cases to control concurrency ordering deterministically.
-        _maybe_pause_for_tests()
 
         session.commit()
         return mixtape.version
@@ -249,9 +223,6 @@ class MixtapeService:
                 spotify_uri=track.spotify_uri
             )
             session.add(audit_track)
-
-        # Pause before releasing the lock for deterministic concurrency tests.
-        _maybe_pause_for_tests()
 
         session.commit()
         return mixtape.version

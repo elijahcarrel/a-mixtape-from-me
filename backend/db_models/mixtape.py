@@ -29,6 +29,21 @@ class Mixtape(SQLModel, table=True):
         Index('ix_mixtape_stack_auth_user_id_last_modified_time', 'stack_auth_user_id', 'last_modified_time'),
     )
 
+    def to_audit(self)->"MixtapeAudit":
+        return MixtapeAudit(
+            public_id=self.public_id,
+            name=self.name,
+            intro_text=self.intro_text,
+            subtitle1=self.subtitle1,
+            subtitle2=self.subtitle2,
+            subtitle3=self.subtitle3,
+            is_public=self.is_public,
+            create_time=self.create_time,
+            last_modified_time=self.last_modified_time,
+            version=self.version,
+            stack_auth_user_id=self.stack_auth_user_id,
+        )
+
 class MixtapeAudit(SQLModel, table=True):
     __tablename__ = "MixtapeAudit"
     id: int | None = Field(default=None, primary_key=True)
@@ -60,6 +75,14 @@ class MixtapeTrack(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint('mixtape_id', 'track_position', name='mixtape_track_unique_position'),
     )
+
+    def to_audit(self)->"MixtapeAuditTrack":
+        return MixtapeAuditTrack(
+            track_position=self.track_position
+            track_text=self.track_text,
+            spotify_uri=self.spotify_uri,
+        )
+
 
 class MixtapeAuditTrack(SQLModel, table=True):
     __tablename__ = "MixtapeAuditTrack"

@@ -344,8 +344,9 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     import threading  # Local import to avoid affecting other tests
     import time
 
-    from backend.service import (
-        mixtape as mixtape_service,
+    from backend.entity.base import (
+        _TEST_PAUSE_ENABLED,
+        _TEST_PAUSE_EVENT,
     )
 
     test_client, token, _ = client
@@ -368,8 +369,8 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     public_id = resp_create.json()["public_id"]
 
     # Enable test pause mechanism before issuing PUT requests
-    mixtape_service._TEST_PAUSE_EVENT = threading.Event()
-    mixtape_service._TEST_PAUSE_ENABLED = True
+    _TEST_PAUSE_EVENT = threading.Event()
+    _TEST_PAUSE_ENABLED = True
 
     results: list[tuple[str, httpx.Response]] = []
 
@@ -404,9 +405,9 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     assert t2.is_alive(), "Second update should be blocked by row lock"
 
     # Unblock the first request, allowing both to finish sequentially
-    mixtape_service._TEST_PAUSE_ENABLED = False
-    assert mixtape_service._TEST_PAUSE_EVENT is not None  # mypy reassurance
-    mixtape_service._TEST_PAUSE_EVENT.set()
+    _TEST_PAUSE_ENABLED = False
+    assert _TEST_PAUSE_EVENT is not None  # mypy reassurance
+    _TEST_PAUSE_EVENT.set()
 
     t1.join(timeout=5)
     t2.join(timeout=5)
@@ -427,8 +428,8 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     assert data_final["name"] == "SecondUpdate", "Latest update should win"
 
     # Clean up test pause globals to avoid side effects on other tests
-    mixtape_service._TEST_PAUSE_EVENT = None
-    mixtape_service._TEST_PAUSE_ENABLED = False
+    _TEST_PAUSE_EVENT = None
+    _TEST_PAUSE_ENABLED = False
 
     # TODO: Once version history endpoint exists, assert that version 2 has
     #       name == "FirstUpdate" and version 3 has name == "SecondUpdate".
