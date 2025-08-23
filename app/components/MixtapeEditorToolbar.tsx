@@ -90,14 +90,10 @@ export default function MixtapeEditorToolbar({
       
       onUndoRedo(updatedMixtape);
       setStatusText('Undo successful');
-      // Clear success message after 3 seconds
-      setTimeout(() => setStatusText('Saved'), 3000);
     } catch (error) {
       console.error('Error undoing:', error);
       setStatusText('Undo failed');
       showToast('Error undoing changes');
-      // Clear failure message after 3 seconds
-      setTimeout(() => setStatusText('Saved'), 3000);
     } finally {
       setIsUndoing(false);
     }
@@ -115,14 +111,10 @@ export default function MixtapeEditorToolbar({
       
       onUndoRedo(updatedMixtape);
       setStatusText('Redo successful');
-      // Clear success message after 3 seconds
-      setTimeout(() => setStatusText('Saved'), 3000);
     } catch (error) {
       console.error('Error redoing:', error);
       setStatusText('Redo failed');
       showToast('Error redoing changes');
-      // Clear failure message after 3 seconds
-      setTimeout(() => setStatusText('Saved'), 3000);
     } finally {
       setIsRedoing(false);
     }
