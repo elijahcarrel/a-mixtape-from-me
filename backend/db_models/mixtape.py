@@ -1,10 +1,11 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     Index,
     UniqueConstraint,
 )
 from sqlmodel import Field, Relationship, SQLModel
+
 
 # Captures the state of a “mixtape” created by a user. A mixtape is basically a
 # playlist: a collection of songs along with metadata such as commentary that

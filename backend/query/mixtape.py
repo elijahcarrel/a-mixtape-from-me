@@ -12,10 +12,10 @@ class MixtapeQuery:
     for_update: bool
     options: list[ExecutableOption]
 
-    def __init__(self, session: Session, options: list[ExecutableOption] = [], for_update: bool = False):
+    def __init__(self, session: Session, options: list[ExecutableOption], for_update: bool = False):
         self.session = session
         self.for_update = for_update
-        self.options = options
+        self.options = options or []
 
     def list_mixtapes_for_user(self, stack_auth_user_id: str, q: str | None = None, limit: int = 20, offset: int = 0) -> Sequence[Mixtape]:
         """

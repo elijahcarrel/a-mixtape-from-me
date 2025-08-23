@@ -1,7 +1,10 @@
+import threading
+from uuid import uuid4
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, delete
-from datetime import datetime, UTC
+
 from backend.api_models.mixtape import (
     MixtapeOverview,
     MixtapeRequest,
@@ -21,8 +24,6 @@ from backend.middleware.db_conn.dependency_helpers import (
     get_write_session,
 )
 from backend.query.mixtape import MixtapeQuery
-from uuid import uuid4
-import threading
 
 router = APIRouter()
 
@@ -92,9 +93,9 @@ def claim_mixtape(
     stack_auth_user_id = authenticated_user.get_user_id()
 
     mixtape_query = MixtapeQuery(
-        session=session, 
+        session=session,
         options=[selectinload(Mixtape.tracks)], # type: ignore[arg-type]
-        for_update=True, 
+        for_update=True,
     )
     mixtape = mixtape_query.load_by_public_id(public_id)
 
@@ -122,7 +123,7 @@ def list_my_mixtapes(
 ):
     stack_auth_user_id = authenticated_user.get_user_id()
 
-    mixtape_query = MixtapeQuery(session=session, for_update=False)
+    mixtape_query = MixtapeQuery(session=session, for_update=False, options=[])
     mixtapes = mixtape_query.list_mixtapes_for_user(stack_auth_user_id, q=q, limit=limit, offset=offset)
     return [
         MixtapeOverview(
@@ -174,7 +175,7 @@ def get_mixtape(
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
-    mixtape_query = MixtapeQuery(session=session, for_update=False)
+    mixtape_query = MixtapeQuery(session=session, for_update=False, options=[])
     mixtape = mixtape_query.load_by_public_id(public_id)
     # If mixtape not found, return 404.
     if mixtape is None:
@@ -198,9 +199,9 @@ def update_mixtape(
 ):
 
     mixtape_query = MixtapeQuery(
-        session=session, 
+        session=session,
         options=[selectinload(Mixtape.tracks)], # type: ignore[arg-type]
-        for_update=True, 
+        for_update=True,
     )
     mixtape = mixtape_query.load_by_public_id(public_id)
 
