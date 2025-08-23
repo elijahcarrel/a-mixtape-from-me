@@ -237,9 +237,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "additionalProperties": true,
-                                    "title": "Response Create Mixtape Api Mixtape Post"
+                                    "$ref": "#/components/schemas/MixtapeResponse"
                                 }
                             }
                         }
@@ -363,9 +361,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "additionalProperties": true,
-                                    "title": "Response Claim Mixtape Api Mixtape  Public Id  Claim Post"
+                                    "$ref": "#/components/schemas/MixtapeResponse"
                                 }
                             }
                         }
@@ -459,9 +455,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "additionalProperties": true,
-                                    "title": "Response Update Mixtape Api Mixtape  Public Id  Put"
+                                    "$ref": "#/components/schemas/MixtapeResponse"
                                 }
                             }
                         }
