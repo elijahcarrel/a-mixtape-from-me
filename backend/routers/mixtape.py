@@ -27,10 +27,6 @@ from backend.query.mixtape import MixtapeQuery
 
 router = APIRouter()
 
-# POST /mixtape: Create a new mixtape (with tracks)
-# GET /mixtape/{public_id}: Retrieve a mixtape (with tracks)
-# PUT /mixtape/{public_id}: Update a mixtape (with tracks)
-
 def parse_track(track: MixtapeTrackRequest, spotify_client: SpotifyClient)->MixtapeTrack:
     # Look up TrackDetails just to verify track is valid.
     track_id = track.spotify_uri.replace('spotify:track:', '')
@@ -52,6 +48,14 @@ def create_mixtape(
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
+    """
+    Creates a new mixtape (with tracks).
+    If user is authenticated, the mixtape will be associated with them. If not, it
+    will remain an anonymous mixtape.
+    Returns the mixtape's generated public ID.
+    TODO: rethink the return value (maybe make an explicit for it?)
+
+    """
     # Anonymous mixtapes must be public
     if authenticated_user is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
@@ -121,6 +125,10 @@ def list_my_mixtapes(
     limit: int = Query(20, ge=1, le=100, description="Max results to return"),
     offset: int = Query(0, ge=0, description="Results offset for pagination"),
 ):
+    """
+    Lists all mixtapes owned by the current user, taking into account the specified query parameters.
+    Does not return the entire mixtape, just an overview.
+    """
     stack_auth_user_id = authenticated_user.get_user_id()
 
     mixtape_query = MixtapeQuery(session=session, for_update=False, options=[])
@@ -175,6 +183,9 @@ def get_mixtape(
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
+    """
+    Gets the mixtape with the given public ID.
+    """
     mixtape_query = MixtapeQuery(session=session, for_update=False, options=[])
     mixtape = mixtape_query.load_by_public_id(public_id)
     # If mixtape not found, return 404.
@@ -197,6 +208,11 @@ def update_mixtape(
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
+    """
+    Updates the mixtape with the given ID.
+    Returns the new mixtape version.
+    TODO: rethink the return value.
+    """
 
     mixtape_query = MixtapeQuery(
         session=session,

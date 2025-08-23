@@ -11,7 +11,7 @@ from sqlmodel import Field, Relationship, SQLModel
 # playlist: a collection of songs along with metadata such as commentary that
 # goes along with the songs as well as other customizable features.
 class Mixtape(SQLModel, table=True):
-    __tablename__ = "Mixtape"
+    __tablename__ = "mixtape"
     id: int | None = Field(default=None, primary_key=True)
     stack_auth_user_id: str | None = Field(default=None, index=True, description="Stack Auth User ID of the owner (None for anonymous)")
     public_id: str = Field(unique=True, index=True)
@@ -85,9 +85,9 @@ class Mixtape(SQLModel, table=True):
 #  modified after that). This is an internal database table not exposed to
 #  clients (unless/until we build a way to see version history).
 class MixtapeAudit(SQLModel, table=True):
-    __tablename__ = "MixtapeAudit"
+    __tablename__ = "mixtape_audit"
     id: int | None = Field(default=None, primary_key=True)
-    mixtape_id: int = Field(foreign_key="Mixtape.id")
+    mixtape_id: int = Field(foreign_key="mixtape.id")
     public_id: str = Field(index=True)
     name: str = Field(max_length=255)
     intro_text: str | None = Field(default=None)
@@ -105,9 +105,9 @@ class MixtapeAudit(SQLModel, table=True):
 
 # MixtapeTrack represents a single track within a single playlist.
 class MixtapeTrack(SQLModel, table=True):
-    __tablename__ = "MixtapeTrack"
+    __tablename__ = "mixtape_track"
     id: int | None = Field(default=None, primary_key=True)
-    mixtape_id: int = Field(foreign_key="Mixtape.id")
+    mixtape_id: int = Field(foreign_key="mixtape.id")
     track_position: int
     track_text: str | None = Field(default=None)
     spotify_uri: str = Field(max_length=255)
@@ -136,9 +136,9 @@ class MixtapeTrack(SQLModel, table=True):
 # internal database table not exposed to clients (unless/until we build a way to
 # see version history).
 class MixtapeAuditTrack(SQLModel, table=True):
-    __tablename__ = "MixtapeAuditTrack"
+    __tablename__ = "mixtape_audit_track"
     id: int | None = Field(default=None, primary_key=True)
-    mixtape_audit_id: int = Field(foreign_key="MixtapeAudit.id")
+    mixtape_audit_id: int = Field(foreign_key="mixtape_audit.id")
     track_position: int
     track_text: str | None = Field(default=None)
     spotify_uri: str = Field(max_length=255)

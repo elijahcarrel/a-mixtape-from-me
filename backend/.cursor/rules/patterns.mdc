@@ -1,18 +1,20 @@
 # Backend Patterns
 
-## Pydantic V2
+## API Models
+- All API models in `backend/api_models` using Pydantic V2
 - Use `@field_validator` decorators (not deprecated `@validator`)
 - Define request/response models in router files
 
 ## Database Models
-- All models in `backend/db_models.py` using SQLModel
-- Use PascalCase for table names, snake_case for columns
-- Include audit trails for data changes
+- All models in `backend/db_models` using SQLModel
+- Use lower_snake_case for table names and columns
+- Include audit trails for data changes via the `_snapshot` tables
 
-## API Patterns
-- Return class objects from business logic, convert to dicts only at router layer
+## Service/Router Patterns
+- Use class objects at all times, never dicts
 - Use dependency injection for external clients
 - Use `get_user` for protected endpoints, `get_optional_user` for optional auth
+- Add docstrings to every endpoint.
 
 ## Testing
 - Use dependency overrides with explicit pre-defined general-purpose mock clients
@@ -20,12 +22,14 @@
 - Test both success and error scenarios
 
 ## Linting and Type-Checking
-- We lint with ruff (`npm run backend-lint` or `npm run backend-lint-fix`)
+- We lint with ruff (`npm run backend-lint` and `npm run backend-lint-fix`)
 - We type-check with mypy (`npm run backend-typecheck`)
+- All functions should define types of all input parameters and output parameters
 
 ## Error Handling
 - Use specific HTTP status codes (400, 401, 404, 422, 500)
 - Return structured error responses with meaningful messages
+
 description: Backend development patterns for FastAPI, Pydantic V2, and SQLModel
 globs: ["backend/**/*.py", "scripts/**/*.py"]
 alwaysApply: true
