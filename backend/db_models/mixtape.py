@@ -149,19 +149,23 @@ class Mixtape(SQLModel, table=True):
             new_snapshot.tracks.append(snapshot_track)  # sets mixtape_snapshot_id automatically
 
 
-#  The mixtape_snapshot table is an audit/version log for the mixtape table,
-#  capturing a snapshot of each entry in the mixtape table as it has existed at
-#  every moment it gets updated throughout history, including the current
-#  values, with the exception of immutable columns like id and public_id. This
-#  means that the current information is always duplicated in both tables (which
-#  is a bit wasteful), but provides full snapshot trails for version history.
-#  This means that for a given mixtape entry, there should be at least one
-#  mixtape_snapshot entry (the only time it would only have exactly one if was
-#  created once and never modified after that). This is an internal database
-#  table not exposed to clients (unless/until we build a way to see version
-#  history).
+#  The mixtape_snapshot table is an append-only audit/version log for the
+#  mixtape table, capturing a snapshot of each entry in the mixtape table as it
+#  has existed at every moment it gets updated throughout history, including the
+#  current values, with the exception of immutable columns like id and
+#  public_id. This means that the current information is always duplicated in
+#  both tables (which is a bit wasteful), but provides full snapshot trails for
+#  version history. This means that for a given mixtape entry, there should be
+#  at least one mixtape_snapshot entry (the only time it would only have exactly
+#  one if was created once and never modified after that). This is an internal
+#  database table not exposed to clients (unless/until we build a way to see
+#  version history).
 class MixtapeSnapshot(SQLModel, table=True):
     __tablename__ = "mixtape_snapshot"
+    __table_args__ = (
+        UniqueConstraint("mixtape_id", "version", name="distinct_versions"),
+    )
+
     id: int | None = Field(default=None, primary_key=True)
     mixtape_id: int = Field(foreign_key="mixtape.id")
     public_id: str = Field(index=True)
