@@ -57,23 +57,23 @@ class Mixtape(SQLModel, table=True):
     def finalize(self, is_undo_redo_operation: bool = False):
         """
         Finalize the mixtape update by incrementing version and creating snapshots.
-        
+
         This method should be called as the last step before committing changes to
         the database. It handles:
         1. Version management (increment for updates, set to 1 for new mixtapes)
         2. Timestamp updates (create_time for new, last_modified_time for all)
         3. Undo/redo pointer management (clear redo chain after normal edits)
         4. Snapshot generation for audit trail
-        
+
         Args:
             is_undo_redo_operation: If True, preserves undo/redo pointers as set by caller.
                                   If False, clears redo chain for normal edits.
-        
+
         For new mixtapes:
         - Sets create_time and last_modified_time to current time
         - Sets version to 1
         - Initializes undo/redo pointers to None (no history)
-        
+
         For existing mixtapes:
         - Increments version number
         - Updates last_modified_time

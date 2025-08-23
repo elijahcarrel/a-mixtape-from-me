@@ -795,6 +795,11 @@
                         ],
                         "title": "Stack Auth User Id"
                     },
+                    "version": {
+                        "type": "integer",
+                        "title": "Version",
+                        "description": "Current version number of the mixtape"
+                    },
                     "tracks": {
                         "items": {
                             "$ref": "#/components/schemas/MixtapeTrackResponse"
@@ -825,6 +830,7 @@
                     "create_time",
                     "last_modified_time",
                     "stack_auth_user_id",
+                    "version",
                     "tracks",
                     "can_undo",
                     "can_redo"

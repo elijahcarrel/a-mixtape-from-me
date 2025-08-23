@@ -394,7 +394,7 @@ def undo_mixtape(
 
     # Store current version for redo chain
     current_version = mixtape.version
-    
+
     # Set up new state: copy content from target snapshot but create new version
     mixtape.name = target_snapshot.name
     mixtape.intro_text = target_snapshot.intro_text
@@ -402,7 +402,7 @@ def undo_mixtape(
     mixtape.subtitle2 = target_snapshot.subtitle2
     mixtape.subtitle3 = target_snapshot.subtitle3
     mixtape.is_public = target_snapshot.is_public
-    
+
     # Set up undo/redo pointers for the new version
     mixtape.undo_to_version = target_snapshot.undo_to_version  # Point to where target could undo
     mixtape.redo_to_version = current_version  # Can redo back to where we came from
@@ -488,7 +488,7 @@ def redo_mixtape(
 
     # Store current version for undo chain
     current_version = mixtape.version
-    
+
     # Set up new state: copy content from target snapshot but create new version
     mixtape.name = target_snapshot.name
     mixtape.intro_text = target_snapshot.intro_text
@@ -496,7 +496,7 @@ def redo_mixtape(
     mixtape.subtitle2 = target_snapshot.subtitle2
     mixtape.subtitle3 = target_snapshot.subtitle3
     mixtape.is_public = target_snapshot.is_public
-    
+
     # Set up undo/redo pointers for the new version
     mixtape.undo_to_version = current_version  # Can undo back to where we came from
     mixtape.redo_to_version = target_snapshot.redo_to_version  # Point to where target could redo

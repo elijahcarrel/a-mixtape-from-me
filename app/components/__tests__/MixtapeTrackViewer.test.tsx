@@ -50,6 +50,7 @@ const mockMixtape: MixtapeResponse = {
   ],
   can_undo: true,
   can_redo: false,
+  version: 5,
 };
 
 jest.mock('../EditButton', () => {

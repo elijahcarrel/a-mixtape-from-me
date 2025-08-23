@@ -45,6 +45,7 @@ const fakeMixtape: MixtapeResponse = {
   is_public: false,
   can_undo: true,
   can_redo: false,
+  version: 5,
   create_time: '2023-01-01T00:00:00Z',
   last_modified_time: '2023-01-01T00:00:00Z',
   stack_auth_user_id: 'user123',

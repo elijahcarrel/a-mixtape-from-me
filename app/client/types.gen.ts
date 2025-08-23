@@ -114,6 +114,11 @@ export type MixtapeResponse = {
      */
     stack_auth_user_id: string | null;
     /**
+     * Version
+     * Current version number of the mixtape
+     */
+    version: number;
+    /**
      * Tracks
      */
     tracks: Array<MixtapeTrackResponse>;

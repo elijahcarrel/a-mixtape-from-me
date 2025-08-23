@@ -159,6 +159,7 @@ const mockMixtapeData: MixtapeResponse = {
   ],
   can_undo: true,
   can_redo: false,
+  version: 5,
 };
 
 const mockAnonymousMixtapeData: MixtapeResponse = {
@@ -181,6 +182,7 @@ const mockAnonymousMixtapeData: MixtapeResponse = {
   ],
   can_undo: true,
   can_redo: false,
+  version: 5,
 };
 
 // In tests that simulate adding a track, use:

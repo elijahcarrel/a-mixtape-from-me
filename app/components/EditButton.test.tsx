@@ -34,6 +34,7 @@ describe('EditButton', () => {
     tracks: [],
     can_undo: true,
     can_redo: false,
+    version: 5,
   };
 
   beforeEach(() => {
