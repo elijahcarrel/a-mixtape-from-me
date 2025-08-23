@@ -43,29 +43,3 @@ class MixtapeQuery:
         if self.for_update:
             statement = statement.with_for_update()
         return self.session.exec(statement).first()
-
-    def load_snapshot_by_version(self, mixtape_id: int, version: int) -> "MixtapeSnapshot | None":
-        """
-        Load a specific snapshot by version number.
-        
-        This method retrieves a historical snapshot of a mixtape at a specific
-        version. It's used by the undo/redo functionality to restore mixtape
-        state from previous versions.
-        
-        Args:
-            mixtape_id: The database ID of the mixtape
-            version: The version number to load
-            
-        Returns:
-            MixtapeSnapshot: The snapshot at the specified version, or None if not found
-            
-        Note:
-            This method does not use SELECT FOR UPDATE since snapshots are immutable
-            and only used for reading historical data during undo/redo operations.
-        """
-        from backend.db_models.mixtape import MixtapeSnapshot
-        statement = select(MixtapeSnapshot).where(
-            MixtapeSnapshot.mixtape_id == mixtape_id,
-            MixtapeSnapshot.version == version
-        )
-        return self.session.exec(statement).first()
