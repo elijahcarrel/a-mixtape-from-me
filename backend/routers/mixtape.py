@@ -124,8 +124,7 @@ def claim_mixtape(
     )
     mixtape = mixtape_query.load_by_public_id(public_id)
 
-    if mixtape is None:
-        raise HTTPException(status_code=404, detail="Mixtape not found")
+    mixtape = validate_mixtape_exists(mixtape)
 
     if mixtape.stack_auth_user_id is not None:
         raise HTTPException(status_code=400, detail="Mixtape is already claimed")
@@ -221,6 +220,43 @@ def load_mixtape_api_models_from_dbmodel(spotify_client: SpotifyClient, mixtape:
         can_redo=mixtape.redo_to_version is not None,
     )
 
+def validate_mixtape_exists(mixtape: Mixtape | None) -> Mixtape:
+    """
+    Validate that the mixtape exists.
+    If the mixtape is not found, return 404.
+    Returns the mixtape.
+    """
+    if mixtape is None:
+        raise HTTPException(status_code=404, detail="Mixtape not found")
+    return mixtape
+
+def validate_mixtape_access(mixtape: Mixtape | None, authenticated_user: AuthenticatedUser | None, is_write: bool = True) -> Mixtape:
+    """
+    Validate that the user can access the mixtape to perform the requested action (read or write).
+    If the mixtape is not found, return 404.
+    If the mixtape is anonymous, allow read/write access to all users.
+    If the user is not logged in, check that the mixtape is public and that they are just viewing.
+    If the user is logged in, check that they are the owner of the mixtape. If not, check that the mixtape is public and that they are just viewing.
+    Return the mixtape.
+    """
+    mixtape = validate_mixtape_exists(mixtape)
+
+    if mixtape.stack_auth_user_id is None:
+        # All anonymous mixtapes are public and freely-accessible.
+        return mixtape
+
+    if authenticated_user is None: # User is not logged in.
+        if is_write:
+            raise HTTPException(status_code=401, detail="Not authenticated; log in to edit this mixtape")
+        if not(mixtape.is_public):
+            raise HTTPException(status_code=401, detail="Not authenticated; log in to view this mixtape")
+    elif authenticated_user.get_user_id() != mixtape.stack_auth_user_id: # User is logged in but not the owner.
+        if is_write:
+            raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
+        if not(mixtape.is_public):
+            raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
+    
+    return mixtape
 
 @router.get("/{public_id}", response_model=MixtapeResponse)
 def get_mixtape(
@@ -234,15 +270,7 @@ def get_mixtape(
     """
     mixtape_query = MixtapeQuery(session=session, for_update=False, options=[])
     mixtape = mixtape_query.load_by_public_id(public_id)
-    # If mixtape not found, return 404.
-    if mixtape is None:
-        raise HTTPException(status_code=404, detail="Mixtape not found")
-
-    # If mixtape not public, require authentication and ownership.
-    if not mixtape.is_public:
-        stack_auth_user_id = authenticated_user.get_user_id() if authenticated_user else None
-        if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
-            raise HTTPException(status_code=401, detail="Not authorized to view this mixtape")
+    mixtape = validate_mixtape_access(mixtape, authenticated_user, is_write=False)
 
     return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
 
@@ -267,16 +295,7 @@ def update_mixtape(
     )
     mixtape = mixtape_query.load_by_public_id(public_id)
 
-    if mixtape is None:
-        raise HTTPException(status_code=404, detail="Mixtape not found")
-
-    # Check ownership.
-    if mixtape.stack_auth_user_id is not None:
-        # For owned mixtapes, require authentication and ownership
-        if authenticated_user is None:
-            raise HTTPException(status_code=401, detail="Not authenticated")
-        if authenticated_user.get_user_id() != mixtape.stack_auth_user_id:
-            raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
+    mixtape = validate_mixtape_access(mixtape, authenticated_user, is_write=True)
 
     # Anonymous mixtapes cannot be made private
     if mixtape.stack_auth_user_id is None and not request.is_public:
@@ -358,18 +377,11 @@ def undo_mixtape(
     )
     mixtape = mixtape_query.load_by_public_id(public_id)
 
-    if mixtape is None:
-        raise HTTPException(status_code=404, detail="Mixtape not found")
+    mixtape = validate_mixtape_access(mixtape, authenticated_user, is_write=True)
 
     # Check if mixtape can be undone
     if mixtape.undo_to_version is None:
         raise HTTPException(status_code=400, detail="Cannot undo: no previous version available")
-
-    # Check ownership for private mixtapes
-    if not mixtape.is_public:
-        stack_auth_user_id = authenticated_user.get_user_id() if authenticated_user else None
-        if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
-            raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
 
     if mixtape.id is None:
         raise HTTPException(status_code=500, detail="Got unexpected null Mixtape ID")
@@ -455,18 +467,11 @@ def redo_mixtape(
     )
     mixtape = mixtape_query.load_by_public_id(public_id)
 
-    if mixtape is None:
-        raise HTTPException(status_code=404, detail="Mixtape not found")
+    mixtape = validate_mixtape_access(mixtape, authenticated_user, is_write=True)
 
     # Check if mixtape can be redone
     if mixtape.redo_to_version is None:
         raise HTTPException(status_code=400, detail="Cannot redo: no later version available")
-
-    # Check ownership for private mixtapes
-    if not mixtape.is_public:
-        stack_auth_user_id = authenticated_user.get_user_id() if authenticated_user else None
-        if not stack_auth_user_id or stack_auth_user_id != mixtape.stack_auth_user_id:
-            raise HTTPException(status_code=401, detail="Not authorized to edit this mixtape")
 
     if mixtape.id is None:
         raise HTTPException(status_code=500, detail="Got unexpected null Mixtape ID")

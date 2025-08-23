@@ -63,7 +63,6 @@ class MixtapeQuery:
             This method does not use SELECT FOR UPDATE since snapshots are immutable
             and only used for reading historical data during undo/redo operations.
         """
-        from backend.db_models.mixtape import MixtapeSnapshot
         statement = select(MixtapeSnapshot).where(
             MixtapeSnapshot.mixtape_id == mixtape_id,
             MixtapeSnapshot.version == version
