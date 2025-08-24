@@ -23,14 +23,10 @@ export function useTheme() {
 const updateTailwindTheme = (newTheme: Theme) => {
   // Apply theme to document using Tailwind's expected dark class
   const root = document.documentElement;
-  console.log('root.classList before', root.classList);
-  console.log('removing dark class');
   root.classList.remove('dark');
   if (newTheme === 'dark') {
-    console.log('adding dark class');
     root.classList.add('dark');
   }
-  console.log('root.classList', root.classList);
 }  
 
 const updateStackTheme = (newTheme: Theme) => {
