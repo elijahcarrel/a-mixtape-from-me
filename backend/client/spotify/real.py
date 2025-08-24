@@ -3,6 +3,7 @@ import threading
 import time
 from collections import OrderedDict
 from typing import Any
+import base64
 
 import requests
 
@@ -38,12 +39,16 @@ class SpotifyClient(AbstractSpotifyClient):
                 return self._access_token
 
             url = "https://accounts.spotify.com/api/token"
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            auth_string = f"{self.client_id}:{self.client_secret}"
+            auth_bytes = auth_string.encode("utf-8")
+            auth_b64 = str(base64.b64encode(auth_bytes), "utf-8")
+            headers = {
+                "Authorization": f"Basic {auth_b64}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
             data = {
                 "grant_type": "refresh_token",
                 "refresh_token": self.refresh_token,
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
             }
 
             response = requests.post(url, headers=headers, data=data)
