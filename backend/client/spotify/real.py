@@ -15,41 +15,51 @@ from .client import (
 
 class SpotifyClient(AbstractSpotifyClient):
     def __init__(self):
-        self.client_id = os.environ["SPOTIFY_CLIENT_ID"]
-        self.client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
+        # The OAuth token must have the playlist-modify-public (and optionally
+        # playlist-modify-private) scopes. For backend jobs we read it from an
+        # env var set at runtime (e.g. via secrets manager). The token is short-
+        # lived, but for simplicity we assume the operator refreshes it.
+        self._access_token = os.environ["SPOTIFY_OAUTH_TOKEN"]
+
+        # Cache for track look-ups to avoid repeated API calls during a single
+        # request burst.
         self.track_cache_size = int(os.environ.get("SPOTIFY_TRACK_CACHE_SIZE", 500))
         self.track_cache = OrderedDict[str, SpotifyTrack]()  # track_id -> SpotifyTrack
         self._cache_lock = threading.Lock()
 
-    def get_spotify_access_token(self)->str:
-        auth_string = f"{self.client_id}:{self.client_secret}"
-        auth_bytes = auth_string.encode("utf-8")
-        auth_b64 = str(base64.b64encode(auth_bytes), "utf-8")
-        url = "https://accounts.spotify.com/api/token"
-        headers = {
-            "Authorization": f"Basic {auth_b64}",
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-        data = {"grant_type": "client_credentials"}
-        response = requests.post(url, headers=headers, data=data)
-        if response.status_code == 200:
-            return str(response.json()["access_token"])
-        else:
-            raise Exception("Failed to get Spotify access token")
+        self._user_id: str | None = None  # populated lazily
 
-    def spotify_api_request(self, endpoint: str, **kwargs)->Any:
-        access_token = self.get_spotify_access_token()
-        headers = {"Authorization": f"Bearer {access_token}"}
+    # --- Auth helpers ---
+    def get_spotify_access_token(self)->str:
+        """Return the bearer token provided via env var."""
+        return self._access_token
+
+    def _auth_headers(self)->dict[str, str]:
+        return {"Authorization": f"Bearer {self.get_spotify_access_token()}"}
+
+    def spotify_api_request(self, method: str, endpoint: str, **kwargs)->Any:
+        """Low-level HTTP helper (raises on non-2xx)."""
+        headers = self._auth_headers()
         if "headers" in kwargs:
             headers.update(kwargs["headers"])
         kwargs["headers"] = headers
-        response = requests.get(f"https://api.spotify.com/v1{endpoint}", **kwargs)
-        if response.status_code != 200:
-            raise Exception(f"Spotify API error: {response.text}")
+        url = f"https://api.spotify.com/v1{endpoint}"
+        response = requests.request(method, url, **kwargs)
+        if response.status_code >= 400:
+            raise Exception(f"Spotify API error {response.status_code}: {response.text}")
+        if response.status_code == 204:  # No content
+            return None
         return response.json()
 
+    # --- User info ---
+    def _get_user_id(self)->str:
+        if self._user_id is None:
+            data = self.spotify_api_request("GET", "/me")
+            self._user_id = data["id"]
+        return self._user_id
+
     def search_tracks(self, query: str)->list[SpotifyTrack]:
-        data = self.spotify_api_request(f"/search?q={query}&type=track&limit=5")
+        data = self.spotify_api_request("GET", f"/search", params={"q": query, "type": "track", "limit": 5})
         items = []
         # TODO: why do we check for both "tracks" and "items"? Should only need one.
         for item in data.get("tracks", {}).get("items", []):
@@ -67,7 +77,7 @@ class SpotifyClient(AbstractSpotifyClient):
         # TODO: ensure we use a single flight so that we don't fetch the same track multiple times
         # from multiple threads. In golang there's a singleflight package we could use; this surely
         # exists in Python so we just need to find it.
-        item = self.spotify_api_request(f"/tracks/{track_id}")
+        item = self.spotify_api_request("GET", f"/tracks/{track_id}")
         track = SpotifyTrack.from_dict(item)
 
         with self._cache_lock:
@@ -77,18 +87,27 @@ class SpotifyClient(AbstractSpotifyClient):
         return track
 
     # --- Playlist methods ---
-    def create_playlist(self, title: str, description: str, track_uris: list[str]) -> str:  # pragma: no cover
-        """Create a playlist in the authorized Spotify account. Returns playlist Spotify URI.
+    def _playlist_id_from_uri(self, playlist_uri: str) -> str:
+        return playlist_uri.split(":")[-1]
 
-        NOTE: This implementation uses application credentials flow which typically does not
-        permit modifying user playlists. In production you would need OAuth with proper scopes.
-        Here we raise NotImplementedError because unit tests use MockSpotifyClient.
-        """
-        raise NotImplementedError("Real Spotify playlist creation requires OAuth flow not implemented in backend.")
+    def create_playlist(self, title: str, description: str, track_uris: list[str]) -> str:
+        user_id = self._get_user_id()
+        payload = {"name": title, "description": description, "public": True}
+        data = self.spotify_api_request("POST", f"/users/{user_id}/playlists", json=payload)
+        playlist_id = data["id"]
 
-    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> None:  # pragma: no cover
-        """Update an existing playlist. Not implemented for real client."""
-        raise NotImplementedError("Real Spotify playlist update requires OAuth flow not implemented in backend.")
+        if track_uris:
+            self.spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
+
+        return data["uri"]
+
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> None:
+        playlist_id = self._playlist_id_from_uri(playlist_uri)
+        # Change details
+        self.spotify_api_request("PUT", f"/playlists/{playlist_id}", json={"name": title, "description": description, "public": True})
+
+        # Replace tracks (PUT replaces)
+        self.spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
 
 def get_spotify_client():
     return SpotifyClient()
