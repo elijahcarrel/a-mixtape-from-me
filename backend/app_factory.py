@@ -6,6 +6,8 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+# Import custom middleware for detailed exception logging
+from backend.middleware.error_logging import exception_logging_middleware
 from backend.middleware.db_conn.global_db_conn import initialize_engine
 from backend.routers import account, auth, health, mixtape, spotify
 
@@ -56,16 +58,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         print(f"Outgoing response status: {str(response.status_code)}")
         return response
 
-    @app.middleware("http")
-    async def catch_exceptions_middleware(request: Request, call_next):
-        try:
-            return await call_next(request)
-        except Exception as e:
-            print(f"Unhandled exception: {e}")
-            logging.exception("Exception caught in middleware")
-            return JSONResponse(
-                status_code=500,
-                content={"detail": "Internal server error"},
-            )
+    # Add global exception logging middleware
+    app.middleware("http")(exception_logging_middleware)
 
     return app
