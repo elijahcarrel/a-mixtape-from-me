@@ -136,8 +136,10 @@ export function Autocomplete<T>({
   const handleSelect = (item: T) => {
     onSelect(item);
     setQuery('');
+    setResults([]);
     setIsOpen(false);
     setSelectedIndex(-1);
+    inputRef.current?.focus();
   };
 
   const handleClickOutside = (e: MouseEvent) => {

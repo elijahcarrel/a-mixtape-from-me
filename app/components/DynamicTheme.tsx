@@ -1,7 +1,7 @@
 'use client';
 
 import { StackTheme } from '@stackframe/stack';
-import { useTheme } from './ThemeProvider';
+import { useThemeForStackAuth } from './ThemeProvider';
 
 interface DynamicThemeProps {
   theme: any;
@@ -9,7 +9,7 @@ interface DynamicThemeProps {
 }
 
 export default function DynamicTheme({ theme, children }: DynamicThemeProps) {
-  const { theme: currentTheme } = useTheme();
+  const { theme: currentTheme } = useThemeForStackAuth();
   
   // Select the appropriate theme variant based on current theme.
   const selectedTheme = {

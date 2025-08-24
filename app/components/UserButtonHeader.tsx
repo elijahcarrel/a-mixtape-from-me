@@ -4,7 +4,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserButton } from '@stackframe/stack';
 import UserButtonContainer from './layout/UserButtonContainer';
-import { useTheme } from './ThemeProvider';
+import { useThemeForStackAuth } from './ThemeProvider';
 
 // Custom hook to track window width
 function useWindowWidth() {
@@ -28,7 +28,7 @@ function useWindowWidth() {
 
 export default function UserButtonHeader() {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useThemeForStackAuth();
   const windowWidth = useWindowWidth();
   
   // Show user info only on screens wider than 640px (sm breakpoint)
