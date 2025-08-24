@@ -37,6 +37,8 @@ export default function UserButtonHeader() {
   // Proper theme toggle that updates the theme context
   const handleColorModeToggle = useCallback(() => {
     const next = theme === 'dark' ? 'light' : 'dark';
+    console.log('theme', theme);
+    console.log('next', next);
     setTheme(next);
   }, [theme, setTheme]);
 

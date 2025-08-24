@@ -129,7 +129,7 @@ export default function SpotifyPlayer({
     return () => {
       isMounted = false;
     };
-  }, []); // empty deps – create once
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // When the URI changes, load it via the existing controller (if ready).
   useEffect(() => {

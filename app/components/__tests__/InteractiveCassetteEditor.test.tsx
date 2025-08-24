@@ -24,7 +24,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
@@ -43,7 +42,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
@@ -65,7 +63,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
@@ -92,7 +89,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
@@ -118,7 +114,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
@@ -147,7 +142,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
@@ -175,7 +169,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
@@ -197,7 +190,6 @@ describe('InteractiveCassetteEditor', () => {
         onSubtitle1Change={mockOnSubtitle1Change}
         onSubtitle2Change={mockOnSubtitle2Change}
         onSubtitle3Change={mockOnSubtitle3Change}
-        theme="light"
       />
     );
 
