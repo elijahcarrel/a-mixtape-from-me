@@ -176,6 +176,7 @@ export default function MixtapeEditorToolbar({
                   setToastMessage(
                     <>
                       Spotify playlist copied!
+                      {" "}
                       <Link href={`https://open.spotify.com/playlist/${resp.spotify_playlist_uri.split(':').pop()}`} target="_blank" rel="noopener noreferrer">Open in Spotify</Link>
                     </>
                   );
