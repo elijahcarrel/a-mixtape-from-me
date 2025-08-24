@@ -22,6 +22,7 @@ class Mixtape(SQLModel, table=True):
     subtitle2: str | None = Field(default=None, max_length=60)
     subtitle3: str | None = Field(default=None, max_length=60)
     is_public: bool = Field(default=False)
+    spotify_playlist_uri: str | None = Field(default=None, description="Spotify playlist URI corresponding to this mixtape")
     create_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     last_modified_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     version: int = Field(default=1)
@@ -52,6 +53,7 @@ class Mixtape(SQLModel, table=True):
             undo_to_version=self.undo_to_version,
             redo_to_version=self.redo_to_version,
             resembles_version=self.resembles_version,
+            spotify_playlist_uri=self.spotify_playlist_uri,
         )
 
     def finalize(self, is_undo_redo_operation: bool = False):
@@ -131,6 +133,7 @@ class Mixtape(SQLModel, table=True):
         self.subtitle2 = target_snapshot.subtitle2
         self.subtitle3 = target_snapshot.subtitle3
         self.is_public = target_snapshot.is_public
+        self.spotify_playlist_uri = target_snapshot.spotify_playlist_uri
 
         # Set up undo/redo pointers for the new version
         self.resembles_version = target_snapshot.version  # This new version resembles the target
@@ -196,6 +199,7 @@ class MixtapeSnapshot(SQLModel, table=True):
     subtitle2: str | None = Field(default=None, max_length=60)
     subtitle3: str | None = Field(default=None, max_length=60)
     is_public: bool = Field(default=False)
+    spotify_playlist_uri: str | None = Field(default=None, description="Spotify playlist URI corresponding to this mixtape snapshot")
     create_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     last_modified_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     version: int

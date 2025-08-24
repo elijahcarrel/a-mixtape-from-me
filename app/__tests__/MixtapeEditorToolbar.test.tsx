@@ -5,6 +5,7 @@ import MixtapeEditorToolbar from '../components/MixtapeEditorToolbar';
 import { MixtapeResponse } from '../client';
 import { FormValues } from '../components/MixtapeEditorForm';
 import ThemeProvider from '../components/ThemeProvider';
+import toast from 'react-hot-toast';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -22,6 +23,12 @@ jest.mock('../hooks/useAuthenticatedRequest', () => ({
   useAuthenticatedRequest: () => ({
     makeRequest: mockMakeRequest,
   }),
+}));
+
+// Mock react-hot-toast
+jest.mock('react-hot-toast', () => ({
+  success: jest.fn(),
+  error: jest.fn(),
 }));
 
 const mockMixtape: MixtapeResponse = {
@@ -51,6 +58,7 @@ const mockMixtape: MixtapeResponse = {
   can_undo: true,
   can_redo: false,
   version: 5,
+  spotify_playlist_url: null,
 };
 
 const mockFormValues: FormValues = {
@@ -185,8 +193,9 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(undoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Error undoing changes')).toBeInTheDocument();
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Undo failed');
     });
+    expect(toast.error).toHaveBeenCalledWith('Error undoing changes');
   });
 
   it('shows error toast when redo request fails', async () => {
@@ -199,8 +208,9 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(redoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Error redoing changes')).toBeInTheDocument();
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Redo failed');
     });
+    expect(toast.error).toHaveBeenCalledWith('Error redoing changes');
   });
 
   it('shows error toast when undo request throws an error', async () => {
@@ -212,8 +222,9 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(undoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Error undoing changes')).toBeInTheDocument();
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Undo failed');
     });
+    expect(toast.error).toHaveBeenCalledWith('Error undoing changes');
   });
 
   it('shows error toast when redo request throws an error', async () => {
@@ -226,8 +237,9 @@ describe('MixtapeEditorToolbar', () => {
     fireEvent.click(redoButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Error redoing changes')).toBeInTheDocument();
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Redo failed');
     });
+    expect(toast.error).toHaveBeenCalledWith('Error redoing changes');
   });
 
   it('disables undo button while undo request is in progress', async () => {
@@ -403,5 +415,101 @@ describe('MixtapeEditorToolbar', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
     
     expect(mockPrefetch).toHaveBeenCalledWith('/mixtape/test-mixtape-123');
+  });
+
+  describe('Spotify Export', () => {
+    beforeEach(() => {
+      // Mock navigator.clipboard
+      Object.assign(navigator, {
+        clipboard: {
+          writeText: jest.fn(),
+        },
+      });
+    });
+
+    it('exports to Spotify successfully and shows success toast', async () => {
+      const mockResponse = {
+        ...mockMixtape,
+        spotify_playlist_url: 'https://open.spotify.com/playlist/12345',
+      };
+      mockMakeRequest.mockResolvedValueOnce(mockResponse);
+
+      renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+      
+      const exportButton = screen.getByTestId('export-to-spotify-button');
+      fireEvent.click(exportButton);
+
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledWith(
+          '/api/mixtape/test-mixtape-123/spotify-export',
+          { method: 'POST' }
+        );
+      });
+
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exporting to Spotify...');
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exported to Spotify');
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        'https://open.spotify.com/playlist/12345'
+      );
+      // Check that toast.success was called for the export success message
+      expect(toast.success).toHaveBeenCalledWith(
+        expect.objectContaining({
+          props: expect.objectContaining({
+            children: expect.arrayContaining([
+              'Spotify playlist copied to clipboard!',
+              expect.objectContaining({
+                props: expect.objectContaining({
+                  children: 'Open in Spotify'
+                })
+              })
+            ])
+          })
+        }),
+        { duration: 10000 }
+      );
+    });
+
+    it('handles Spotify export failure and shows error toast', async () => {
+      mockMakeRequest.mockRejectedValueOnce(new Error('Export failed'));
+
+      renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+      
+      const exportButton = screen.getByTestId('export-to-spotify-button');
+      fireEvent.click(exportButton);
+
+      await waitFor(() => {
+        expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exporting to Spotify...');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Error exporting to Spotify');
+    });
+
+    it('handles clipboard write failure gracefully', async () => {
+      const mockResponse = {
+        ...mockMixtape,
+        spotify_playlist_url: 'https://open.spotify.com/playlist/12345',
+      };
+      mockMakeRequest.mockResolvedValueOnce(mockResponse);
+      
+      // Mock clipboard failure
+      (navigator.clipboard.writeText as jest.Mock).mockRejectedValueOnce(new Error('Clipboard error'));
+
+      renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+      
+      const exportButton = screen.getByTestId('export-to-spotify-button');
+      fireEvent.click(exportButton);
+
+      await waitFor(() => {
+        expect(mockMakeRequest).toHaveBeenCalledWith(
+          '/api/mixtape/test-mixtape-123/spotify-export',
+          { method: 'POST' }
+        );
+      });
+
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exported to Spotify');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Unable to copy to clipboard: Error: Clipboard error'
+      );
+    });
   });
 });

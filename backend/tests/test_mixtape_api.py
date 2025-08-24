@@ -1,7 +1,8 @@
 import httpx
 from fastapi.testclient import TestClient
 
-from backend.routers import auth
+from backend.client.spotify.mock import MockSpotifyClient
+from backend.routers import auth, spotify
 from backend.tests.assertion_utils import (
     assert_response_created,
     assert_response_not_found,
@@ -49,6 +50,49 @@ def test_create_and_get_mixtape(client: tuple[TestClient, str, dict]) -> None:
         assert "track" in t
         assert t["track"]["id"] == f"{t['track']['uri'].replace('spotify:track:', '')}"
         assert t["track"]["name"] == expected_name
+
+def test_spotify_export_create_and_update(client: tuple[TestClient, str, dict], app) -> None:
+    """Test creating a Spotify playlist and then updating it idempotently."""
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"},
+        {"track_position": 2, "track_text": "Second", "spotify_uri": "spotify:track:track2"},
+    ]
+    # Create mixtape
+    resp = test_client.post(
+        "/api/mixtape",
+        json=mixtape_payload(tracks),
+        headers={"x-stack-access-token": token},
+    )
+    assert_response_created(resp)
+    public_id = resp.json()["public_id"]
+
+    # Export to Spotify for the first time (should create playlist)
+    resp_export1 = test_client.post(
+        f"/api/mixtape/{public_id}/spotify-export",
+        headers={"x-stack-access-token": token},
+    )
+    assert_response_success(resp_export1)
+    data1 = resp_export1.json()
+    url1 = data1["spotify_playlist_url"]
+    assert url1 is not None and url1.startswith("https://open.spotify.com/playlist/"), "Playlist URL should be set"
+
+    # Ensure mock client stored playlist
+    mock_spotify: MockSpotifyClient = app.dependency_overrides[spotify.get_spotify_client]()
+    # Extract playlist ID from URL to check against mock client
+    playlist_id = url1.split('/')[-1]
+    uri1 = f"spotify:playlist:{playlist_id}"
+    assert uri1 in mock_spotify.playlists, "Playlist should exist in mock client store"
+    assert mock_spotify.playlists[uri1]["title"] == data1["name"]
+
+    # Export again (should update existing, keep same URI)
+    resp_export2 = test_client.post(
+        f"/api/mixtape/{public_id}/spotify-export",
+        headers={"x-stack-access-token": token},
+    )
+    assert_response_success(resp_export2)
+    data2 = resp_export2.json()
+    assert data2["spotify_playlist_url"] == url1, "URL should stay the same on update"
 
 def test_edit_mixtape_add_remove_modify_tracks(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client

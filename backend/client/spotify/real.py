@@ -19,6 +19,11 @@ class SpotifyClient(AbstractSpotifyClient):
         self.client_id = os.environ["SPOTIFY_CLIENT_ID"]
         self.client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
         self.refresh_token = os.environ["SPOTIFY_REFRESH_TOKEN"]
+
+        self._user_id: str | None = None
+
+        # Cache for track look-ups to avoid repeated API calls during a single
+        # request burst.
         self.track_cache_size = int(os.environ.get("SPOTIFY_TRACK_CACHE_SIZE", 500))
         self.track_cache = OrderedDict[str, SpotifyTrack]()  # track_id -> SpotifyTrack
         self._cache_lock = threading.Lock()
@@ -26,7 +31,7 @@ class SpotifyClient(AbstractSpotifyClient):
         self._access_token: str | None = None
         self._token_expiration: float = 0.0
 
-    def get_spotify_access_token(self) -> str:
+    def _get_spotify_access_token(self) -> str:
         """
         Obtain a Spotify access token using Authorization Code flow.
         A long-lived refresh token (SPOTIFY_REFRESH_TOKEN) is exchanged for a short-lived
@@ -61,19 +66,34 @@ class SpotifyClient(AbstractSpotifyClient):
             else:
                 raise Exception(f"Failed to refresh Spotify access token: {response.text}")
 
-    def spotify_api_request(self, endpoint: str, **kwargs)->Any:
-        access_token = self.get_spotify_access_token()
-        headers = {"Authorization": f"Bearer {access_token}"}
+    def _auth_headers(self)->dict[str, str]:
+        return {"Authorization": f"Bearer {self._get_spotify_access_token()}"}
+
+    def _spotify_api_request(self, method: str, endpoint: str, **kwargs)->Any:
+        """Low-level HTTP helper (raises on non-2xx)."""
+        headers = self._auth_headers()
         if "headers" in kwargs:
             headers.update(kwargs["headers"])
-        kwargs["headers"] = headers
-        response = requests.get(f"https://api.spotify.com/v1{endpoint}", **kwargs)
-        if response.status_code != 200:
-            raise Exception(f"Spotify API error: {response.text}")
+        kwargs_with_headers = kwargs.copy()
+        kwargs_with_headers["headers"] = headers
+        url = f"https://api.spotify.com/v1{endpoint}"
+        response = requests.request(method, url, **kwargs_with_headers)
+        print(f"Spotify API response when calling {method} {endpoint} with kwargs={str(kwargs)}: {response.status_code}: {response.text}")
+        if response.status_code >= 400:
+            raise Exception(f"Spotify API error when calling {method} {endpoint} with kwargs={str(kwargs)}: {response.status_code}: {response.text}")
+        if response.text == "":  # No content
+            return None
         return response.json()
 
+    # --- User info ---
+    def _get_user_id(self)->str:
+        if self._user_id is None:
+            data = self._spotify_api_request("GET", "/me")
+            self._user_id = data["id"]
+        return self._user_id
+
     def search_tracks(self, query: str)->list[SpotifyTrack]:
-        data = self.spotify_api_request(f"/search?q={query}&type=track&limit=5")
+        data = self._spotify_api_request("GET", "/search", params={"q": query, "type": "track", "limit": 5})
         items = []
         # TODO: why do we check for both "tracks" and "items"? Should only need one.
         for item in data.get("tracks", {}).get("items", []):
@@ -91,7 +111,7 @@ class SpotifyClient(AbstractSpotifyClient):
         # TODO: ensure we use a single flight so that we don't fetch the same track multiple times
         # from multiple threads. In golang there's a singleflight package we could use; this surely
         # exists in Python so we just need to find it.
-        item = self.spotify_api_request(f"/tracks/{track_id}")
+        item = self._spotify_api_request("GET", f"/tracks/{track_id}")
         track = SpotifyTrack.from_dict(item)
 
         with self._cache_lock:
@@ -99,6 +119,34 @@ class SpotifyClient(AbstractSpotifyClient):
             if len(self.track_cache) > self.track_cache_size:
                 self.track_cache.popitem(last=False)  # Remove least recently used
         return track
+
+    # --- Playlist methods ---
+    def _playlist_id_from_uri(self, playlist_uri: str) -> str:
+        return playlist_uri.split(":")[-1]
+
+    def create_playlist(self, title: str, description: str, track_uris: list[str]) -> str:
+        user_id = self._get_user_id()
+        payload = {"name": title, "description": description, "public": True}
+        data = self._spotify_api_request("POST", f"/users/{user_id}/playlists", json=payload)
+        if "id" not in data:
+            raise Exception(f"Spotify playlist created but no ID returned: {str(data)}")
+        playlist_id = str(data["id"])
+        if "uri" not in data:
+            raise Exception(f"Spotify playlist created but no URI returned: {str(data)}")
+        playlist_uri = str(data["uri"])
+
+        if track_uris:
+            self._spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
+
+        return playlist_uri
+
+    def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> None:
+        playlist_id = self._playlist_id_from_uri(playlist_uri)
+        # Change details
+        self._spotify_api_request("PUT", f"/playlists/{playlist_id}", json={"name": title, "description": description, "public": True})
+
+        # Replace tracks (PUT replaces)
+        self._spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
 
 def get_spotify_client():
     return SpotifyClient()

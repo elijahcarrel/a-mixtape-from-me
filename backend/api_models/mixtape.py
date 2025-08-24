@@ -49,6 +49,7 @@ class MixtapeResponse(BaseModel):
     last_modified_time: str
     stack_auth_user_id: str | None
     version: int = Field(description="Current version number of the mixtape")
+    spotify_playlist_url: str | None = Field(default=None, description="Spotify playlist URL if exported to Spotify")
     tracks: list[MixtapeTrackResponse]
     can_undo: bool = Field(description="Whether this mixtape can be undone")
     can_redo: bool = Field(description="Whether this mixtape can be redone")

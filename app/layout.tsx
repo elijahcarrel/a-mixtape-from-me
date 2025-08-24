@@ -9,6 +9,7 @@ import HeaderContainer from "./components/layout/HeaderContainer";
 import PageTitle from "./components/layout/PageTitle";
 import ThemeProvider from "./components/ThemeProvider";
 import StackThemeContainer from "./components/StackThemeContainer";
+import ToastProvider from "./components/ToastProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 const caveat = Caveat({ 
@@ -32,13 +33,15 @@ export default function RootLayout({
         <StackProvider app={stackServerApp}>
           <ThemeProvider>
             <StackThemeContainer>
-              <MainContainer>
-                <HeaderContainer>
-                <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
-                  <UserButtonHeader />
-                </HeaderContainer>
-                {children}
-              </MainContainer>
+              <ToastProvider>
+                <MainContainer>
+                  <HeaderContainer>
+                  <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
+                    <UserButtonHeader />
+                  </HeaderContainer>
+                  {children}
+                </MainContainer>
+              </ToastProvider>
             </StackThemeContainer>
           </ThemeProvider>
         </StackProvider>
