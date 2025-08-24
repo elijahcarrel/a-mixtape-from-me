@@ -518,10 +518,10 @@ def export_to_spotify(
     subtitle_parts = [p for p in [mixtape.subtitle1, mixtape.subtitle2, mixtape.subtitle3] if p]
     description_parts: list[str] = []
     if subtitle_parts:
-        description_parts.append(" | ".join(subtitle_parts))
+        description_parts.append("\n".join(subtitle_parts))
     if mixtape.intro_text:
         description_parts.append(mixtape.intro_text)
-    description = " - ".join(description_parts)
+    description = "\n\n".join(description_parts)
 
     track_uris = [t.spotify_uri for t in sorted(mixtape.tracks, key=lambda x: x.track_position)]
 
@@ -529,17 +529,18 @@ def export_to_spotify(
     if mixtape.spotify_playlist_uri is None:
         try:
             playlist_uri = spotify_client.create_playlist(title, description, track_uris)
-        except NotImplementedError:
+        except Exception as e:
             # In environments without real Spotify capabilities, fall back to mock behavior
-            raise HTTPException(status_code=500, detail="Spotify playlist creation not supported in this environment")
+            raise HTTPException(status_code=500, detail=f"Spotify playlist creation not supported in this environment: {e}")
         mixtape.spotify_playlist_uri = playlist_uri
     else:
         try:
             spotify_client.update_playlist(mixtape.spotify_playlist_uri, title, description, track_uris)
-        except NotImplementedError:
-            raise HTTPException(status_code=500, detail="Spotify playlist update not supported in this environment")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Spotify playlist update not supported in this environment: {e}")
 
-    # Persist the mixtape change (no version bump – external metadata only)
+    # Persist the mixtape change.
+    mixtape.finalize(is_undo_redo_operation=False)
     session.add(mixtape)
     session.commit()
 
