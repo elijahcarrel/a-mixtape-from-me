@@ -9,8 +9,23 @@ on:
       - main
 
 jobs:
-  frontend-lint-and-typecheck:
-    name: Front-End Lint & Type Check (Node.js)
+  frontend-typecheck:
+    name: Front-End Type Check (tsc)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci
+      - name: Type Check
+        run: npm run frontend-typecheck
+
+  frontend-eslint:
+    name: Front-End Lint (eslint)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,25 +38,9 @@ jobs:
         run: npm ci
       - name: Run ESLint
         run: npm run frontend-lint
-      - name: Type Check
-        run: npm run frontend-typecheck
-
-  frontend-jest-tests:
-    name: Front-End Jest Tests (Node.js)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install dependencies
-        run: npm install
-      - name: Run Jest tests
-        run: npm run frontend-test
 
   frontend-prettier-format:
-    name: Front-End Prettier Format Check (Node.js)
+    name: Front-End Format (prettier)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -55,8 +54,22 @@ jobs:
       - name: Check Prettier formatting
         run: npm run frontend-format
 
+  frontend-jest-tests:
+    name: Front-End Tests (jest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Run Jest tests
+        run: npm run frontend-test
+
   backend-pytest-tests:
-    name: Backend Tests (Python)
+    name: Backend Tests (pytest)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -75,7 +88,7 @@ jobs:
         run: pytest backend/tests
 
   backend-ruff-lint:
-    name: Backend Ruff Lint (Python)
+    name: Backend Lint (ruff)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -93,7 +106,7 @@ jobs:
         run: ruff check backend/
 
   backend-mypy-typecheck:
-    name: Backend MyPy Type Check (Python)
+    name: Backend Type Check (mypy)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
