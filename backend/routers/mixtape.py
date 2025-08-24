@@ -490,6 +490,30 @@ def redo_mixtape(
 
 # --- SPOTIFY PLAYLIST EXPORT ---
 
+max_spotify_playlist_title_length = 100
+max_spotify_playlist_description_length = 300
+def generate_spotify_playlist_metadata(mixtape: Mixtape) -> tuple[str, str]:
+    """
+    Generate the metadata for a Spotify playlist.
+    """
+    title = mixtape.name
+    subtitle_parts = [p for p in [mixtape.subtitle1, mixtape.subtitle2, mixtape.subtitle3] if p]
+    description_parts: list[str] = []
+    if subtitle_parts:
+        description_parts.append(" | ".join(subtitle_parts))
+    if mixtape.intro_text:
+        description_parts.append(mixtape.intro_text)
+    description = ". ".join(description_parts)
+    # Replace all newlines with spaces; Spotify seems to reject newlines.
+    description = description.replace("\n", " ")
+
+    if len(description) > max_spotify_playlist_description_length - 3:
+        description = description[:max_spotify_playlist_description_length] + "..."
+    if len(title) > max_spotify_playlist_title_length - 3:
+        title = title[:max_spotify_playlist_title_length] + "..."
+
+    return title, description
+
 @router.post("/{public_id}/spotify-export", response_model=MixtapeResponse)
 def export_to_spotify(
     public_id: str,
@@ -514,14 +538,7 @@ def export_to_spotify(
     mixtape = validate_mixtape_access(mixtape, authenticated_user, is_write=True)
 
     # Build playlist metadata
-    title = mixtape.name
-    subtitle_parts = [p for p in [mixtape.subtitle1, mixtape.subtitle2, mixtape.subtitle3] if p]
-    description_parts: list[str] = []
-    if subtitle_parts:
-        description_parts.append("\n".join(subtitle_parts))
-    if mixtape.intro_text:
-        description_parts.append(mixtape.intro_text)
-    description = "\n\n".join(description_parts)
+    title, description = generate_spotify_playlist_metadata(mixtape)
 
     track_uris = [t.spotify_uri for t in sorted(mixtape.tracks, key=lambda x: x.track_position)]
 
@@ -530,13 +547,13 @@ def export_to_spotify(
         try:
             playlist_uri = spotify_client.create_playlist(title, description, track_uris)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error creating Spotify playlist: {e}")
+            raise HTTPException(status_code=500, detail=f"Error creating Spotify playlist: {str(e)}")
         mixtape.spotify_playlist_uri = playlist_uri
     else:
         try:
             spotify_client.update_playlist(mixtape.spotify_playlist_uri, title, description, track_uris)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error updating existing spotify playlist: {e}")
+            raise HTTPException(status_code=500, detail=f"Error updating existing spotify playlist: {str(e)}")
 
     # Persist the mixtape change.
     mixtape.finalize(is_undo_redo_operation=False)

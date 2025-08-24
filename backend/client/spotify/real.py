@@ -74,12 +74,14 @@ class SpotifyClient(AbstractSpotifyClient):
         headers = self._auth_headers()
         if "headers" in kwargs:
             headers.update(kwargs["headers"])
-        kwargs["headers"] = headers
+        kwargs_with_headers = kwargs.copy()
+        kwargs_with_headers["headers"] = headers
         url = f"https://api.spotify.com/v1{endpoint}"
-        response = requests.request(method, url, **kwargs)
+        response = requests.request(method, url, **kwargs_with_headers)
+        print(f"Spotify API response when calling {method} {endpoint} with kwargs={str(kwargs)}: {response.status_code}: {response.text}")
         if response.status_code >= 400:
-            raise Exception(f"Spotify API error {response.status_code}: {response.text}")
-        if response.status_code == 204:  # No content
+            raise Exception(f"Spotify API error when calling {method} {endpoint} with kwargs={str(kwargs)}: {response.status_code}: {response.text}")
+        if response.text == "":  # No content
             return None
         return response.json()
 
