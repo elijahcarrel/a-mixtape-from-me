@@ -2,8 +2,7 @@ import httpx
 from fastapi.testclient import TestClient
 
 from backend.client.spotify.mock import MockSpotifyClient
-from backend.routers import spotify
-from backend.routers import auth
+from backend.routers import auth, spotify
 from backend.tests.assertion_utils import (
     assert_response_created,
     assert_response_not_found,

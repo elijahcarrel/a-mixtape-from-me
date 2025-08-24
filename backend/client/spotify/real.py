@@ -91,7 +91,7 @@ class SpotifyClient(AbstractSpotifyClient):
         return self._user_id
 
     def search_tracks(self, query: str)->list[SpotifyTrack]:
-        data = self._spotify_api_request("GET", f"/search", params={"q": query, "type": "track", "limit": 5})
+        data = self._spotify_api_request("GET", "/search", params={"q": query, "type": "track", "limit": 5})
         items = []
         # TODO: why do we check for both "tracks" and "items"? Should only need one.
         for item in data.get("tracks", {}).get("items", []):
@@ -126,12 +126,17 @@ class SpotifyClient(AbstractSpotifyClient):
         user_id = self._get_user_id()
         payload = {"name": title, "description": description, "public": True}
         data = self._spotify_api_request("POST", f"/users/{user_id}/playlists", json=payload)
-        playlist_id = data["id"]
+        if "id" not in data:
+            raise Exception(f"Spotify playlist created but no ID returned: {str(data)}")
+        playlist_id = str(data["id"])
+        if "uri" not in data:
+            raise Exception(f"Spotify playlist created but no URI returned: {str(data)}")
+        playlist_uri = str(data["uri"])
 
         if track_uris:
             self._spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
 
-        return data["uri"]
+        return playlist_uri
 
     def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> None:
         playlist_id = self._playlist_id_from_uri(playlist_uri)
