@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import {
   Undo2,
   Redo2,
@@ -52,25 +53,17 @@ export default function MixtapeEditorToolbar({
 
   // Share dialog state
   const [isShareOpen, setIsShareOpen] = useState(false);
-  // Toast message state
-  const [toastMessage, setToastMessage] = useState<React.ReactNode | null>(null);
   // Undo/redo loading states
   const [isUndoing, setIsUndoing] = useState(false);
   const [isRedoing, setIsRedoing] = useState(false);
 
-  const showToast = (msg: React.ReactNode) => {
-    setToastMessage(msg);
-    // Auto-dismiss after 2.5s
-    setTimeout(() => setToastMessage(null), 2500);
-  };
-
   const copyToClipboard = async (text: string, successMsg: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      showToast(<>{successMsg}</>);
+      toast.success(successMsg);
     } catch (_) {
       // Fallback
-      showToast(<>Unable to copy to clipboard</>);
+      toast.error('Unable to copy to clipboard');
     }
   };
 
@@ -99,7 +92,7 @@ export default function MixtapeEditorToolbar({
     } catch (error) {
       console.error('Error undoing:', error);
       setStatusText('Undo failed');
-      showToast(<>Error undoing changes</>);
+      toast.error('Error undoing changes');
     } finally {
       setIsUndoing(false);
     }
@@ -122,7 +115,7 @@ export default function MixtapeEditorToolbar({
     } catch (error) {
       console.error('Error redoing:', error);
       setStatusText('Redo failed');
-      showToast(<>Error redoing changes</>);
+      toast.error('Error redoing changes');
     } finally {
       setIsRedoing(false);
     }
@@ -160,6 +153,7 @@ export default function MixtapeEditorToolbar({
           <ToolbarButton
             icon={<ExternalLink size={20} />}
             tooltip="Export to Spotify"
+            data-testid="export-to-spotify-button"
             onClick={async () => {
               try {
                 setStatusText('Exporting to Spotify...');
@@ -167,24 +161,31 @@ export default function MixtapeEditorToolbar({
                   `/api/mixtape/${mixtape.public_id}/spotify-export`,
                   { method: 'POST' }
                 );
-                if (resp.spotify_playlist_uri) {
+                if (resp.spotify_playlist_url) {
                   await copyToClipboard(
-                    resp.spotify_playlist_uri,
-                    'Spotify playlist URI copied!'
+                    resp.spotify_playlist_url,
+                    'Spotify playlist URL copied!'
                   );
                   // Show toast with link
-                  setToastMessage(
+                  toast.success(
                     <>
-                      Spotify playlist copied!
-                      {" "}
-                      <Link href={`https://open.spotify.com/playlist/${resp.spotify_playlist_uri.split(':').pop()}`} target="_blank" rel="noopener noreferrer">Open in Spotify</Link>
-                    </>
+                      Spotify playlist exported!{" "}
+                      <Link 
+                        href={resp.spotify_playlist_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="underline hover:no-underline font-semibold"
+                      >
+                        Open in Spotify
+                      </Link>
+                    </>,
+                    { duration: 10000 }
                   );
                 }
                 setStatusText('Exported to Spotify');
               } catch (error) {
                 console.error('Error exporting to Spotify:', error);
-                showToast(<>Error exporting to Spotify</>);
+                toast.error('Error exporting to Spotify');
               }
             }}
           />
@@ -291,12 +292,7 @@ export default function MixtapeEditorToolbar({
         </div>
       )}
 
-      {/* Toast */}
-      {toastMessage && (
-        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
-          {toastMessage}
-        </div>
-      )}
+
     </>
   );
 }

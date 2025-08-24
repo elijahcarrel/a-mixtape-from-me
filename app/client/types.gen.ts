@@ -119,10 +119,10 @@ export type MixtapeResponse = {
      */
     version: number;
     /**
-     * Spotify Playlist Uri
-     * Spotify playlist URI if exported to Spotify
+     * Spotify Playlist Url
+     * Spotify playlist URL if exported to Spotify
      */
-    spotify_playlist_uri?: string | null;
+    spotify_playlist_url?: string | null;
     /**
      * Tracks
      */

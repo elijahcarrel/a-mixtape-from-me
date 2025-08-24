@@ -205,6 +205,13 @@ def load_mixtape_api_models_from_dbmodel(spotify_client: SpotifyClient, mixtape:
             )
         )
 
+    # Convert Spotify playlist URI to URL if it exists
+    spotify_playlist_url = None
+    if mixtape.spotify_playlist_uri:
+        # Extract playlist ID from URI (spotify:playlist:ID) and convert to URL
+        playlist_id = mixtape.spotify_playlist_uri.split(':')[-1]
+        spotify_playlist_url = f"https://open.spotify.com/playlist/{playlist_id}"
+
     return MixtapeResponse(
         public_id=mixtape.public_id,
         name=mixtape.name,
@@ -217,7 +224,7 @@ def load_mixtape_api_models_from_dbmodel(spotify_client: SpotifyClient, mixtape:
         last_modified_time=mixtape.last_modified_time.isoformat(),
         stack_auth_user_id=mixtape.stack_auth_user_id,
         version=mixtape.version,
-        spotify_playlist_uri=mixtape.spotify_playlist_uri,
+        spotify_playlist_url=spotify_playlist_url,
         tracks=enriched_tracks,
         can_undo=mixtape.undo_to_version is not None,
         can_redo=mixtape.redo_to_version is not None,

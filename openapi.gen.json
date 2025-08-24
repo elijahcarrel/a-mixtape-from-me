@@ -837,7 +837,7 @@
                         "title": "Version",
                         "description": "Current version number of the mixtape"
                     },
-                    "spotify_playlist_uri": {
+                    "spotify_playlist_url": {
                         "anyOf": [
                             {
                                 "type": "string"
@@ -846,8 +846,8 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Spotify Playlist Uri",
-                        "description": "Spotify playlist URI if exported to Spotify"
+                        "title": "Spotify Playlist Url",
+                        "description": "Spotify playlist URL if exported to Spotify"
                     },
                     "tracks": {
                         "items": {
