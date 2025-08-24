@@ -34,10 +34,12 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   }, []);
 
   useEffect(() => {
-    // Apply theme to document
+    // Apply theme to document using Tailwind's expected dark class
     const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
+    root.classList.remove('dark');
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    }
   }, [theme]);
 
   const handleSetTheme = (newTheme: Theme) => {

@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { Formik } from 'formik';
 import { debounce } from 'lodash';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
-import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse } from '../client';
@@ -22,7 +21,6 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
-  const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const currentPath = usePathname();
   const router = useRouter();
@@ -102,11 +100,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     <div className="space-y-4 sm:space-y-6 relative">
       {/* Anonymous Mixtape Warning */}
       {isAnonymousMixtape && (
-        <div className={`p-3 sm:p-4 rounded-lg border-2 ${
-          theme === 'dark' 
-            ? 'bg-amber-900/20 border-amber-600 text-amber-200' 
-            : 'bg-amber-50 border-amber-300 text-amber-800'
-        }`}>
+        <div className="p-3 sm:p-4 rounded-lg border-2 bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:border-amber-600 dark:text-amber-200">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="font-semibold mb-2 text-sm sm:text-base">
@@ -125,11 +119,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
                   isClaiming 
                     ? 'opacity-50 cursor-not-allowed' 
                     : 'hover:opacity-80'
-                } ${
-                  theme === 'dark'
-                    ? 'bg-amber-600 text-white hover:bg-amber-500'
-                    : 'bg-amber-600 text-white hover:bg-amber-700'
-                }`}
+                } bg-amber-600 text-white hover:bg-amber-700 dark:hover:bg-amber-500`}
               >
                 {isClaiming ? 'Claiming...' : (isAuthenticated ? 'Claim Mixtape' : 'Sign In')}
               </button>
