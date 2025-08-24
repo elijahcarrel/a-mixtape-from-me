@@ -71,6 +71,8 @@ const defaultProps = {
   handleSave: jest.fn(),
   onUndoRedo: jest.fn(),
   resetForm: jest.fn(),
+  statusText: '',
+  setStatusText: jest.fn(),
 };
 
 // Helper function to render with ThemeProvider
