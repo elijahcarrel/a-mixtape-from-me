@@ -1,19 +1,19 @@
 'use client';
 
-import { useSortable } from "@dnd-kit/sortable";
-import { MixtapeTrackResponse } from "../client";
-import TrackTextEditor from "./TrackTextEditor";
+import { useSortable } from '@dnd-kit/sortable';
+import { MixtapeTrackResponse } from '../client';
+import TrackTextEditor from './TrackTextEditor';
 import { CSS } from '@dnd-kit/utilities';
 
 type SortableTrackProps = {
-  track: MixtapeTrackResponse,
-  trackId: string,
-  isEditing: boolean,
+  track: MixtapeTrackResponse;
+  trackId: string;
+  isEditing: boolean;
   onEditTrackText?: (newText: string) => void;
   onRemoveTrack: () => void;
   setIsEditingTrack: (isEditing: boolean) => void;
-}
-  
+};
+
 export default function SortableTrack(props: SortableTrackProps) {
   const {
     track,
@@ -53,18 +53,18 @@ export default function SortableTrack(props: SortableTrackProps) {
       {/* Album Art */}
       <div className="shrink-0">
         {details.album.images[0] ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={details.album.images[0].url}
-          alt={details.album.name}
-          className="w-12 h-12 sm:w-16 sm:h-16 rounded object-cover"
-        />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={details.album.images[0].url}
+            alt={details.album.name}
+            className="w-12 h-12 sm:w-16 sm:h-16 rounded object-cover"
+          />
         ) : (
-        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded flex items-center justify-center bg-amber-200 dark:bg-neutral-800">
-          <span className="text-xs text-amber-600 dark:text-neutral-300">
-            No Image
-          </span>
-        </div>
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded flex items-center justify-center bg-amber-200 dark:bg-neutral-800">
+            <span className="text-xs text-amber-600 dark:text-neutral-300">
+              No Image
+            </span>
+          </div>
         )}
       </div>
 
@@ -74,7 +74,7 @@ export default function SortableTrack(props: SortableTrackProps) {
           {details.name}
         </div>
         <div className="text-xs sm:text-sm truncate text-amber-600 dark:text-neutral-300">
-          {details.artists.map((a) => a.name).join(', ')}
+          {details.artists.map(a => a.name).join(', ')}
         </div>
         <TrackTextEditor
           isEditing={isEditing}

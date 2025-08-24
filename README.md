@@ -22,19 +22,23 @@ Live at: [amixtapefrom.me](https://amixtapefrom.me).
 ## Technologies Used
 
 ### Frontend
+
 - **Next.js 14** (React, TypeScript, SSR)
 - **Tailwind CSS** for styling (with SCSS modules when needed)
 - **Stack Auth** for authentication
 - **Spotify API** for track search and metadata
+- **Prettier** for consistent code formatting
 - **Auto-generated TypeScript types** from OpenAPI spec
 
 ### Backend
+
 - **FastAPI** (Python 3.12+) with Pydantic V2
 - **PostgreSQL** (via [Neon](https://neon.tech/))
 - **SQLModel** for database models and auto-generated schema
 - **Auto-generated OpenAPI spec** from FastAPI
 
 ### DevOps & Hosting
+
 - **Vercel** for frontend and serverless backend deployment
 - **GitHub Actions** for CI/CD (build, lint, test)
 - **Auto-generation workflow** for types, schemas, and API specs
@@ -79,10 +83,12 @@ STACK_SECRET_SERVER_KEY=your_stack_secret_server_key
 > **Note:** Never commit your actual secret values. See `.env.example` for a template.
 
 #### Fetching the spotify refresh token
+
 Fetch a long-lived Spotify refresh token by first whitelisting an arbitrary
 localhost URL (let's say http://127.0.0.1:53682/callback) in the Spotify
 developer dashboard, then manually logging in using the system user going to
 e.g.
+
 ```
 https://accounts.spotify.com/authorize
   ?client_id=your_spotify_client_id
@@ -92,9 +98,11 @@ https://accounts.spotify.com/authorize
   &state=xyz123
   &show_dialog=true
 ```
+
 performing the authentication using the system user account, copying the `code`
 from the (dead) URL that you are subsequently redirected to, and then exchanging
 it for a refresh token with e.g.:
+
 ```
 curl -X POST "https://accounts.spotify.com/api/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -103,6 +111,7 @@ curl -X POST "https://accounts.spotify.com/api/token" \
   -d "code=PASTE_AUTH_CODE_HERE" \
   -d "redirect_uri=http://127.0.0.1:53682/callback"
 ```
+
 This will return a JSON blob containing a `refresh_token`.
 
 ### 3. Install Dependencies
@@ -131,18 +140,22 @@ pip install -e .
 . venv/bin/activate
 npm run dev
 ```
+
 - This will start the Next.js frontend (on port 3000) and the FastAPI backend (on port 8000) concurrently.
 
 #### Option 2: Run Backend & Frontend Separately
 
 ##### Backend
+
 ```bash
 . venv/bin/activate
 python3 -m uvicorn api.main:app --reload
 ```
 
 ##### Frontend
+
 In another terminal, run the frontend:
+
 ```bash
 npm run dev
 ```
@@ -156,6 +169,7 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 ## Development Workflow
 
 ### Auto-Generation System
+
 This project uses an auto-generation system to maintain type safety across the full stack:
 
 ```bash
@@ -169,10 +183,17 @@ npm run gen-ts-from-openapi          # OpenAPI → TypeScript types
 ```
 
 ### Code Generation Workflow
+
 1. Update SQLModel models in `backend/db_models.py`
 2. Update FastAPI routers and Pydantic models
 3. Run `npm run gen-all` to regenerate all artifacts
 4. Commit generated files (`schema.gen.sql`, `openapi.gen.json`, `app/client/`)
+
+### Code Quality Workflow
+
+- **Formatting**: Run `npm run frontend-format-fix` to ensure consistent code style
+- **Linting**: Run `npm run frontend-lint-fix` to fix ESLint issues
+- **Type Checking**: Run `npm run frontend-typecheck` to verify TypeScript types
 
 ## Testing
 
@@ -194,11 +215,13 @@ npm run frontend-test
 ## Contributing
 
 Contributions are welcome! Please:
+
 - Fork the repo and create a feature branch.
 - Submit PRs against `main`.
-- Ensure your code passes linting and tests (CI will check automatically).
+- Ensure your code passes linting, formatting, and tests (CI will check automatically).
 - Follow the project's coding conventions (see `.cursor/rules/` for detailed guidelines).
 - Run `npm run gen-all` after making backend changes to regenerate artifacts.
+- Run `npm run frontend-format-fix` to ensure consistent code formatting.
 - Be kind and constructive in code reviews.
 
 ---

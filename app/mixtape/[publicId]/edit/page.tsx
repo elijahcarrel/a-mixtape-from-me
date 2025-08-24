@@ -11,12 +11,12 @@ export default function EditMixtapePage() {
   return (
     <MainContainer>
       <ContentPane>
-        <MixtapeEditor 
-          mixtape={mixtape} 
+        <MixtapeEditor
+          mixtape={mixtape}
           onMixtapeClaimed={refetch}
           onMixtapeUpdated={onMixtapeUpdated}
         />
       </ContentPane>
     </MainContainer>
   );
-} 
+}

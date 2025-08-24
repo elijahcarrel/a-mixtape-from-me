@@ -24,7 +24,9 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('../useAuth', () => ({
-  getAuthHeaders: jest.fn().mockResolvedValue({ 'x-stack-access-token': 'test-token' }),
+  getAuthHeaders: jest
+    .fn()
+    .mockResolvedValue({ 'x-stack-access-token': 'test-token' }),
 }));
 
 // Mock fetch globally
@@ -54,13 +56,16 @@ describe('useAuthenticatedRequest', () => {
 
     const response = await result.current.makeRequest('/api/test');
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      method: 'GET',
-      headers: expect.objectContaining({
-        'Content-Type': 'application/json',
-        'x-stack-access-token': 'test-token',
-      }),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/test',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'x-stack-access-token': 'test-token',
+        }),
+      })
+    );
     expect(response).toEqual(mockResponse);
   });
 
@@ -78,10 +83,13 @@ describe('useAuthenticatedRequest', () => {
       signal: abortController.signal,
     });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      method: 'GET',
-      signal: abortController.signal,
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/test',
+      expect.objectContaining({
+        method: 'GET',
+        signal: abortController.signal,
+      })
+    );
     expect(response).toEqual(mockResponse);
   });
 
@@ -99,10 +107,13 @@ describe('useAuthenticatedRequest', () => {
       body: { test: 'data' },
     });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({ test: 'data' }),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/test',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ test: 'data' }),
+      })
+    );
     expect(response).toEqual(mockResponse);
   });
 
@@ -112,7 +123,9 @@ describe('useAuthenticatedRequest', () => {
 
     const { result } = renderHook(() => useAuthenticatedRequest());
 
-    await expect(result.current.makeRequest('/api/test')).rejects.toThrow(errorMessage);
+    await expect(result.current.makeRequest('/api/test')).rejects.toThrow(
+      errorMessage
+    );
   });
 
   it('should handle 401 errors and redirect to login', async () => {
@@ -124,7 +137,9 @@ describe('useAuthenticatedRequest', () => {
 
     const { result } = renderHook(() => useAuthenticatedRequest());
 
-    await expect(result.current.makeRequest('/api/test')).rejects.toThrow('Authentication required');
+    await expect(result.current.makeRequest('/api/test')).rejects.toThrow(
+      'Authentication required'
+    );
     expect(mockRouter.replace).toHaveBeenCalledWith('/handler/signup?next=%2F');
   });
 
@@ -138,7 +153,9 @@ describe('useAuthenticatedRequest', () => {
 
     const { result } = renderHook(() => useAuthenticatedRequest());
 
-    await expect(result.current.makeRequest('/api/test')).rejects.toThrow(errorText);
+    await expect(result.current.makeRequest('/api/test')).rejects.toThrow(
+      errorText
+    );
   });
 
   it('should handle custom headers', async () => {
@@ -154,13 +171,16 @@ describe('useAuthenticatedRequest', () => {
       headers: { 'Custom-Header': 'custom-value' },
     });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-      headers: expect.objectContaining({
-        'Content-Type': 'application/json',
-        'x-stack-access-token': 'test-token',
-        'Custom-Header': 'custom-value',
-      }),
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'x-stack-access-token': 'test-token',
+          'Custom-Header': 'custom-value',
+        }),
+      })
+    );
     expect(response).toEqual(mockResponse);
   });
 });

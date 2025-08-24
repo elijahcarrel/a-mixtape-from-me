@@ -1,5 +1,12 @@
-import { normalizeTrackToRequest, normalizeTrackToResponse } from './track-util';
-import type { MixtapeTrackRequest, MixtapeTrackResponse, TrackDetails } from '../client/types.gen';
+import {
+  normalizeTrackToRequest,
+  normalizeTrackToResponse,
+} from './track-util';
+import type {
+  MixtapeTrackRequest,
+  MixtapeTrackResponse,
+  TrackDetails,
+} from '../client/types.gen';
 
 describe('normalizeTrackToRequest', () => {
   it('converts MixtapeTrackResponse to MixtapeTrackRequest', () => {
@@ -69,4 +76,4 @@ describe('normalizeTrackToResponse', () => {
     const res = normalizeTrackToResponse(response);
     expect(res).toEqual(response);
   });
-}); 
+});

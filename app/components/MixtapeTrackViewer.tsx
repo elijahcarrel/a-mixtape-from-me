@@ -12,7 +12,13 @@ interface MixtapeTrackViewerProps {
   onNextTrack?: () => void;
 }
 
-export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrevTrack, onNextTrack }: MixtapeTrackViewerProps) {
+export default function MixtapeTrackViewer({
+  mixtape,
+  track,
+  trackNumber,
+  onPrevTrack,
+  onNextTrack,
+}: MixtapeTrackViewerProps) {
   const [isPlaying, setIsPlaying] = React.useState<boolean>(false);
 
   // Prepare label text for the cassette
@@ -27,11 +33,22 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
     <div className="relative min-h-screen flex flex-col items-center justify-between overflow-hidden pb-40">
       <MixtapeViewerToolbar mixtape={mixtape} />
       {/* Grain overlay */}
-      <div className="pointer-events-none fixed inset-0 z-0" style={{backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")', opacity: 0.18, mixBlendMode: 'multiply'}} />
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage:
+            'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+Qn6nAAAAAElFTkSuQmCC")',
+          opacity: 0.18,
+          mixBlendMode: 'multiply',
+        }}
+      />
       <div className="relative z-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl px-4 pt-8 flex flex-col items-center">
         <CassetteSVG isAnimated={isPlaying} labelText={labelText} />
         {track.track_text && (
-          <div className="w-full bg-amber-100/70 dark:bg-amber-900/40 rounded-lg p-4 mb-6 text-amber-900 dark:text-amber-100 text-base shadow-inner whitespace-pre-line" style={{textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22'}}>
+          <div
+            className="w-full bg-amber-100/70 dark:bg-amber-900/40 rounded-lg p-4 mb-6 text-amber-900 dark:text-amber-100 text-base shadow-inner whitespace-pre-line"
+            style={{ textShadow: '0 1px 0 #fff8, 0 2px 8px #bfa76a22' }}
+          >
             {track.track_text}
           </div>
         )}
@@ -64,4 +81,4 @@ export default function MixtapeTrackViewer({ mixtape, track, trackNumber, onPrev
       </div>
     </div>
   );
-} 
+}

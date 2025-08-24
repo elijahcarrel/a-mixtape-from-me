@@ -7,7 +7,10 @@ interface UseAuthOptions {
   redirectTo?: string;
 }
 
-export function useAuth({ requireAuth = false, redirectTo }: UseAuthOptions = {}) {
+export function useAuth({
+  requireAuth = false,
+  redirectTo,
+}: UseAuthOptions = {}) {
   const user = useUser();
   const router = useRouter();
 
@@ -28,9 +31,11 @@ export function useAuth({ requireAuth = false, redirectTo }: UseAuthOptions = {}
 }
 
 // Helper function to get auth headers for API requests
-export async function getAuthHeaders(user: any): Promise<Record<string, string>> {
+export async function getAuthHeaders(
+  user: any
+): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
-  
+
   if (user) {
     try {
       const authJson = await user.getAuthJson();
@@ -41,6 +46,6 @@ export async function getAuthHeaders(user: any): Promise<Record<string, string>>
       console.warn('Failed to get access token:', err);
     }
   }
-  
+
   return headers;
-} 
+}

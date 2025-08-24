@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useParams, useRouter } from 'next/navigation';
 import { useMixtape } from '../../../MixtapeContext';
@@ -36,7 +36,9 @@ export default function MixtapeTrackPage() {
       track={track}
       trackNumber={trackNumber}
       onPrevTrack={trackNumber > 1 ? handlePrevTrack : undefined}
-      onNextTrack={trackNumber < mixtape.tracks.length ? handleNextTrack : undefined}
+      onNextTrack={
+        trackNumber < mixtape.tracks.length ? handleNextTrack : undefined
+      }
     />
   );
-} 
+}

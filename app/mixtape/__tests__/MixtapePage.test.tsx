@@ -19,7 +19,9 @@ jest.mock('next/navigation', () => ({
 // Mock components
 jest.mock('../../components/MixtapeViewer', () => {
   return function MockMixtapeViewer({ mixtape }: any) {
-    return <div data-testid="mixtape-viewer">Mixtape Viewer: {mixtape.name}</div>;
+    return (
+      <div data-testid="mixtape-viewer">Mixtape Viewer: {mixtape.name}</div>
+    );
   };
 });
 
@@ -73,11 +75,19 @@ describe('MixtapePage', () => {
     const mockRefetch = jest.fn();
     const mockOnMixtapeUpdated = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData, refetch: mockRefetch, onMixtapeUpdated: mockOnMixtapeUpdated }}>
+      <MixtapeContext.Provider
+        value={{
+          mixtape: mockMixtapeData,
+          refetch: mockRefetch,
+          onMixtapeUpdated: mockOnMixtapeUpdated,
+        }}
+      >
         <ViewMixtapePage />
       </MixtapeContext.Provider>
     );
     expect(screen.getByTestId('mixtape-viewer')).toBeInTheDocument();
-    expect(screen.getByText('Mixtape Viewer: Test Mixtape')).toBeInTheDocument();
+    expect(
+      screen.getByText('Mixtape Viewer: Test Mixtape')
+    ).toBeInTheDocument();
   });
-}); 
+});

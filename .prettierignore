@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+venv/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Generated files
+*.gen.*
+schema.gen.sql
+openapi.gen.json
+app/client/client.gen.ts
+app/client/sdk.gen.ts
+app/client/types.gen.ts
+
+# Database
+*.db
+*.sqlite
+
+# Environment files
+.env*
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Package files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

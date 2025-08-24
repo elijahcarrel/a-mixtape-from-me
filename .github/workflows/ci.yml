@@ -38,7 +38,22 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run Jest tests
-        run: npm run frontend-test 
+        run: npm run frontend-test
+
+  frontend-prettier-format:
+    name: Front-End Prettier Format Check (Node.js)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci
+      - name: Check Prettier formatting
+        run: npm run frontend-format
 
   backend-pytest-tests:
     name: Backend Tests (Python)
@@ -128,7 +143,7 @@ jobs:
             echo 'schema.gen.sql is not up to date with the models. Please run scripts/generate_schema.py and commit the result.'
             echo "$output"
             exit 1
-          fi 
+          fi
 
   validate-openapi-schema:
     name: Validate openapi.gen.json Up-To-Date

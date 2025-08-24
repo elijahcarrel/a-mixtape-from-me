@@ -21,4 +21,4 @@ export default function RequireAuth({ children, fallback }: RequireAuthProps) {
   }
 
   return <>{children}</>;
-} 
+}

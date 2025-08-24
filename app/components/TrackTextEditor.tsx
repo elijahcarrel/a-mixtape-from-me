@@ -1,20 +1,15 @@
-import { useState } from "react";
-import { MixtapeTrackResponse } from "../client";
+import { useState } from 'react';
+import { MixtapeTrackResponse } from '../client';
 
 type Props = {
-  isEditing: boolean,
-  track: MixtapeTrackResponse,
+  isEditing: boolean;
+  track: MixtapeTrackResponse;
   onEditTrackText?: (newText: string) => void;
-  setIsEditingTrack: (isEditing: boolean) => void
-}
+  setIsEditingTrack: (isEditing: boolean) => void;
+};
 
 export default function TrackTextEditor(props: Props) {
-  const {
-    isEditing,
-    track,
-    onEditTrackText,
-    setIsEditingTrack,
-  } = props;
+  const { isEditing, track, onEditTrackText, setIsEditingTrack } = props;
   const [draftText, setDraftText] = useState(track.track_text || '');
 
   const preview = track.track_text
@@ -22,7 +17,7 @@ export default function TrackTextEditor(props: Props) {
       ? track.track_text.slice(0, 80) + '...'
       : track.track_text
     : '';
- 
+
   if (isEditing) {
     return (
       <div className="mt-2">
@@ -30,7 +25,7 @@ export default function TrackTextEditor(props: Props) {
           className="w-full p-2 rounded border resize-y focus:outline-none transition-colors duration-200 text-sm border-amber-300 bg-white text-neutral-900 focus:border-amber-600 dark:border-amber-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-amber-400"
           rows={4}
           value={draftText}
-          onChange={(e) => setDraftText(e.target.value)}
+          onChange={e => setDraftText(e.target.value)}
           data-testid={`track-textarea-${track.track_position}`}
         />
         <div className="flex space-x-2 mt-1">
@@ -78,4 +73,4 @@ export default function TrackTextEditor(props: Props) {
       </button>
     </div>
   );
-};
+}

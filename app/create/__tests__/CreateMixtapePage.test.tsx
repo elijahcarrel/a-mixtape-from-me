@@ -59,6 +59,8 @@ describe('CreateMixtapePage', () => {
     render(<CreateMixtapePage />);
     expect(screen.getByText('Error Creating Mixtape')).toBeInTheDocument();
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /try again/i })
+    ).toBeInTheDocument();
   });
-}); 
+});

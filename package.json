@@ -15,6 +15,8 @@
     "start": "next start",
     "frontend-lint": "next lint",
     "frontend-lint-fix": "next lint --fix",
+    "frontend-format": "prettier --check .",
+    "frontend-format-fix": "prettier --write .",
     "frontend-typecheck": "tsc --noEmit",
     "frontend-test": "jest",
     "backend-lint": "venv/bin/ruff check backend/",
@@ -44,6 +46,7 @@
     "lucide-react": "^0.539.0",
     "next": "^15.4.5",
     "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "react-hot-toast": "^2.6.0",
@@ -69,6 +72,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
+    "prettier": "^3.4.2",
     "ts-jest": "^29.4.1"
   }
 }

@@ -7,8 +7,10 @@ function usePrefersScheme(): Scheme {
   const isClient = typeof window !== 'undefined';
 
   // Get the initial system theme preference or default to 'light'
-  const getInitialScheme = () => 
-    isClient && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const getInitialScheme = () =>
+    isClient &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light';
 
@@ -17,7 +19,8 @@ function usePrefersScheme(): Scheme {
   useEffect(() => {
     if (!isClient) return;
 
-    const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery =
+      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
 
     const handleChange = (e: MediaQueryListEvent) => {
       setScheme(e.matches ? 'dark' : 'light');
