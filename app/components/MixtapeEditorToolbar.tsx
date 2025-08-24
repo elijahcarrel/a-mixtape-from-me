@@ -63,9 +63,9 @@ export default function MixtapeEditorToolbar({
     } catch (error) {
       // Fallback
       toast.error(`Unable to copy to clipboard: ${String(error)}`);
-      return false
+      return false;
     }
-    return true
+    return true;
   };
 
   const mixtapeUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/mixtape/${mixtape.public_id}`;
@@ -78,14 +78,17 @@ export default function MixtapeEditorToolbar({
 
   const handleUndo = async () => {
     if (!mixtape.can_undo || isUndoing) return;
-    
+
     setIsUndoing(true);
     setStatusText('Undoing...');
     try {
-      const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/undo`, {
-        method: 'POST',
-      });
-      
+      const updatedMixtape = await makeRequest(
+        `/api/mixtape/${mixtape.public_id}/undo`,
+        {
+          method: 'POST',
+        }
+      );
+
       onUndoRedo(updatedMixtape);
       setStatusText('Undo successful');
       // Reset the form to show the updated values
@@ -101,14 +104,17 @@ export default function MixtapeEditorToolbar({
 
   const handleRedo = async () => {
     if (!mixtape.can_redo || isRedoing) return;
-    
+
     setIsRedoing(true);
     setStatusText('Redoing...');
     try {
-      const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/redo`, {
-        method: 'POST',
-      });
-      
+      const updatedMixtape = await makeRequest(
+        `/api/mixtape/${mixtape.public_id}/redo`,
+        {
+          method: 'POST',
+        }
+      );
+
       onUndoRedo(updatedMixtape);
       setStatusText('Redo successful');
       // Reset the form to show the updated values
@@ -122,7 +128,7 @@ export default function MixtapeEditorToolbar({
     }
   };
 
-  const commonBtnStyles = '';// styles are handled by ToolbarButton components
+  const commonBtnStyles = ''; // styles are handled by ToolbarButton components
 
   return (
     <>
@@ -130,25 +136,30 @@ export default function MixtapeEditorToolbar({
       <HeaderContainer>
         <div className="flex items-center space-x-1 sm:space-x-2">
           {/* Undo */}
-          <ToolbarButton 
-            icon={<Undo2 size={20} />} 
-            tooltip="Undo" 
+          <ToolbarButton
+            icon={<Undo2 size={20} />}
+            tooltip="Undo"
             onClick={handleUndo}
             disabled={!mixtape.can_undo || isUndoing}
             data-testid="undo-button"
           />
 
           {/* Redo */}
-          <ToolbarButton 
-            icon={<Redo2 size={20} />} 
-            tooltip="Redo" 
+          <ToolbarButton
+            icon={<Redo2 size={20} />}
+            tooltip="Redo"
             onClick={handleRedo}
             disabled={!mixtape.can_redo || isRedoing}
             data-testid="redo-button"
           />
 
           {/* Share */}
-          <ToolbarButton icon={<Share2 size={20} />} tooltip="Share" onClick={() => setIsShareOpen(true)} data-testid="share-button" />
+          <ToolbarButton
+            icon={<Share2 size={20} />}
+            tooltip="Share"
+            onClick={() => setIsShareOpen(true)}
+            data-testid="share-button"
+          />
 
           {/* Export to Spotify */}
           <ToolbarButton
@@ -163,16 +174,14 @@ export default function MixtapeEditorToolbar({
                   { method: 'POST' }
                 );
                 if (resp.spotify_playlist_url) {
-                  await copyToClipboard(
-                    resp.spotify_playlist_url,
-                  );
+                  await copyToClipboard(resp.spotify_playlist_url);
                   // Show toast with link
                   toast.success(
                     <span>
-                      Spotify playlist copied to clipboard!{" "}
-                      <Link 
-                        href={resp.spotify_playlist_url} 
-                        target="_blank" 
+                      Spotify playlist copied to clipboard!{' '}
+                      <Link
+                        href={resp.spotify_playlist_url}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="underline hover:no-underline font-semibold"
                       >
@@ -202,7 +211,10 @@ export default function MixtapeEditorToolbar({
               </>
             ) : isRedoing ? (
               <>
-                <History size={16} className={`${styles.spinReverse} scale-x-[-1]`} />
+                <History
+                  size={16}
+                  className={`${styles.spinReverse} scale-x-[-1]`}
+                />
                 <span>Redoing...</span>
               </>
             ) : isSaving ? (
@@ -254,7 +266,7 @@ export default function MixtapeEditorToolbar({
                 id="is_public_modal"
                 type="checkbox"
                 checked={values.is_public}
-                onChange={(e) => handleTogglePublic(e.target.checked)}
+                onChange={e => handleTogglePublic(e.target.checked)}
                 className="w-4 h-4 border rounded"
               />
               <label htmlFor="is_public_modal" className="select-none">
@@ -275,9 +287,9 @@ export default function MixtapeEditorToolbar({
                   type="button"
                   className={`${commonBtnStyles} whitespace-nowrap text-sm`}
                   onClick={async () => {
-                    const success = await copyToClipboard(mixtapeUrl)
+                    const success = await copyToClipboard(mixtapeUrl);
                     if (success) {
-                      toast.success('Link copied to clipboard!')
+                      toast.success('Link copied to clipboard!');
                     }
                   }}
                 >
@@ -296,8 +308,6 @@ export default function MixtapeEditorToolbar({
           </div>
         </div>
       )}
-
-
     </>
   );
 }

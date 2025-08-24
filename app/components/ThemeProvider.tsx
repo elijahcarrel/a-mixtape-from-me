@@ -27,7 +27,7 @@ const updateTailwindTheme = (newTheme: Theme) => {
   if (newTheme === 'dark') {
     root.classList.add('dark');
   }
-}  
+};
 
 const updateStackTheme = (newTheme: Theme) => {
   // TODO: this is a hack to work around a bug in stack-auth
@@ -41,9 +41,13 @@ const updateStackTheme = (newTheme: Theme) => {
     // Update the attribute value
     styleEl.setAttribute('data-stack-theme', newTheme);
   }
-}
+};
 
-export default function ThemeProvider({ children }: { children: React.ReactNode }) {
+export default function ThemeProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const preferredScheme = usePrefersScheme();
   const [theme, setTheme] = useState<Theme>(preferredScheme as Theme);
 

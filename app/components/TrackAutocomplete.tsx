@@ -66,7 +66,10 @@ export function Autocomplete<T>({
 
       setIsSearching(true);
       try {
-        const searchResults = await searchFunction(searchQuery, abortControllerRef.current.signal);
+        const searchResults = await searchFunction(
+          searchQuery,
+          abortControllerRef.current.signal
+        );
         setResults(searchResults);
         setIsOpen(searchResults.length > 0);
         setSelectedIndex(-1);
@@ -112,13 +115,11 @@ export function Autocomplete<T>({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < results.length - 1 ? prev + 1 : prev
-        );
+        setSelectedIndex(prev => (prev < results.length - 1 ? prev + 1 : prev));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1));
         break;
       case 'Enter':
         e.preventDefault();
@@ -170,9 +171,12 @@ export function Autocomplete<T>({
         placeholder={placeholder}
         className="w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 border-amber-300 text-amber-900 focus:border-amber-600 placeholder-amber-500 dark:border-amber-600 dark:text-neutral-100 dark:focus:border-amber-400 dark:placeholder-neutral-400"
       />
-      
+
       {isSearching && (
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2" data-testid="loading-spinner">
+        <div
+          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+          data-testid="loading-spinner"
+        >
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-600 dark:border-amber-400"></div>
         </div>
       )}
@@ -186,7 +190,9 @@ export function Autocomplete<T>({
             <div
               key={getItemKey(item)}
               className={`cursor-pointer p-3 transition-colors duration-150 hover:bg-amber-100 text-amber-900 dark:hover:bg-neutral-800 dark:text-neutral-100 ${
-                index === selectedIndex ? 'bg-amber-200 dark:bg-neutral-700' : ''
+                index === selectedIndex
+                  ? 'bg-amber-200 dark:bg-neutral-700'
+                  : ''
               }`}
               onClick={() => handleSelect(item)}
               data-testid={`track-result-${getItemKey(item)}`}
@@ -205,14 +211,22 @@ interface TrackAutocompleteProps {
   onTrackSelect: (spotifyUri: string, trackData: any) => void;
 }
 
-export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompleteProps) {
+export default function TrackAutocomplete({
+  onTrackSelect,
+}: TrackAutocompleteProps) {
   const { makeRequest } = useAuthenticatedRequest();
 
-  const searchTracks = async (query: string, signal?: AbortSignal): Promise<TrackSearchResult[]> => {
+  const searchTracks = async (
+    query: string,
+    signal?: AbortSignal
+  ): Promise<TrackSearchResult[]> => {
     try {
-      const data = await makeRequest(`/api/spotify/search?query=${encodeURIComponent(query)}`, {
-        signal
-      });
+      const data = await makeRequest(
+        `/api/spotify/search?query=${encodeURIComponent(query)}`,
+        {
+          signal,
+        }
+      );
       return data || [];
     } catch (error) {
       console.error('Error searching tracks:', error);
@@ -248,10 +262,10 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
   return (
     <Autocomplete
       placeholder="Search for tracks..."
-      onSelect={(track) => onTrackSelect(track.uri, track)}
+      onSelect={track => onTrackSelect(track.uri, track)}
       searchFunction={searchTracks}
       renderItem={renderTrackItem}
       getItemKey={getTrackKey}
     />
   );
-} 
+}

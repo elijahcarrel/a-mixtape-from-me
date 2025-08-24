@@ -49,7 +49,9 @@ describe('InteractiveCassetteEditor', () => {
     fireEvent.click(firstLine);
 
     // Should show the editor overlay
-    expect(screen.getByText('Edit Line 1 (max 60 characters)')).toBeInTheDocument();
+    expect(
+      screen.getByText('Edit Line 1 (max 60 characters)')
+    ).toBeInTheDocument();
   });
 
   it('saves changes when pressing Enter', async () => {
@@ -208,7 +210,9 @@ describe('InteractiveCassetteEditor', () => {
     const subtitle1Line = screen.getByTestId('line-1-clickable-overlay');
     fireEvent.click(subtitle1Line);
     const subtitle1Input = screen.getByRole('textbox');
-    fireEvent.change(subtitle1Input, { target: { value: 'Updated subtitle1' } });
+    fireEvent.change(subtitle1Input, {
+      target: { value: 'Updated subtitle1' },
+    });
     fireEvent.keyDown(subtitle1Input, { key: 'Enter' });
 
     await waitFor(() => {
@@ -219,7 +223,9 @@ describe('InteractiveCassetteEditor', () => {
     const subtitle2Line = screen.getByTestId('line-2-clickable-overlay');
     fireEvent.click(subtitle2Line);
     const subtitle2Input = screen.getByRole('textbox');
-    fireEvent.change(subtitle2Input, { target: { value: 'Updated subtitle2' } });
+    fireEvent.change(subtitle2Input, {
+      target: { value: 'Updated subtitle2' },
+    });
     fireEvent.keyDown(subtitle2Input, { key: 'Enter' });
 
     await waitFor(() => {
@@ -230,11 +236,13 @@ describe('InteractiveCassetteEditor', () => {
     const subtitle3Line = screen.getByTestId('line-3-clickable-overlay');
     fireEvent.click(subtitle3Line);
     const subtitle3Input = screen.getByRole('textbox');
-    fireEvent.change(subtitle3Input, { target: { value: 'Updated subtitle3' } });
+    fireEvent.change(subtitle3Input, {
+      target: { value: 'Updated subtitle3' },
+    });
     fireEvent.keyDown(subtitle3Input, { key: 'Enter' });
 
     await waitFor(() => {
       expect(mockOnSubtitle3Change).toHaveBeenCalledWith('Updated subtitle3');
     });
   });
-}); 
+});

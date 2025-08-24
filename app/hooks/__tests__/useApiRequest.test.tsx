@@ -24,7 +24,9 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('../useAuth', () => ({
-  getAuthHeaders: jest.fn().mockResolvedValue({ 'x-stack-access-token': 'test-token' }),
+  getAuthHeaders: jest
+    .fn()
+    .mockResolvedValue({ 'x-stack-access-token': 'test-token' }),
 }));
 
 // Mock fetch globally
@@ -72,13 +74,16 @@ describe('useApiRequest', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-        method: 'GET',
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json',
-          'x-stack-access-token': 'test-token',
-        }),
-      }));
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/test',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-stack-access-token': 'test-token',
+          }),
+        })
+      );
       expect(result.current.data).toEqual(mockResponse);
       expect(result.current.error).toBe(null);
     });
@@ -102,13 +107,16 @@ describe('useApiRequest', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ test: 'data' }),
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json',
-        }),
-      }));
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/test',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ test: 'data' }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+        })
+      );
       expect(result.current.data).toEqual(mockResponse);
     });
 
@@ -130,13 +138,16 @@ describe('useApiRequest', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json',
-          'x-stack-access-token': 'test-token',
-          'Custom-Header': 'custom-value',
-        }),
-      }));
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/test',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-stack-access-token': 'test-token',
+            'Custom-Header': 'custom-value',
+          }),
+        })
+      );
     });
   });
 
@@ -260,7 +271,7 @@ describe('useApiRequest', () => {
     it('should refetch data when refetch is called', async () => {
       const mockResponse1 = { data: 'first' };
       const mockResponse2 = { data: 'second' };
-      
+
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
@@ -303,7 +314,7 @@ describe('useApiRequest', () => {
     it('should re-fetch when URL changes', async () => {
       const mockResponse1 = { data: 'first' };
       const mockResponse2 = { data: 'second' };
-      
+
       mockFetch
         .mockResolvedValueOnce({
           ok: true,

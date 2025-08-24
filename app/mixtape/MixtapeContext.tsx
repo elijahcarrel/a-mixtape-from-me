@@ -19,7 +19,9 @@ interface MixtapeContextValue {
 
 // We intentionally initialise with "undefined" so that we can throw a helpful
 // error when the context is used outside of its provider.
-const MixtapeContext = createContext<MixtapeContextValue | undefined>(undefined);
+const MixtapeContext = createContext<MixtapeContextValue | undefined>(
+  undefined
+);
 
 export function useMixtape() {
   const ctx = useContext(MixtapeContext);

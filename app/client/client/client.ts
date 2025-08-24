@@ -31,7 +31,7 @@ export const createClient = (config: Config = {}): Client => {
     RequestOptions
   >();
 
-  const request: Client['request'] = async (options) => {
+  const request: Client['request'] = async options => {
     const opts = {
       ..._config,
       ...options,
@@ -178,18 +178,18 @@ export const createClient = (config: Config = {}): Client => {
 
   return {
     buildUrl,
-    connect: (options) => request({ ...options, method: 'CONNECT' }),
-    delete: (options) => request({ ...options, method: 'DELETE' }),
-    get: (options) => request({ ...options, method: 'GET' }),
+    connect: options => request({ ...options, method: 'CONNECT' }),
+    delete: options => request({ ...options, method: 'DELETE' }),
+    get: options => request({ ...options, method: 'GET' }),
     getConfig,
-    head: (options) => request({ ...options, method: 'HEAD' }),
+    head: options => request({ ...options, method: 'HEAD' }),
     interceptors,
-    options: (options) => request({ ...options, method: 'OPTIONS' }),
-    patch: (options) => request({ ...options, method: 'PATCH' }),
-    post: (options) => request({ ...options, method: 'POST' }),
-    put: (options) => request({ ...options, method: 'PUT' }),
+    options: options => request({ ...options, method: 'OPTIONS' }),
+    patch: options => request({ ...options, method: 'PATCH' }),
+    post: options => request({ ...options, method: 'POST' }),
+    put: options => request({ ...options, method: 'PUT' }),
     request,
     setConfig,
-    trace: (options) => request({ ...options, method: 'TRACE' }),
+    trace: options => request({ ...options, method: 'TRACE' }),
   };
 };

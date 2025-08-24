@@ -42,7 +42,9 @@ describe('SpotifyPlayer', () => {
 
     expect((global as any).SpotifyIframeAPI.createController).toBeDefined();
     // @ts-ignore
-    expect((global as any).SpotifyIframeAPI.createController).toHaveBeenCalledWith(
+    expect(
+      (global as any).SpotifyIframeAPI.createController
+    ).toHaveBeenCalledWith(
       expect.any(HTMLElement),
       expect.objectContaining({ uri: 'spotify:track:123' }),
       expect.any(Function)
@@ -53,7 +55,9 @@ describe('SpotifyPlayer', () => {
     const onPlaying = jest.fn();
 
     await act(async () => {
-      render(<SpotifyPlayer uri="spotify:track:123" onIsPlayingChange={onPlaying} />);
+      render(
+        <SpotifyPlayer uri="spotify:track:123" onIsPlayingChange={onPlaying} />
+      );
     });
 
     // Simulate playback update event
@@ -76,7 +80,9 @@ describe('SpotifyPlayer', () => {
     });
 
     act(() => {
-      eventCallbacks['playback_update']?.({ data: { isPaused: false, position: 300000, duration: 300000 } });
+      eventCallbacks['playback_update']?.({
+        data: { isPaused: false, position: 300000, duration: 300000 },
+      });
     });
 
     expect(onEnd).toHaveBeenCalled();

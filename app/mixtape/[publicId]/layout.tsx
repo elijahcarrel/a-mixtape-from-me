@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
@@ -30,11 +30,16 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   });
 
   // Local state to track mixtape updates from editor
-  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(null);
+  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
+    null
+  );
   // Handle updates from the editor (save, undo, redo)
-  const handleMixtapeUpdateViaAnotherEndpoint = useCallback((updatedMixtape: MixtapeResponse) => {
-    setLocalMixtape(updatedMixtape);
-  }, []);
+  const handleMixtapeUpdateViaAnotherEndpoint = useCallback(
+    (updatedMixtape: MixtapeResponse) => {
+      setLocalMixtape(updatedMixtape);
+    },
+    []
+  );
 
   // Use local state if available, otherwise use API response
   const currentMixtape = localMixtape || mixtape;
@@ -68,11 +73,13 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   }
 
   return (
-    <MixtapeContext.Provider value={{ 
-      mixtape: currentMixtape, 
-      refetch: handleRefetch,
-      onMixtapeUpdated: handleMixtapeUpdateViaAnotherEndpoint
-    }}>
+    <MixtapeContext.Provider
+      value={{
+        mixtape: currentMixtape,
+        refetch: handleRefetch,
+        onMixtapeUpdated: handleMixtapeUpdateViaAnotherEndpoint,
+      }}
+    >
       {children}
     </MixtapeContext.Provider>
   );

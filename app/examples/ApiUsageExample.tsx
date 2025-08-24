@@ -1,15 +1,18 @@
 // Example of how to use the standardized API request system
 // This file is for documentation purposes and can be deleted
 
-import React from "react";
-import { useApiRequest } from "../hooks/useApiRequest";
-import LoadingDisplay from "../components/LoadingDisplay";
-import ErrorDisplay from "../components/ErrorDisplay";
+import React from 'react';
+import { useApiRequest } from '../hooks/useApiRequest';
+import LoadingDisplay from '../components/LoadingDisplay';
+import ErrorDisplay from '../components/ErrorDisplay';
 
 // Example 1: Simple GET request
 export function ExampleGetRequest() {
-  const { data, loading, error } = useApiRequest<{ name: string; email: string }>({
-    url: "/api/account/me"
+  const { data, loading, error } = useApiRequest<{
+    name: string;
+    email: string;
+  }>({
+    url: '/api/account/me',
   });
 
   if (loading) return <LoadingDisplay message="Loading user info..." />;
@@ -25,17 +28,19 @@ export function ExampleGetRequest() {
 
 // Example 2: POST request with body
 export function ExamplePostRequest() {
-  const { data, loading, error, refetch } = useApiRequest<{ success: boolean }>({
-    url: "/api/account/create-playlist",
-    method: "POST",
-    body: { name: "My New Playlist", description: "Created via API" },
-    onSuccess: (data) => {
-      console.log("Playlist created successfully:", data);
-    },
-    onError: (error) => {
-      console.error("Failed to create playlist:", error);
+  const { data, loading, error, refetch } = useApiRequest<{ success: boolean }>(
+    {
+      url: '/api/account/create-playlist',
+      method: 'POST',
+      body: { name: 'My New Playlist', description: 'Created via API' },
+      onSuccess: data => {
+        console.log('Playlist created successfully:', data);
+      },
+      onError: error => {
+        console.error('Failed to create playlist:', error);
+      },
     }
-  });
+  );
 
   if (loading) return <LoadingDisplay message="Creating playlist..." />;
   if (error) return <ErrorDisplay message={error} showLoginLink={true} />;
@@ -51,10 +56,10 @@ export function ExamplePostRequest() {
 // Example 3: Custom headers
 export function ExampleWithHeaders() {
   const { data, loading, error } = useApiRequest<{ items: any[] }>({
-    url: "/api/account/playlists",
+    url: '/api/account/playlists',
     headers: {
-      "X-Custom-Header": "custom-value"
-    }
+      'X-Custom-Header': 'custom-value',
+    },
   });
 
   if (loading) return <LoadingDisplay message="Loading playlists..." />;
@@ -94,4 +99,4 @@ const { data, loading, error, refetch } = useApiRequest<ResponseType>({
   onError: (error) => {} // optional callback
 });
 ```
-*/ 
+*/

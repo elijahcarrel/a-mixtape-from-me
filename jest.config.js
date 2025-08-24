@@ -2,7 +2,10 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './babel.config.jest.js' }],
+    '^.+\\.(ts|tsx|js|jsx)$': [
+      'babel-jest',
+      { configFile: './babel.config.jest.js' },
+    ],
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/app/$1',
@@ -12,7 +15,5 @@ module.exports = {
     '^next/navigation$': '<rootDir>/app/__mocks__/next-navigation.js',
   },
   testPathIgnorePatterns: ['/node_modules/', '/.next/', 'test-utils.tsx'],
-  transformIgnorePatterns: [
-    '/node_modules/(?!@stackframe/stack-shared)/',
-  ],
-}; 
+  transformIgnorePatterns: ['/node_modules/(?!@stackframe/stack-shared)/'],
+};

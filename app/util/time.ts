@@ -10,8 +10,10 @@ export function formatRelativeTime(dateStr: string): string {
   if (diffSeconds < 60) return 'just now';
   if (diffSeconds < 3600) return plural(Math.floor(diffSeconds / 60), 'min');
   if (diffSeconds < 86400) return plural(Math.floor(diffSeconds / 3600), 'hr');
-  if (diffSeconds < 604800) return plural(Math.floor(diffSeconds / 86400), 'day');
-  if (diffSeconds < 2629743) return plural(Math.floor(diffSeconds / 604800), 'week');
+  if (diffSeconds < 604800)
+    return plural(Math.floor(diffSeconds / 86400), 'day');
+  if (diffSeconds < 2629743)
+    return plural(Math.floor(diffSeconds / 604800), 'week');
 
   return date.toLocaleDateString();
 }

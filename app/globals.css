@@ -4,16 +4,16 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --sepia-light: #F4EDE4;
-  --sepia-dark: #2D2D2D;
-  --text-color: #2D2D2D;
-  --card-bg: #F4EDE4;
+  --sepia-light: #f4ede4;
+  --sepia-dark: #2d2d2d;
+  --text-color: #2d2d2d;
+  --card-bg: #f4ede4;
 }
 
 html.dark {
   --sepia-light: #181716;
-  --sepia-dark: #F4EDE4;
-  --text-color: #F4EDE4;
+  --sepia-dark: #f4ede4;
+  --text-color: #f4ede4;
   --card-bg: #23201c;
   background: #181716;
 }
@@ -25,47 +25,49 @@ body {
 
 html.dark body {
   background: #181716;
-  color: #F4EDE4;
+  color: #f4ede4;
 }
 
 /* Light mode only: fix Stack popover dropdown background and menu item hover/focus */
 html:not(.dark) .stack-scope.bg-popover,
 html:not(.dark) .stack-scope .bg-popover {
-  background: #F4EDE4;
+  background: #f4ede4;
   backdrop-filter: none;
 }
 
 html:not(.dark) .stack-scope .focus\:bg-accent:focus,
-html:not(.dark) .stack-scope .focus\:bg-accent[data-state="open"],
+html:not(.dark) .stack-scope .focus\:bg-accent[data-state='open'],
 html:not(.dark) .stack-scope .focus\:bg-accent[data-highlighted] {
-  background: #D4C4B0;
-  color: #2D2D2D;
+  background: #d4c4b0;
+  color: #2d2d2d;
 }
 
 html:not(.dark) .stack-scope .focus\:text-accent-foreground:focus,
-html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-state="open"],
+html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-state='open'],
 html:not(.dark) .stack-scope .focus\:text-accent-foreground[data-highlighted] {
-  color: #2D2D2D;
+  color: #2d2d2d;
 }
 
 /* Mobile-specific improvements */
 @media (max-width: 640px) {
   /* Ensure minimum touch target size */
-  button, [role="button"] {
+  button,
+  [role='button'] {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Improve text readability on small screens */
-  input, textarea {
+  input,
+  textarea {
     font-size: 16px; /* Prevents zoom on iOS */
   }
-  
+
   /* Better spacing for mobile */
   .space-y-4 > * + * {
     margin-top: 1rem;
   }
-  
+
   .space-y-6 > * + * {
     margin-top: 1.5rem;
   }

@@ -73,11 +73,7 @@ const mockFormValues: FormValues = {
 
 // Helper function to render with ThemeProvider
 const renderWithTheme = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider>
-      {component}
-    </ThemeProvider>
-  );
+  return render(<ThemeProvider>{component}</ThemeProvider>);
 };
 
 describe('MixtapeEditorToolbar', () => {
@@ -100,7 +96,7 @@ describe('MixtapeEditorToolbar', () => {
 
   it('renders all toolbar buttons', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     expect(screen.getByTestId('undo-button')).toBeInTheDocument();
     expect(screen.getByTestId('redo-button')).toBeInTheDocument();
     expect(screen.getByTestId('share-button')).toBeInTheDocument();
@@ -110,40 +106,49 @@ describe('MixtapeEditorToolbar', () => {
 
   it('enables undo button when can_undo is true', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const undoButton = screen.getByTestId('undo-button');
     expect(undoButton).not.toBeDisabled();
   });
 
   it('disables undo button when can_undo is false', () => {
     const mixtapeWithoutUndo = { ...mockMixtape, can_undo: false };
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithoutUndo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithoutUndo} />
+    );
+
     const undoButton = screen.getByTestId('undo-button');
     expect(undoButton).toBeDisabled();
   });
 
   it('enables redo button when can_redo is true', () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />
+    );
+
     const redoButton = screen.getByTestId('redo-button');
     expect(redoButton).not.toBeDisabled();
   });
 
   it('disables redo button when can_redo is false', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const redoButton = screen.getByTestId('redo-button');
     expect(redoButton).toBeDisabled();
   });
 
   it('calls undo endpoint when undo button is clicked', async () => {
-    const mockResponse = { ...mockMixtape, version: 4, can_undo: false, can_redo: true };
+    const mockResponse = {
+      ...mockMixtape,
+      version: 4,
+      can_undo: false,
+      can_redo: true,
+    };
     mockMakeRequest.mockResolvedValueOnce(mockResponse);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const undoButton = screen.getByTestId('undo-button');
     fireEvent.click(undoButton);
 
@@ -162,12 +167,19 @@ describe('MixtapeEditorToolbar', () => {
 
   it('calls redo endpoint when redo button is clicked', async () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
-    const mockResponse = { ...mixtapeWithRedo, version: 6, can_undo: true, can_redo: false };
-    
+    const mockResponse = {
+      ...mixtapeWithRedo,
+      version: 6,
+      can_undo: true,
+      can_redo: false,
+    };
+
     mockMakeRequest.mockResolvedValueOnce(mockResponse);
 
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />
+    );
+
     const redoButton = screen.getByTestId('redo-button');
     fireEvent.click(redoButton);
 
@@ -188,7 +200,7 @@ describe('MixtapeEditorToolbar', () => {
     mockMakeRequest.mockRejectedValueOnce(new Error('Failed to undo'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const undoButton = screen.getByTestId('undo-button');
     fireEvent.click(undoButton);
 
@@ -202,8 +214,10 @@ describe('MixtapeEditorToolbar', () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
     mockMakeRequest.mockRejectedValueOnce(new Error('Failed to redo'));
 
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />
+    );
+
     const redoButton = screen.getByTestId('redo-button');
     fireEvent.click(redoButton);
 
@@ -217,7 +231,7 @@ describe('MixtapeEditorToolbar', () => {
     mockMakeRequest.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const undoButton = screen.getByTestId('undo-button');
     fireEvent.click(undoButton);
 
@@ -231,8 +245,10 @@ describe('MixtapeEditorToolbar', () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
     mockMakeRequest.mockRejectedValueOnce(new Error('Network error'));
 
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />
+    );
+
     const redoButton = screen.getByTestId('redo-button');
     fireEvent.click(redoButton);
 
@@ -244,14 +260,14 @@ describe('MixtapeEditorToolbar', () => {
 
   it('disables undo button while undo request is in progress', async () => {
     let resolveRequest: (value: any) => void;
-    const requestPromise = new Promise((resolve) => {
+    const requestPromise = new Promise(resolve => {
       resolveRequest = resolve;
     });
-    
+
     mockMakeRequest.mockReturnValueOnce(requestPromise);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const undoButton = screen.getByTestId('undo-button');
     fireEvent.click(undoButton);
 
@@ -268,16 +284,18 @@ describe('MixtapeEditorToolbar', () => {
 
   it('disables redo button while redo request is in progress', async () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
-    
+
     let resolveRequest: (value: any) => void;
-    const requestPromise = new Promise((resolve) => {
+    const requestPromise = new Promise(resolve => {
       resolveRequest = resolve;
     });
-    
+
     mockMakeRequest.mockReturnValueOnce(requestPromise);
 
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />
+    );
+
     const redoButton = screen.getByTestId('redo-button');
     fireEvent.click(redoButton);
 
@@ -294,25 +312,27 @@ describe('MixtapeEditorToolbar', () => {
 
   it('calls setStatusText with correct values during undo operation', async () => {
     let resolveRequest: (value: any) => void;
-    const requestPromise = new Promise((resolve) => {
+    const requestPromise = new Promise(resolve => {
       resolveRequest = resolve;
     });
-    
+
     mockMakeRequest.mockReturnValueOnce(requestPromise);
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const undoButton = screen.getByTestId('undo-button');
     fireEvent.click(undoButton);
 
     // Should call setStatusText with "Undoing..." initially
     expect(defaultProps.setStatusText).toHaveBeenCalledWith('Undoing...');
-    
+
     // Resolve the request
     resolveRequest!(mockMixtape);
 
     await waitFor(() => {
-      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Undo successful');
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith(
+        'Undo successful'
+      );
     });
 
     expect(defaultProps.resetForm).toHaveBeenCalledWith(mockMixtape);
@@ -320,27 +340,31 @@ describe('MixtapeEditorToolbar', () => {
 
   it('calls setStatusText with correct values during redo operation', async () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
-    
+
     let resolveRequest: (value: any) => void;
-    const requestPromise = new Promise((resolve) => {
+    const requestPromise = new Promise(resolve => {
       resolveRequest = resolve;
     });
-    
+
     mockMakeRequest.mockReturnValueOnce(requestPromise);
 
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />
+    );
+
     const redoButton = screen.getByTestId('redo-button');
     fireEvent.click(redoButton);
 
     // Should call setStatusText with "Redoing..." initially
     expect(defaultProps.setStatusText).toHaveBeenCalledWith('Redoing...');
-    
+
     // Resolve the request
     resolveRequest!(mockMixtape);
 
     await waitFor(() => {
-      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Redo successful');
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith(
+        'Redo successful'
+      );
     });
 
     expect(defaultProps.resetForm).toHaveBeenCalledWith(mockMixtape);
@@ -350,7 +374,7 @@ describe('MixtapeEditorToolbar', () => {
     mockMakeRequest.mockRejectedValueOnce(new Error('Failed to undo'));
 
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const undoButton = screen.getByTestId('undo-button');
     fireEvent.click(undoButton);
 
@@ -363,8 +387,10 @@ describe('MixtapeEditorToolbar', () => {
     const mixtapeWithRedo = { ...mockMixtape, can_redo: true };
     mockMakeRequest.mockRejectedValueOnce(new Error('Failed to redo'));
 
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar {...defaultProps} mixtape={mixtapeWithRedo} />
+    );
+
     const redoButton = screen.getByTestId('redo-button');
     fireEvent.click(redoButton);
 
@@ -374,24 +400,30 @@ describe('MixtapeEditorToolbar', () => {
   });
 
   it('shows saving status when isSaving is true', () => {
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} statusText={'Saving...'} isSaving={true} />);
-    
+    renderWithTheme(
+      <MixtapeEditorToolbar
+        {...defaultProps}
+        statusText={'Saving...'}
+        isSaving={true}
+      />
+    );
+
     expect(screen.getByText('Saving...')).toBeInTheDocument();
   });
 
   it('shows saved status by default', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     expect(screen.getByText('Saved')).toBeInTheDocument();
   });
 
   it('toggles public visibility and saves when checkbox is changed', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     // Open share modal first
     const shareButton = screen.getByTestId('share-button');
     fireEvent.click(shareButton);
-    
+
     const checkbox = screen.getByLabelText('Make this mixtape public');
     fireEvent.click(checkbox);
 
@@ -404,7 +436,7 @@ describe('MixtapeEditorToolbar', () => {
 
   it('opens share modal when share button is clicked', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     const shareButton = screen.getByTestId('share-button');
     fireEvent.click(shareButton);
 
@@ -413,7 +445,7 @@ describe('MixtapeEditorToolbar', () => {
 
   it('prefetches viewer route on mount', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-    
+
     expect(mockPrefetch).toHaveBeenCalledWith('/mixtape/test-mixtape-123');
   });
 
@@ -435,7 +467,7 @@ describe('MixtapeEditorToolbar', () => {
       mockMakeRequest.mockResolvedValueOnce(mockResponse);
 
       renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-      
+
       const exportButton = screen.getByTestId('export-to-spotify-button');
       fireEvent.click(exportButton);
 
@@ -446,8 +478,12 @@ describe('MixtapeEditorToolbar', () => {
         );
       });
 
-      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exporting to Spotify...');
-      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exported to Spotify');
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith(
+        'Exporting to Spotify...'
+      );
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith(
+        'Exported to Spotify'
+      );
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
         'https://open.spotify.com/playlist/12345'
       );
@@ -459,11 +495,11 @@ describe('MixtapeEditorToolbar', () => {
               'Spotify playlist copied to clipboard!',
               expect.objectContaining({
                 props: expect.objectContaining({
-                  children: 'Open in Spotify'
-                })
-              })
-            ])
-          })
+                  children: 'Open in Spotify',
+                }),
+              }),
+            ]),
+          }),
         }),
         { duration: 10000 }
       );
@@ -473,12 +509,14 @@ describe('MixtapeEditorToolbar', () => {
       mockMakeRequest.mockRejectedValueOnce(new Error('Export failed'));
 
       renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-      
+
       const exportButton = screen.getByTestId('export-to-spotify-button');
       fireEvent.click(exportButton);
 
       await waitFor(() => {
-        expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exporting to Spotify...');
+        expect(defaultProps.setStatusText).toHaveBeenCalledWith(
+          'Exporting to Spotify...'
+        );
       });
 
       expect(toast.error).toHaveBeenCalledWith('Error exporting to Spotify');
@@ -490,12 +528,14 @@ describe('MixtapeEditorToolbar', () => {
         spotify_playlist_url: 'https://open.spotify.com/playlist/12345',
       };
       mockMakeRequest.mockResolvedValueOnce(mockResponse);
-      
+
       // Mock clipboard failure
-      (navigator.clipboard.writeText as jest.Mock).mockRejectedValueOnce(new Error('Clipboard error'));
+      (navigator.clipboard.writeText as jest.Mock).mockRejectedValueOnce(
+        new Error('Clipboard error')
+      );
 
       renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
-      
+
       const exportButton = screen.getByTestId('export-to-spotify-button');
       fireEvent.click(exportButton);
 
@@ -506,7 +546,9 @@ describe('MixtapeEditorToolbar', () => {
         );
       });
 
-      expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exported to Spotify');
+      expect(defaultProps.setStatusText).toHaveBeenCalledWith(
+        'Exported to Spotify'
+      );
       expect(toast.error).toHaveBeenCalledWith(
         'Unable to copy to clipboard: Error: Clipboard error'
       );

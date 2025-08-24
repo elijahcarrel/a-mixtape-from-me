@@ -7,7 +7,9 @@ interface MixtapeViewerToolbarProps {
   mixtape: MixtapeResponse;
 }
 
-export default function MixtapeViewerToolbar({ mixtape }: MixtapeViewerToolbarProps) {
+export default function MixtapeViewerToolbar({
+  mixtape,
+}: MixtapeViewerToolbarProps) {
   return (
     <HeaderContainer>
       <div className="flex items-center space-x-1 sm:space-x-2">

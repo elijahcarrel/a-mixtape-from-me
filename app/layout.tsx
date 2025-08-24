@@ -1,20 +1,20 @@
-import "./globals.css";
-import { StackProvider } from "@stackframe/stack";
-import { stackServerApp } from "../stack";
-import { Inter, Caveat } from "next/font/google";
-import Link from "next/link";
-import UserButtonHeader from "./components/UserButtonHeader";
-import MainContainer from "./components/layout/MainContainer";
-import HeaderContainer from "./components/layout/HeaderContainer";
-import PageTitle from "./components/layout/PageTitle";
-import ThemeProvider from "./components/ThemeProvider";
-import StackThemeContainer from "./components/StackThemeContainer";
-import ToastProvider from "./components/ToastProvider";
+import './globals.css';
+import { StackProvider } from '@stackframe/stack';
+import { stackServerApp } from '../stack';
+import { Inter, Caveat } from 'next/font/google';
+import Link from 'next/link';
+import UserButtonHeader from './components/UserButtonHeader';
+import MainContainer from './components/layout/MainContainer';
+import HeaderContainer from './components/layout/HeaderContainer';
+import PageTitle from './components/layout/PageTitle';
+import ThemeProvider from './components/ThemeProvider';
+import StackThemeContainer from './components/StackThemeContainer';
+import ToastProvider from './components/ToastProvider';
 
-const inter = Inter({ subsets: ["latin"] });
-const caveat = Caveat({ 
-  subsets: ["latin"],
-  variable: "--font-caveat",
+const inter = Inter({ subsets: ['latin'] });
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-caveat',
 });
 
 export const metadata = {
@@ -36,7 +36,9 @@ export default function RootLayout({
               <ToastProvider>
                 <MainContainer>
                   <HeaderContainer>
-                  <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
+                    <Link href="/">
+                      <PageTitle>A Mixtape From Me</PageTitle>
+                    </Link>
                     <UserButtonHeader />
                   </HeaderContainer>
                   {children}

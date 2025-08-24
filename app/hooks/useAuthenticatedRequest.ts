@@ -12,10 +12,10 @@ async function makeAuthenticatedRequest<T = any>(
     signal?: AbortSignal;
   } = {},
   user: any,
-  router: AppRouterInstance,
+  router: AppRouterInstance
 ): Promise<T> {
   const { method = 'GET', body, headers = {}, signal } = options;
-  
+
   // Get auth headers
   const authHeaders = await getAuthHeaders(user);
   const requestHeaders = {

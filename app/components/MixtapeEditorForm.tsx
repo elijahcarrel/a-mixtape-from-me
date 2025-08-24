@@ -1,5 +1,10 @@
 import { Form, Field } from 'formik';
-import { TrackDetails, MixtapeTrackRequest, MixtapeTrackResponse, MixtapeResponse } from '../client';
+import {
+  TrackDetails,
+  MixtapeTrackRequest,
+  MixtapeTrackResponse,
+  MixtapeResponse,
+} from '../client';
 import { normalizeTrackToResponse } from '../util/track-util';
 import TrackAutocomplete from './TrackAutocomplete';
 import TrackList from './TrackList';
@@ -25,7 +30,7 @@ export function mixtapeToFormValues(mixtape: MixtapeResponse): FormValues {
     subtitle2: mixtape.subtitle2 || '',
     subtitle3: mixtape.subtitle3 || '',
     is_public: mixtape.is_public,
-    tracks: mixtape.tracks
+    tracks: mixtape.tracks,
   };
 }
 
@@ -35,10 +40,13 @@ export interface MixtapeEditorFormProps {
   setFieldValue: (field: string, value: any) => void;
   handleSave: (values: FormValues, immediate: boolean) => void;
 }
-  
 
-export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }: MixtapeEditorFormProps) {
-
+export function MixtapeEditorForm({
+  mixtape,
+  values,
+  setFieldValue,
+  handleSave,
+}: MixtapeEditorFormProps) {
   const addTrack = (spotifyUri: string, trackData: TrackDetails) => {
     const newTrack: MixtapeTrackRequest | MixtapeTrackResponse = {
       track_position: values.tracks.length + 1,
@@ -49,7 +57,7 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
 
     const updatedValues = {
       ...values,
-      tracks: [...values.tracks, newTrack]
+      tracks: [...values.tracks, newTrack],
     };
 
     // Update all form fields with the new values
@@ -58,12 +66,16 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
   };
 
   const editTrackText = (position: number, newText: string) => {
-    const updatedTracks = values.tracks.map((track: MixtapeTrackResponse | MixtapeTrackRequest) => track.track_position === position ? { ...track, track_text: newText } : track
+    const updatedTracks = values.tracks.map(
+      (track: MixtapeTrackResponse | MixtapeTrackRequest) =>
+        track.track_position === position
+          ? { ...track, track_text: newText }
+          : track
     );
 
     const updatedValues = {
       ...values,
-      tracks: updatedTracks
+      tracks: updatedTracks,
     };
 
     setFieldValue('tracks', updatedTracks);
@@ -72,22 +84,29 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
 
   const removeTrack = (position: number) => {
     const updatedTracks = values.tracks
-      .filter((track: MixtapeTrackResponse | MixtapeTrackRequest) => track.track_position !== position)
-      .map((track: MixtapeTrackResponse | MixtapeTrackRequest, index: number) => ({
-        ...track,
-        track_position: index + 1
-      }));
+      .filter(
+        (track: MixtapeTrackResponse | MixtapeTrackRequest) =>
+          track.track_position !== position
+      )
+      .map(
+        (track: MixtapeTrackResponse | MixtapeTrackRequest, index: number) => ({
+          ...track,
+          track_position: index + 1,
+        })
+      );
 
     const updatedValues = {
       ...values,
-      tracks: updatedTracks
+      tracks: updatedTracks,
     };
 
     setFieldValue('tracks', updatedTracks);
     handleSave(updatedValues, true); // Immediate save for track changes
   };
 
-  const reorderTracks = (updatedTracks: (MixtapeTrackResponse | MixtapeTrackRequest)[]) => {
+  const reorderTracks = (
+    updatedTracks: (MixtapeTrackResponse | MixtapeTrackRequest)[]
+  ) => {
     const updatedValues = {
       ...values,
       tracks: updatedTracks,
@@ -96,15 +115,11 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
     handleSave(updatedValues, true); // Immediate save for reorder
   };
 
-
   return (
     <div className="space-y-4 sm:space-y-6">
       <Form className="space-y-4 sm:space-y-6">
         {/* Mixtape Title - Hidden field, title is now part of cassette text */}
-        <Field
-          name="name"
-          type="hidden"
-        />
+        <Field name="name" type="hidden" />
         {/* visually hidden checkbox field kept for legacy tests (not visible to users) */}
         <Field name="is_public" type="checkbox" className="sr-only" />
 
@@ -115,19 +130,19 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             subtitle1={values.subtitle1}
             subtitle2={values.subtitle2}
             subtitle3={values.subtitle3}
-            onTitleChange={(title) => {
+            onTitleChange={title => {
               setFieldValue('name', title);
               handleSave({ ...values, name: title }, false);
             }}
-            onSubtitle1Change={(subtitle1) => {
+            onSubtitle1Change={subtitle1 => {
               setFieldValue('subtitle1', subtitle1);
               handleSave({ ...values, subtitle1 }, false);
             }}
-            onSubtitle2Change={(subtitle2) => {
+            onSubtitle2Change={subtitle2 => {
               setFieldValue('subtitle2', subtitle2);
               handleSave({ ...values, subtitle2 }, false);
             }}
-            onSubtitle3Change={(subtitle3) => {
+            onSubtitle3Change={subtitle3 => {
               setFieldValue('subtitle3', subtitle3);
               handleSave({ ...values, subtitle3 }, false);
             }}
@@ -145,7 +160,8 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
               setFieldValue('intro_text', e.target.value);
               handleSave({ ...values, intro_text: e.target.value }, false); // Debounced save for text changes
-            } } />
+            }}
+          />
         </div>
 
         {/* Public/Private toggle moved to Share dialog */}
@@ -153,7 +169,9 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
 
       {/* Track Autocomplete */}
       <div className="space-y-3 sm:space-y-4">
-        <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-neutral-100">Add Tracks</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+          Add Tracks
+        </h2>
         <TrackAutocomplete onTrackSelect={addTrack} />
       </div>
 

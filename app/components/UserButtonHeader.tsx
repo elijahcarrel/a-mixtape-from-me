@@ -30,10 +30,10 @@ export default function UserButtonHeader() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const windowWidth = useWindowWidth();
-  
+
   // Show user info only on screens wider than 640px (sm breakpoint)
   const showUserInfo = windowWidth > 640;
-  
+
   // Proper theme toggle that updates the theme context
   const handleColorModeToggle = useCallback(() => {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -43,7 +43,11 @@ export default function UserButtonHeader() {
   const extraItems = [
     {
       text: 'My Mixtapes',
-      icon: <span role="img" aria-label="mixtapes">🎵</span>,
+      icon: (
+        <span role="img" aria-label="mixtapes">
+          🎵
+        </span>
+      ),
       onClick: () => router.push('/my-mixtapes'),
     },
   ];
@@ -57,4 +61,4 @@ export default function UserButtonHeader() {
       />
     </UserButtonContainer>
   );
-} 
+}

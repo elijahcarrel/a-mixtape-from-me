@@ -9,9 +9,9 @@ export const useRouter = jest.fn(() => ({
 }));
 
 export const useSearchParams = jest.fn(() => ({
-  get: jest.fn((key) => null),
-  has: jest.fn((key) => false),
-  getAll: jest.fn((key) => []),
+  get: jest.fn(key => null),
+  has: jest.fn(key => false),
+  getAll: jest.fn(key => []),
   forEach: jest.fn(),
   entries: jest.fn(() => []),
   keys: jest.fn(() => []),
@@ -23,4 +23,4 @@ export const usePathname = jest.fn(() => '/');
 
 export const useParams = jest.fn(() => ({}));
 
-export const redirect = jest.fn(); 
+export const redirect = jest.fn();

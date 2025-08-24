@@ -1,7 +1,11 @@
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 
-export default function ToastProvider({ children }: { children: React.ReactNode }) {
+export default function ToastProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <>
       {children}
@@ -16,7 +20,8 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
             fontWeight: '500',
             padding: '12px 16px',
             borderRadius: '8px',
-            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+            boxShadow:
+              '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
             maxWidth: '400px',
           },
           success: {

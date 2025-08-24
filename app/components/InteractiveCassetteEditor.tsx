@@ -12,15 +12,15 @@ interface InteractiveCassetteEditorProps {
   onSubtitle3Change: (subtitle3: string) => void;
 }
 
-export default function InteractiveCassetteEditor({ 
-  title, 
-  subtitle1, 
-  subtitle2, 
-  subtitle3, 
-  onTitleChange, 
-  onSubtitle1Change, 
-  onSubtitle2Change, 
-  onSubtitle3Change
+export default function InteractiveCassetteEditor({
+  title,
+  subtitle1,
+  subtitle2,
+  subtitle3,
+  onTitleChange,
+  onSubtitle1Change,
+  onSubtitle2Change,
+  onSubtitle3Change,
 }: InteractiveCassetteEditorProps) {
   const [editingLine, setEditingLine] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -29,26 +29,36 @@ export default function InteractiveCassetteEditor({
     line1: title,
     line2: subtitle1,
     line3: subtitle2,
-    line4: subtitle3
+    line4: subtitle3,
   };
 
   const getChangeHandler = (lineIndex: number) => {
     switch (lineIndex) {
-      case 0: return onTitleChange;
-      case 1: return onSubtitle1Change;
-      case 2: return onSubtitle2Change;
-      case 3: return onSubtitle3Change;
-      default: return () => {};
+      case 0:
+        return onTitleChange;
+      case 1:
+        return onSubtitle1Change;
+      case 2:
+        return onSubtitle2Change;
+      case 3:
+        return onSubtitle3Change;
+      default:
+        return () => {};
     }
   };
 
   const getCurrentValue = (lineIndex: number) => {
     switch (lineIndex) {
-      case 0: return title;
-      case 1: return subtitle1;
-      case 2: return subtitle2;
-      case 3: return subtitle3;
-      default: return '';
+      case 0:
+        return title;
+      case 1:
+        return subtitle1;
+      case 2:
+        return subtitle2;
+      case 3:
+        return subtitle3;
+      default:
+        return '';
     }
   };
 
@@ -108,12 +118,13 @@ export default function InteractiveCassetteEditor({
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 shadow-lg border-2 border-amber-600 dark:border-amber-400">
             <div className="space-y-3">
               <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                Edit Line {editingLine + 1} (max {getMaxLength(editingLine)} characters)
+                Edit Line {editingLine + 1} (max {getMaxLength(editingLine)}{' '}
+                characters)
               </label>
               <input
                 type="text"
                 value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
+                onChange={e => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 maxLength={getMaxLength(editingLine)}
                 className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 bg-white border-neutral-300 text-neutral-900 focus:ring-amber-600 dark:bg-neutral-700 dark:border-neutral-600 dark:text-neutral-100 dark:focus:ring-amber-400"
@@ -137,8 +148,6 @@ export default function InteractiveCassetteEditor({
           </div>
         </div>
       )}
-
-
     </div>
   );
-} 
+}

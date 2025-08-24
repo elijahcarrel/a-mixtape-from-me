@@ -9,4 +9,4 @@ export default function PageTitle({ children }: { children: React.ReactNode }) {
       {children}
     </h1>
   );
-} 
+}

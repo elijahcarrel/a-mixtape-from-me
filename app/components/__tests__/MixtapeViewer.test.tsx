@@ -14,9 +14,7 @@ const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 jest.mock('../EditButton', () => {
   const mockReact = require('react');
   return function MockEditButton() {
-    return (
-      <div data-testid="mock-edit-button" />
-    );
+    return <div data-testid="mock-edit-button" />;
   };
 });
 
@@ -90,4 +88,4 @@ describe('MixtapeViewer', () => {
     render(<MixtapeViewer mixtape={mockMixtape} />);
     expect(screen.getByTestId('mock-edit-button')).toBeInTheDocument();
   });
-}); 
+});
