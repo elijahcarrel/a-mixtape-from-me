@@ -29,7 +29,7 @@ class SpotifyClient(AbstractSpotifyClient):
         self._access_token: str | None = None
         self._token_expiration: float = 0.0
 
-    def get_spotify_access_token(self) -> str:
+    def _get_spotify_access_token(self) -> str:
         """
         Obtain a Spotify access token using Authorization Code flow.
         A long-lived refresh token (SPOTIFY_REFRESH_TOKEN) is exchanged for a short-lived
@@ -64,7 +64,10 @@ class SpotifyClient(AbstractSpotifyClient):
             else:
                 raise Exception(f"Failed to refresh Spotify access token: {response.text}")
 
-    def spotify_api_request(self, method: str, endpoint: str, **kwargs)->Any:
+    def _auth_headers(self)->dict[str, str]:
+        return {"Authorization": f"Bearer {self._get_spotify_access_token()}"}
+
+    def _spotify_api_request(self, method: str, endpoint: str, **kwargs)->Any:
         """Low-level HTTP helper (raises on non-2xx)."""
         headers = self._auth_headers()
         if "headers" in kwargs:
@@ -81,12 +84,12 @@ class SpotifyClient(AbstractSpotifyClient):
     # --- User info ---
     def _get_user_id(self)->str:
         if self._user_id is None:
-            data = self.spotify_api_request("GET", "/me")
+            data = self._spotify_api_request("GET", "/me")
             self._user_id = data["id"]
         return self._user_id
 
     def search_tracks(self, query: str)->list[SpotifyTrack]:
-        data = self.spotify_api_request("GET", f"/search", params={"q": query, "type": "track", "limit": 5})
+        data = self._spotify_api_request("GET", f"/search", params={"q": query, "type": "track", "limit": 5})
         items = []
         # TODO: why do we check for both "tracks" and "items"? Should only need one.
         for item in data.get("tracks", {}).get("items", []):
@@ -104,7 +107,7 @@ class SpotifyClient(AbstractSpotifyClient):
         # TODO: ensure we use a single flight so that we don't fetch the same track multiple times
         # from multiple threads. In golang there's a singleflight package we could use; this surely
         # exists in Python so we just need to find it.
-        item = self.spotify_api_request("GET", f"/tracks/{track_id}")
+        item = self._spotify_api_request("GET", f"/tracks/{track_id}")
         track = SpotifyTrack.from_dict(item)
 
         with self._cache_lock:
@@ -120,21 +123,21 @@ class SpotifyClient(AbstractSpotifyClient):
     def create_playlist(self, title: str, description: str, track_uris: list[str]) -> str:
         user_id = self._get_user_id()
         payload = {"name": title, "description": description, "public": True}
-        data = self.spotify_api_request("POST", f"/users/{user_id}/playlists", json=payload)
+        data = self._spotify_api_request("POST", f"/users/{user_id}/playlists", json=payload)
         playlist_id = data["id"]
 
         if track_uris:
-            self.spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
+            self._spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
 
         return data["uri"]
 
     def update_playlist(self, playlist_uri: str, title: str, description: str, track_uris: list[str]) -> None:
         playlist_id = self._playlist_id_from_uri(playlist_uri)
         # Change details
-        self.spotify_api_request("PUT", f"/playlists/{playlist_id}", json={"name": title, "description": description, "public": True})
+        self._spotify_api_request("PUT", f"/playlists/{playlist_id}", json={"name": title, "description": description, "public": True})
 
         # Replace tracks (PUT replaces)
-        self.spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
+        self._spotify_api_request("PUT", f"/playlists/{playlist_id}/tracks", json={"uris": track_uris})
 
 def get_spotify_client():
     return SpotifyClient()
