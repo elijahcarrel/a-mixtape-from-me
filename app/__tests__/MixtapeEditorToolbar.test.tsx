@@ -507,6 +507,9 @@ describe('MixtapeEditorToolbar', () => {
       });
 
       expect(defaultProps.setStatusText).toHaveBeenCalledWith('Exported to Spotify');
+      expect(toast.error).toHaveBeenCalledWith(
+        'Unable to copy to clipboard: Error: Clipboard error'
+      );
     });
   });
 });

@@ -60,9 +60,9 @@ export default function MixtapeEditorToolbar({
   const copyToClipboard = async (text: string): Promise<boolean> => {
     try {
       await navigator.clipboard.writeText(text);
-    } catch (_) {
+    } catch (error) {
       // Fallback
-      toast.error('Unable to copy to clipboard');
+      toast.error(`Unable to copy to clipboard: ${String(error)}`);
       return false
     }
     return true
