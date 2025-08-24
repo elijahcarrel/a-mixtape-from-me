@@ -1,5 +1,5 @@
 import "./globals.css";
-import { StackProvider, StackTheme } from "@stackframe/stack";
+import { StackProvider } from "@stackframe/stack";
 import { stackServerApp } from "../stack";
 import { Inter, Caveat } from "next/font/google";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import MainContainer from "./components/layout/MainContainer";
 import HeaderContainer from "./components/layout/HeaderContainer";
 import PageTitle from "./components/layout/PageTitle";
 import ThemeProvider from "./components/ThemeProvider";
+import StackThemeContainer from "./components/StackThemeContainer";
 
 const inter = Inter({ subsets: ["latin"] });
 const caveat = Caveat({ 
@@ -30,13 +31,15 @@ export default function RootLayout({
       <body className={`${inter.className} ${caveat.variable}`}>
         <StackProvider app={stackServerApp}>
           <ThemeProvider>
-            <MainContainer>
-              <HeaderContainer>
-              <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
-                <UserButtonHeader />
-              </HeaderContainer>
-              {children}
-            </MainContainer>
+            <StackThemeContainer>
+              <MainContainer>
+                <HeaderContainer>
+                <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
+                  <UserButtonHeader />
+                </HeaderContainer>
+                {children}
+              </MainContainer>
+            </StackThemeContainer>
           </ThemeProvider>
         </StackProvider>
       </body>

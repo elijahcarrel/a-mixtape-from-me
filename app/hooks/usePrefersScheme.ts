@@ -17,16 +17,15 @@ function usePrefersScheme(): Scheme {
   useEffect(() => {
     if (!isClient) return;
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
 
     const handleChange = (e: MediaQueryListEvent) => {
       setScheme(e.matches ? 'dark' : 'light');
     };
-
-    mediaQuery.addEventListener('change', handleChange);
+    mediaQuery && mediaQuery.addEventListener('change', handleChange);
 
     return () => {
-      mediaQuery.removeEventListener('change', handleChange);
+      mediaQuery && mediaQuery.removeEventListener('change', handleChange);
     };
   }, [isClient]);
 
