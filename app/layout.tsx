@@ -27,8 +27,7 @@ const vintageTheme = {
   light: {
     primary: '#D4C4B0',
     primaryForeground: '#2D2D2D',
-    secondary: '#D4C4B0',
-    secondaryForeground: '#2D2D2D',
+    // TODO: consider adding secondary and secondaryForeground.
     background: '#F4EDE4',
     foreground: '#2D2D2D',
     card: '#F4EDE4',
@@ -48,8 +47,7 @@ const vintageTheme = {
   dark: {
     primary: '#8B7355',
     primaryForeground: '#F4EDE4',
-    secondary: '#8B7355',
-    secondaryForeground: '#F4EDE4',
+    // TODO: consider adding secondary and secondaryForeground.
     background: '#1A1A1A',
     foreground: '#F4EDE4',
     card: '#2D2D2D',
@@ -82,7 +80,7 @@ export default function RootLayout({
             <DynamicTheme theme={vintageTheme}>
               <MainContainer>
                 <HeaderContainer>
-                  <Link href="/"><PageTitle>My App</PageTitle></Link>
+                <Link href="/"><PageTitle>A Mixtape From Me</PageTitle></Link>
                   <UserButtonHeader />
                 </HeaderContainer>
                 {children}
