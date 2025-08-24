@@ -61,7 +61,7 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     updateTailwindTheme(theme);
     updateStackTheme(theme);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // If the user changes their preferred scheme (i.e. they toggle dark mode in their system settings), update the theme.
   useEffect(() => {
