@@ -1,7 +1,6 @@
 import { Form, Field } from 'formik';
 import { TrackDetails, MixtapeTrackRequest, MixtapeTrackResponse, MixtapeResponse } from '../client';
 import { normalizeTrackToResponse } from '../util/track-util';
-import { useTheme } from './ThemeProvider';
 import TrackAutocomplete from './TrackAutocomplete';
 import TrackList from './TrackList';
 import InteractiveCassetteEditor from './InteractiveCassetteEditor';
@@ -39,7 +38,6 @@ export interface MixtapeEditorFormProps {
   
 
 export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }: MixtapeEditorFormProps) {
-  const { theme } = useTheme();
 
   const addTrack = (spotifyUri: string, trackData: TrackDetails) => {
     const newTrack: MixtapeTrackRequest | MixtapeTrackResponse = {
@@ -133,7 +131,6 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
               setFieldValue('subtitle3', subtitle3);
               handleSave({ ...values, subtitle3 }, false);
             }}
-            theme={theme}
           />
         </div>
 
@@ -144,9 +141,7 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
             as="textarea"
             placeholder="Add some intro text for your mixtape..."
             rows={3}
-            className={`w-full bg-transparent border rounded-lg p-2 sm:p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none text-sm sm:text-base ${theme === 'dark'
-                ? 'border-amber-600 text-neutral-100 focus:border-amber-400'
-                : 'border-amber-300 text-neutral-900 focus:border-amber-600'}`}
+            className="w-full bg-transparent border rounded-lg p-2 sm:p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 resize-none text-sm sm:text-base border-amber-300 text-neutral-900 focus:border-amber-600 dark:border-amber-600 dark:text-neutral-100 dark:focus:border-amber-400"
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
               setFieldValue('intro_text', e.target.value);
               handleSave({ ...values, intro_text: e.target.value }, false); // Debounced save for text changes
@@ -158,13 +153,13 @@ export function MixtapeEditorForm({ mixtape, values, setFieldValue, handleSave }
 
       {/* Track Autocomplete */}
       <div className="space-y-3 sm:space-y-4">
-        <h2 className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>Add Tracks</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-neutral-100">Add Tracks</h2>
         <TrackAutocomplete onTrackSelect={addTrack} />
       </div>
 
       {/* Track List */}
       <div className="space-y-3 sm:space-y-4">
-        <h2 className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-neutral-100">
           Tracks ({values.tracks.length})
         </h2>
         <TrackList

@@ -14,7 +14,6 @@ import {
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';
-import { useTheme } from './ThemeProvider';
 import { FormValues } from './MixtapeEditorForm';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
 import styles from './MixtapeEditorToolbar.module.scss';
@@ -43,7 +42,6 @@ export default function MixtapeEditorToolbar({
   setStatusText,
 }: MixtapeEditorToolbarProps) {
   const router = useRouter();
-  const { theme } = useTheme();
   const { makeRequest } = useAuthenticatedRequest();
 
   // Prefetch viewer route for faster navigation
@@ -205,11 +203,7 @@ export default function MixtapeEditorToolbar({
       {/* Share Modal */}
       {isShareOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4">
-          <div
-            className={`w-full max-w-sm rounded-lg p-4 sm:p-6 ${
-              theme === 'dark' ? 'bg-neutral-800 text-neutral-100' : 'bg-white text-neutral-900'
-            }`}
-          >
+          <div className="w-full max-w-sm rounded-lg p-4 sm:p-6 bg-white text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Share Mixtape</h2>
               <button
@@ -243,9 +237,7 @@ export default function MixtapeEditorToolbar({
                   type="text"
                   readOnly
                   value={mixtapeUrl}
-                  className={`flex-1 px-2 py-1 border rounded bg-transparent text-sm overflow-hidden truncate ${
-                    theme === 'dark' ? 'border-amber-600' : 'border-amber-300'
-                  }`}
+                  className="flex-1 px-2 py-1 border rounded bg-transparent text-sm overflow-hidden truncate border-amber-300 dark:border-amber-600"
                 />
                 <button
                   type="button"
@@ -259,11 +251,7 @@ export default function MixtapeEditorToolbar({
 
             <button
               type="button"
-              className={`w-full mt-2 text-sm font-medium ${
-                theme === 'dark'
-                  ? 'bg-amber-600 text-white hover:bg-amber-500'
-                  : 'bg-amber-600 text-white hover:bg-amber-700'
-              } px-3 py-2 rounded-lg transition-colors`}
+              className="w-full mt-2 text-sm font-medium bg-amber-600 text-white hover:bg-amber-700 dark:hover:bg-amber-500 px-3 py-2 rounded-lg transition-colors"
               onClick={() => setIsShareOpen(false)}
             >
               Done

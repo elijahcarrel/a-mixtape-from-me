@@ -10,7 +10,6 @@ interface InteractiveCassetteEditorProps {
   onSubtitle1Change: (subtitle1: string) => void;
   onSubtitle2Change: (subtitle2: string) => void;
   onSubtitle3Change: (subtitle3: string) => void;
-  theme: string;
 }
 
 export default function InteractiveCassetteEditor({ 
@@ -21,8 +20,7 @@ export default function InteractiveCassetteEditor({
   onTitleChange, 
   onSubtitle1Change, 
   onSubtitle2Change, 
-  onSubtitle3Change, 
-  theme 
+  onSubtitle3Change
 }: InteractiveCassetteEditorProps) {
   const [editingLine, setEditingLine] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -107,9 +105,9 @@ export default function InteractiveCassetteEditor({
       {/* Inline editor overlay */}
       {editingLine !== null && (
         <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className={`bg-white dark:bg-neutral-800 rounded-lg p-4 shadow-lg border-2 ${theme === 'dark' ? 'border-amber-400' : 'border-amber-600'}`}>
+          <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 shadow-lg border-2 border-amber-600 dark:border-amber-400">
             <div className="space-y-3">
-              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-neutral-100' : 'text-neutral-900'}`}>
+              <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                 Edit Line {editingLine + 1} (max {getMaxLength(editingLine)} characters)
               </label>
               <input
@@ -118,25 +116,19 @@ export default function InteractiveCassetteEditor({
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 maxLength={getMaxLength(editingLine)}
-                className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${theme === 'dark'
-                  ? 'bg-neutral-700 border-neutral-600 text-neutral-100 focus:ring-amber-400'
-                  : 'bg-white border-neutral-300 text-neutral-900 focus:ring-amber-600'}`}
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 bg-white border-neutral-300 text-neutral-900 focus:ring-amber-600 dark:bg-neutral-700 dark:border-neutral-600 dark:text-neutral-100 dark:focus:ring-amber-400"
                 autoFocus
               />
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={handleEditCancel}
-                  className={`px-3 py-1 text-sm rounded ${theme === 'dark'
-                    ? 'bg-neutral-600 text-neutral-300 hover:bg-neutral-500'
-                    : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'}`}
+                  className="px-3 py-1 text-sm rounded bg-neutral-200 text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-500"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleEditSave}
-                  className={`px-3 py-1 text-sm rounded ${theme === 'dark'
-                    ? 'bg-amber-600 text-white hover:bg-amber-500'
-                    : 'bg-amber-600 text-white hover:bg-amber-500'}`}
+                  className="px-3 py-1 text-sm rounded bg-amber-600 text-white hover:bg-amber-500"
                 >
                   Save
                 </button>

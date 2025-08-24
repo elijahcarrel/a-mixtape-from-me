@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
 import { debounce } from 'lodash';
-import { useTheme } from './ThemeProvider';
 
 interface TrackSearchResult {
   id: string;
@@ -24,22 +23,21 @@ interface AutocompleteProps<T> {
   getItemKey: (item: T) => string;
 }
 
-function Autocomplete<T>({
+export function Autocomplete<T>({
   placeholder,
   onSelect,
   searchFunction,
   renderItem,
-  getItemKey
+  getItemKey,
 }: AutocompleteProps<T>) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<T[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const { theme } = useTheme();
 
   // Create debounced search function that updates when searchFunction changes
   const debouncedSearchRef = useRef<ReturnType<typeof debounce> | null>(null);
@@ -170,37 +168,25 @@ function Autocomplete<T>({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className={`w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 ${
-          theme === 'dark'
-            ? 'border-amber-600 text-neutral-100 focus:border-amber-400 placeholder-neutral-400'
-            : 'border-amber-300 text-amber-900 focus:border-amber-600 placeholder-amber-500'
-        }`}
+        className="w-full bg-transparent border rounded-lg p-3 focus:outline-none transition-colors duration-200 placeholder-neutral-400 border-amber-300 text-amber-900 focus:border-amber-600 placeholder-amber-500 dark:border-amber-600 dark:text-neutral-100 dark:focus:border-amber-400 dark:placeholder-neutral-400"
       />
       
       {isSearching && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2" data-testid="loading-spinner">
-          <div className={`animate-spin rounded-full h-5 w-5 border-b-2 ${
-            theme === 'dark' ? 'border-amber-400' : 'border-amber-600'
-          }`}></div>
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-600 dark:border-amber-400"></div>
         </div>
       )}
 
       {isOpen && (
         <div
           ref={dropdownRef}
-          className={`absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
-            theme === 'dark'
-              ? 'bg-neutral-900 border-amber-700'
-              : 'bg-amber-50 border-amber-300'
-          }`}
+          className="absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto bg-amber-50 border-amber-300 dark:bg-neutral-900 dark:border-amber-700"
         >
           {results.map((item, index) => (
             <div
               key={getItemKey(item)}
-              className={`cursor-pointer p-3 transition-colors duration-150 ${
-                theme === 'dark'
-                  ? `hover:bg-neutral-800 ${index === selectedIndex ? 'bg-neutral-700' : ''} text-neutral-100`
-                  : `hover:bg-amber-100 ${index === selectedIndex ? 'bg-amber-200' : ''} text-amber-900`
+              className={`cursor-pointer p-3 transition-colors duration-150 hover:bg-amber-100 text-amber-900 dark:hover:bg-neutral-800 dark:text-neutral-100 ${
+                index === selectedIndex ? 'bg-amber-200 dark:bg-neutral-700' : ''
               }`}
               onClick={() => handleSelect(item)}
               data-testid={`track-result-${getItemKey(item)}`}
@@ -221,7 +207,6 @@ interface TrackAutocompleteProps {
 
 export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompleteProps) {
   const { makeRequest } = useAuthenticatedRequest();
-  const { theme } = useTheme();
 
   const searchTracks = async (query: string, signal?: AbortSignal): Promise<TrackSearchResult[]> => {
     try {
@@ -245,19 +230,13 @@ export default function TrackAutocomplete({ onTrackSelect }: TrackAutocompletePr
         className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover flex-shrink-0"
       />
       <div className="flex-1 min-w-0">
-        <div className={`text-xs sm:text-sm font-medium truncate ${
-          theme === 'dark' ? 'text-neutral-100' : 'text-amber-900'
-        }`}>
+        <div className="text-xs sm:text-sm font-medium truncate text-amber-900 dark:text-neutral-100">
           {track.name}
         </div>
-        <div className={`text-xs truncate ${
-          theme === 'dark' ? 'text-neutral-300' : 'text-amber-600'
-        }`}>
+        <div className="text-xs truncate text-amber-600 dark:text-neutral-300">
           {track.artists.map(a => a.name).join(', ')}
         </div>
-        <div className={`text-xs truncate ${
-          theme === 'dark' ? 'text-neutral-400' : 'text-amber-500'
-        }`}>
+        <div className="text-xs truncate text-amber-500 dark:text-neutral-400">
           {track.album.name}
         </div>
       </div>
