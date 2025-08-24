@@ -27,6 +27,9 @@
     "gen-all": "npm run gen-db-schema-from-sqlmodels && npm run gen-openapi-from-fastapi && npm run gen-ts-from-openapi"
   },
   "dependencies": {
+    "@dnd-kit/core": "6.3.1",
+    "@dnd-kit/sortable": "10.0.0",
+    "@dnd-kit/utilities": "3.2.2",
     "@stackframe/stack": "^2.8.27",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "24.2.0",
@@ -38,18 +41,15 @@
     "eslint-config-next": "15.4.5",
     "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
+    "lucide-react": "^0.539.0",
     "next": "^15.4.5",
     "postcss": "^8.5.6",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "sass": "^1.89.2",
-    "tailwindcss": "^4.1.11",
+    "tailwindcss": "^4.1.12",
     "typescript": "5.9.2",
-    "uuid": "^11.1.0",
-    "lucide-react": "^0.539.0",
-    "@dnd-kit/core": "6.3.1",
-    "@dnd-kit/sortable": "10.0.0",
-    "@dnd-kit/utilities": "3.2.2"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",

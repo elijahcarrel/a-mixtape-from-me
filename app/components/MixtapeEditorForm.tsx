@@ -5,6 +5,7 @@ import TrackAutocomplete from './TrackAutocomplete';
 import TrackList from './TrackList';
 import InteractiveCassetteEditor from './InteractiveCassetteEditor';
 
+// TODO: do we need a bespoke FormValues type or can we just use MixtapeResponse?
 export interface FormValues {
   name: string;
   intro_text: string;
@@ -13,6 +14,19 @@ export interface FormValues {
   subtitle3: string;
   is_public: boolean;
   tracks: (MixtapeTrackResponse | MixtapeTrackRequest)[];
+}
+
+// See above TODO; we might just be able to replace this with the identity function.
+export function mixtapeToFormValues(mixtape: MixtapeResponse): FormValues {
+  return {
+    name: mixtape.name,
+    intro_text: mixtape.intro_text || '',
+    subtitle1: mixtape.subtitle1 || '',
+    subtitle2: mixtape.subtitle2 || '',
+    subtitle3: mixtape.subtitle3 || '',
+    is_public: mixtape.is_public,
+    tracks: mixtape.tracks
+  };
 }
 
 export interface MixtapeEditorFormProps {

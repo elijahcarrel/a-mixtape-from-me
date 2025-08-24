@@ -71,8 +71,9 @@ describe('MixtapePage', () => {
 
   it('renders MixtapeViewer with mixtape data when provided via context', () => {
     const mockRefetch = jest.fn();
+    const mockOnMixtapeUpdated = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData, refetch: mockRefetch }}>
+      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData, refetch: mockRefetch, onMixtapeUpdated: mockOnMixtapeUpdated }}>
         <ViewMixtapePage />
       </MixtapeContext.Provider>
     );

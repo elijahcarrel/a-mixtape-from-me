@@ -255,7 +255,7 @@ describe('MixtapeEditor', () => {
     });
     
     // Look for the saving indicator
-    expect(screen.getByTestId('saving-indicator')).toBeInTheDocument();
+    expect(screen.getByTestId('status-indicator')).toBeInTheDocument();
     expect(screen.getByText('Saving...')).toBeInTheDocument();
   });
 
@@ -814,34 +814,6 @@ describe('MixtapeEditor', () => {
   });
 
   describe('Form State Management', () => {
-    it('updates form when mixtape prop changes', () => {
-      const { rerender } = render(<MixtapeEditor mixtape={mockMixtapeData} />);
-      
-      // Verify initial values
-      expect(screen.getByDisplayValue('Test Mixtape')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('A test mixtape')).toBeInTheDocument();
-      
-      // Create updated mixtape data
-      const updatedMixtapeData = {
-        ...mockMixtapeData,
-        name: 'Updated Mixtape Name',
-        intro_text: 'Updated intro text',
-        subtitle1: 'Updated subtitle',
-        subtitle2: 'Subtitle 2',
-        subtitle3: 'Subtitle 3',
-        is_public: true,
-      };
-      
-      // Rerender with new data
-      rerender(<MixtapeEditor mixtape={updatedMixtapeData} />);
-      
-      // Verify form values are updated
-      expect(screen.getByDisplayValue('Updated Mixtape Name')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Updated intro text')).toBeInTheDocument();
-      expect(screen.getByText('Updated subtitle')).toBeInTheDocument(); // Now displayed in the cassette
-      expect(screen.getByRole('checkbox')).toBeChecked();
-    });
-
     it('maintains form state during track operations', async () => {
       render(<MixtapeEditor mixtape={mockMixtapeData} />);
       
