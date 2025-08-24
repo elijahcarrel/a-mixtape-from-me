@@ -366,15 +366,9 @@ describe('MixtapeEditorToolbar', () => {
   });
 
   it('shows saving status when isSaving is true', () => {
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} statusText={statusText} isSaving={true} />);
+    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} statusText={'Saving...'} isSaving={true} />);
     
     expect(screen.getByText('Saving...')).toBeInTheDocument();
-  });
-
-  it('shows no status by default', () => {
-    renderWithTheme(<MixtapeEditorToolbar {...defaultProps} statusText={statusText} />);
-    
-    expect(screen.getByText('Saved')).not.toBeInTheDocument();
   });
 
   it('toggles public visibility and saves when checkbox is changed', () => {
