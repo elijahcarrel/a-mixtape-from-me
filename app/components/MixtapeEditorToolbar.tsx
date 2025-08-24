@@ -17,6 +17,7 @@ import HeaderContainer from './layout/HeaderContainer';
 import { FormValues } from './MixtapeEditorForm';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
 import styles from './MixtapeEditorToolbar.module.scss';
+import Link from 'next/link';
 
 interface MixtapeEditorToolbarProps {
   mixtape: MixtapeResponse;
@@ -52,12 +53,12 @@ export default function MixtapeEditorToolbar({
   // Share dialog state
   const [isShareOpen, setIsShareOpen] = useState(false);
   // Toast message state
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<React.ReactNode | null>(null);
   // Undo/redo loading states
   const [isUndoing, setIsUndoing] = useState(false);
   const [isRedoing, setIsRedoing] = useState(false);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: React.ReactNode) => {
     setToastMessage(msg);
     // Auto-dismiss after 2.5s
     setTimeout(() => setToastMessage(null), 2500);
@@ -66,10 +67,10 @@ export default function MixtapeEditorToolbar({
   const copyToClipboard = async (text: string, successMsg: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      showToast(successMsg);
+      showToast(<>{successMsg}</>);
     } catch (_) {
       // Fallback
-      showToast('Unable to copy to clipboard');
+      showToast(<>Unable to copy to clipboard</>);
     }
   };
 
@@ -98,7 +99,7 @@ export default function MixtapeEditorToolbar({
     } catch (error) {
       console.error('Error undoing:', error);
       setStatusText('Undo failed');
-      showToast('Error undoing changes');
+      showToast(<>Error undoing changes</>);
     } finally {
       setIsUndoing(false);
     }
@@ -121,7 +122,7 @@ export default function MixtapeEditorToolbar({
     } catch (error) {
       console.error('Error redoing:', error);
       setStatusText('Redo failed');
-      showToast('Error redoing changes');
+      showToast(<>Error redoing changes</>);
     } finally {
       setIsRedoing(false);
     }
@@ -156,7 +157,36 @@ export default function MixtapeEditorToolbar({
           <ToolbarButton icon={<Share2 size={20} />} tooltip="Share" onClick={() => setIsShareOpen(true)} data-testid="share-button" />
 
           {/* Export to Spotify */}
-          <ToolbarButton icon={<ExternalLink size={20} />} tooltip="Export to Spotify" onClick={() => copyToClipboard('not implemented yet', 'Spotify URL copied (placeholder)')} />
+          <ToolbarButton
+            icon={<ExternalLink size={20} />}
+            tooltip="Export to Spotify"
+            onClick={async () => {
+              try {
+                setStatusText('Exporting to Spotify...');
+                const resp: MixtapeResponse = await makeRequest(
+                  `/api/mixtape/${mixtape.public_id}/spotify-export`,
+                  { method: 'POST' }
+                );
+                if (resp.spotify_playlist_uri) {
+                  await copyToClipboard(
+                    resp.spotify_playlist_uri,
+                    'Spotify playlist URI copied!'
+                  );
+                  // Show toast with link
+                  setToastMessage(
+                    <>
+                      Spotify playlist copied!
+                      <Link href={`https://open.spotify.com/playlist/${resp.spotify_playlist_uri.split(':').pop()}`} target="_blank" rel="noopener noreferrer">Open in Spotify</Link>
+                    </>
+                  );
+                }
+                setStatusText('Exported to Spotify');
+              } catch (error) {
+                console.error('Error exporting to Spotify:', error);
+                showToast(<>Error exporting to Spotify</>);
+              }
+            }}
+          />
 
           {/* Status */}
           <div

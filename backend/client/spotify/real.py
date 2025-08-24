@@ -20,6 +20,8 @@ class SpotifyClient(AbstractSpotifyClient):
         self.client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
         self.refresh_token = os.environ["SPOTIFY_REFRESH_TOKEN"]
 
+        self._user_id: str | None = None
+
         # Cache for track look-ups to avoid repeated API calls during a single
         # request burst.
         self.track_cache_size = int(os.environ.get("SPOTIFY_TRACK_CACHE_SIZE", 500))

@@ -530,14 +530,13 @@ def export_to_spotify(
         try:
             playlist_uri = spotify_client.create_playlist(title, description, track_uris)
         except Exception as e:
-            # In environments without real Spotify capabilities, fall back to mock behavior
-            raise HTTPException(status_code=500, detail=f"Spotify playlist creation not supported in this environment: {e}")
+            raise HTTPException(status_code=500, detail=f"Error creating Spotify playlist: {e}")
         mixtape.spotify_playlist_uri = playlist_uri
     else:
         try:
             spotify_client.update_playlist(mixtape.spotify_playlist_uri, title, description, track_uris)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Spotify playlist update not supported in this environment: {e}")
+            raise HTTPException(status_code=500, detail=f"Error updating existing spotify playlist: {e}")
 
     # Persist the mixtape change.
     mixtape.finalize(is_undo_redo_operation=False)
