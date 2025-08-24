@@ -18,8 +18,8 @@ export const normalizeTrackToResponse = (
 ): MixtapeTrackResponse => ({
   track_position: t.track_position,
   track_text: t.track_text,
-  // @ts-expect-error track is only defined if this is a MixtapeTrackResponse.
   track:
+    // @ts-expect-error track is only defined if this is a MixtapeTrackResponse.
     t.track ||
     ({
       id: '',
