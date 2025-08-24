@@ -1,8 +1,8 @@
 import logging
 import traceback
+
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
-
 
 # Configure basic logging at import time if the root logger has no handlers configured.
 # This is important on platforms like Vercel where the runtime might not configure logging.
@@ -13,7 +13,7 @@ if not logging.getLogger().handlers:
     )
 
 
-async def exception_logging_middleware(request: Request, call_next) -> Response:  # type: ignore
+async def exception_logging_middleware(request: Request, call_next) -> Response:
     """Middleware that logs unhandled exceptions with full traceback.
 
     The middleware catches all exceptions raised downstream, logs the full traceback, and
@@ -21,7 +21,7 @@ async def exception_logging_middleware(request: Request, call_next) -> Response:
     production (e.g. Vercel logs).
     """
     try:
-        return await call_next(request)
+        return await call_next(request) # type: ignore[no-any-return]
     except Exception as exc:  # pylint: disable=broad-except
         # Log full traceback along with request information for debugging.
         logging.error(

@@ -1,9 +1,9 @@
+import base64
 import os
 import threading
 import time
 from collections import OrderedDict
 from typing import Any
-import base64
 
 import requests
 
