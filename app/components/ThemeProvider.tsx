@@ -44,6 +44,19 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
 
   const handleSetTheme = (newTheme: Theme) => {
     setTheme(newTheme);
+
+    // TODO: this is a hack to work around a bug in stack-auth
+    // where it doesn't update the theme when the user toggles
+    // the theme.
+    // https://discord.com/channels/1215503771199864912/1215504021348032603/1408992634478788649.
+    // We should remove this once stack-auth is fixed.
+    const styleEl = document.head.querySelector('style#--stack-theme-mode[data-stack-theme="dark"]');
+
+    if (styleEl) {
+      // Update the attribute value
+      styleEl.setAttribute('data-stack-theme', newTheme);
+    }
+
     localStorage.setItem('theme', newTheme);
   };
 
