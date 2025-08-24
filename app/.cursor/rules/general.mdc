@@ -1,6 +1,13 @@
 # General Front-End Rules
 
+### Miscellaneous Tips
 - Avoid using `@ts-nocheck`, `@ts-ignore`, etc. If you do need to leave those statements, leave a code comment explaining why, and explain to me in your agent response that you have added those code smells.
+
+### Code Quality Workflow
+
+- **Type Checking**: Run `npm run frontend-typecheck` to verify TypeScript types
+- **Linting**: Run `npm run frontend-lint-fix` to fix ESLint issues
+- **Formatting**: Run `npm run frontend-format-fix` to ensure consistent code style
 
 description: General front-end coding conventions
 globs: 

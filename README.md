@@ -27,7 +27,7 @@ Live at: [amixtapefrom.me](https://amixtapefrom.me).
 - **Tailwind CSS** for styling (with SCSS modules when needed)
 - **Stack Auth** for authentication
 - **Spotify API** for track search and metadata
-- **Prettier** for consistent code formatting
+- **ESLint+Prettier** for linting and formatting
 - **Auto-generated TypeScript types** from OpenAPI spec
 
 ### Backend
@@ -35,6 +35,7 @@ Live at: [amixtapefrom.me](https://amixtapefrom.me).
 - **FastAPI** (Python 3.12+) with Pydantic V2
 - **PostgreSQL** (via [Neon](https://neon.tech/))
 - **SQLModel** for database models and auto-generated schema
+- **MyPy+Ruff** for typechecking and linting
 - **Auto-generated OpenAPI spec** from FastAPI
 
 ### DevOps & Hosting
@@ -189,12 +190,6 @@ npm run gen-ts-from-openapi          # OpenAPI → TypeScript types
 3. Run `npm run gen-all` to regenerate all artifacts
 4. Commit generated files (`schema.gen.sql`, `openapi.gen.json`, `app/client/`)
 
-### Code Quality Workflow
-
-- **Formatting**: Run `npm run frontend-format-fix` to ensure consistent code style
-- **Linting**: Run `npm run frontend-lint-fix` to fix ESLint issues
-- **Type Checking**: Run `npm run frontend-typecheck` to verify TypeScript types
-
 ## Testing
 
 - **Backend:** Uses `pytest` with dependency overrides for external services (see `backend/tests/`)
@@ -221,7 +216,6 @@ Contributions are welcome! Please:
 - Ensure your code passes linting, formatting, and tests (CI will check automatically).
 - Follow the project's coding conventions (see `.cursor/rules/` for detailed guidelines).
 - Run `npm run gen-all` after making backend changes to regenerate artifacts.
-- Run `npm run frontend-format-fix` to ensure consistent code formatting.
 - Be kind and constructive in code reviews.
 
 ---
