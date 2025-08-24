@@ -119,6 +119,11 @@ export type MixtapeResponse = {
      */
     version: number;
     /**
+     * Spotify Playlist Uri
+     * Spotify playlist URI if exported to Spotify
+     */
+    spotify_playlist_uri?: string | null;
+    /**
      * Tracks
      */
     tracks: Array<MixtapeTrackResponse>;
@@ -619,6 +624,36 @@ export type RedoMixtapeApiMixtapePublicIdRedoPostResponses = {
 };
 
 export type RedoMixtapeApiMixtapePublicIdRedoPostResponse = RedoMixtapeApiMixtapePublicIdRedoPostResponses[keyof RedoMixtapeApiMixtapePublicIdRedoPostResponses];
+
+export type ExportToSpotifyApiMixtapePublicIdSpotifyExportPostData = {
+    body?: never;
+    path: {
+        /**
+         * Public Id
+         */
+        public_id: string;
+    };
+    query?: never;
+    url: '/api/mixtape/{public_id}/spotify-export';
+};
+
+export type ExportToSpotifyApiMixtapePublicIdSpotifyExportPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ExportToSpotifyApiMixtapePublicIdSpotifyExportPostError = ExportToSpotifyApiMixtapePublicIdSpotifyExportPostErrors[keyof ExportToSpotifyApiMixtapePublicIdSpotifyExportPostErrors];
+
+export type ExportToSpotifyApiMixtapePublicIdSpotifyExportPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: MixtapeResponse;
+};
+
+export type ExportToSpotifyApiMixtapePublicIdSpotifyExportPostResponse = ExportToSpotifyApiMixtapePublicIdSpotifyExportPostResponses[keyof ExportToSpotifyApiMixtapePublicIdSpotifyExportPostResponses];
 
 export type RootApiGetData = {
     body?: never;

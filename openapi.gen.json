@@ -559,6 +559,49 @@
                 }
             }
         },
+        "/api/mixtape/{public_id}/spotify-export": {
+            "post": {
+                "tags": [
+                    "mixtape"
+                ],
+                "summary": "Export To Spotify",
+                "description": "Create or update a Spotify playlist that represents this mixtape.\n\nThe operation is idempotent \u2013 if a playlist URI is already recorded, the\nexisting playlist is updated. Otherwise a new playlist is created and the\nnewly generated Spotify playlist URI is persisted to the mixtape record.",
+                "operationId": "export_to_spotify_api_mixtape__public_id__spotify_export_post",
+                "parameters": [
+                    {
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Public Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MixtapeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/": {
             "get": {
                 "summary": "Root",
@@ -793,6 +836,18 @@
                         "type": "integer",
                         "title": "Version",
                         "description": "Current version number of the mixtape"
+                    },
+                    "spotify_playlist_uri": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Spotify Playlist Uri",
+                        "description": "Spotify playlist URI if exported to Spotify"
                     },
                     "tracks": {
                         "items": {

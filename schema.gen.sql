@@ -10,6 +10,7 @@ CREATE TABLE mixtape (
 	subtitle2 VARCHAR(60), 
 	subtitle3 VARCHAR(60), 
 	is_public BOOLEAN NOT NULL, 
+	spotify_playlist_uri VARCHAR, 
 	create_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	last_modified_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	version INTEGER NOT NULL, 
@@ -19,11 +20,11 @@ CREATE TABLE mixtape (
 	PRIMARY KEY (id)
 );
 
-CREATE INDEX ix_mixtape_stack_auth_user_id ON mixtape (stack_auth_user_id);
-
 CREATE UNIQUE INDEX ix_mixtape_public_id ON mixtape (public_id);
 
 CREATE INDEX ix_mixtape_stack_auth_user_id_last_modified_time ON mixtape (stack_auth_user_id, last_modified_time);
+
+CREATE INDEX ix_mixtape_stack_auth_user_id ON mixtape (stack_auth_user_id);
 
 CREATE TABLE mixtape_snapshot (
 	id SERIAL NOT NULL, 
@@ -35,6 +36,7 @@ CREATE TABLE mixtape_snapshot (
 	subtitle2 VARCHAR(60), 
 	subtitle3 VARCHAR(60), 
 	is_public BOOLEAN NOT NULL, 
+	spotify_playlist_uri VARCHAR, 
 	create_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	last_modified_time TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	version INTEGER NOT NULL, 
