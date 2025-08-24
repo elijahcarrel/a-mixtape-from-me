@@ -8,7 +8,7 @@ function usePrefersScheme(): Scheme {
 
   // Get the initial system theme preference or default to 'light'
   const getInitialScheme = () => 
-    isClient && window.matchMedia('(prefers-color-scheme: dark)').matches
+    isClient && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light';
 
