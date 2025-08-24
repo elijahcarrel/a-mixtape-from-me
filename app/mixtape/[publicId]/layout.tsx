@@ -49,8 +49,6 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
     return <LoadingDisplay message="Loading mixtape..." />;
   }
 
-  console.log('currentMixtape?.intro_text:', currentMixtape?.intro_text);
-
   if (error || !currentMixtape) {
     return (
       <MainContainer>

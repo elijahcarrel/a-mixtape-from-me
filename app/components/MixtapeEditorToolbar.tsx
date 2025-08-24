@@ -53,7 +53,7 @@ export default function MixtapeEditorToolbar({
 
   // Share dialog state
   const [isShareOpen, setIsShareOpen] = useState(false);
-  // Toast message state (only for errors now)
+  // Toast message state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   // Undo/redo loading states
   const [isUndoing, setIsUndoing] = useState(false);
