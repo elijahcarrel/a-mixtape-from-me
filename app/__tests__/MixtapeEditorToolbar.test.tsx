@@ -70,6 +70,7 @@ const defaultProps = {
   setFieldValue: jest.fn(),
   handleSave: jest.fn(),
   onUndoRedo: jest.fn(),
+  resetForm: jest.fn(),
 };
 
 // Helper function to render with ThemeProvider
@@ -146,6 +147,7 @@ describe('MixtapeEditorToolbar', () => {
     });
 
     expect(defaultProps.onUndoRedo).toHaveBeenCalledWith(mockResponse);
+    expect(defaultProps.resetForm).toHaveBeenCalled();
   });
 
   it('calls redo endpoint when redo button is clicked', async () => {
@@ -169,6 +171,7 @@ describe('MixtapeEditorToolbar', () => {
     });
 
     expect(defaultProps.onUndoRedo).toHaveBeenCalledWith(mockResponse);
+    expect(defaultProps.resetForm).toHaveBeenCalled();
   });
 
   it('shows error toast when undo request fails', async () => {
@@ -297,6 +300,8 @@ describe('MixtapeEditorToolbar', () => {
     await waitFor(() => {
       expect(screen.getByText('Undo successful')).toBeInTheDocument();
     });
+
+    expect(defaultProps.resetForm).toHaveBeenCalled();
   });
 
   it('shows redo status in status indicator when redoing', async () => {
@@ -323,6 +328,8 @@ describe('MixtapeEditorToolbar', () => {
     await waitFor(() => {
       expect(screen.getByText('Redo successful')).toBeInTheDocument();
     });
+
+    expect(defaultProps.resetForm).toHaveBeenCalled();
   });
 
   it('shows failure status in status indicator when undo fails', async () => {

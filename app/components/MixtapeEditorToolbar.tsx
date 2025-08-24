@@ -17,6 +17,7 @@ import HeaderContainer from './layout/HeaderContainer';
 import { useTheme } from './ThemeProvider';
 import { FormValues } from './MixtapeEditorForm';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
+import styles from './MixtapeEditorToolbar.module.scss';
 
 interface MixtapeEditorToolbarProps {
   mixtape: MixtapeResponse;
@@ -25,6 +26,9 @@ interface MixtapeEditorToolbarProps {
   setFieldValue: (field: string, value: any) => void;
   handleSave: (values: FormValues, immediate: boolean) => void;
   onUndoRedo: (updatedMixtape: MixtapeResponse) => void;
+  resetForm: (updatedMixtape: MixtapeResponse) => void;
+  statusText: string;
+  setStatusText: (text: string) => void;
 }
 
 export default function MixtapeEditorToolbar({
@@ -34,6 +38,9 @@ export default function MixtapeEditorToolbar({
   setFieldValue,
   handleSave,
   onUndoRedo,
+  resetForm,
+  statusText,
+  setStatusText,
 }: MixtapeEditorToolbarProps) {
   const router = useRouter();
   const { theme } = useTheme();
@@ -51,8 +58,6 @@ export default function MixtapeEditorToolbar({
   // Undo/redo loading states
   const [isUndoing, setIsUndoing] = useState(false);
   const [isRedoing, setIsRedoing] = useState(false);
-  // Status text state for the status indicator
-  const [statusText, setStatusText] = useState<string>('Saved');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -90,6 +95,8 @@ export default function MixtapeEditorToolbar({
       
       onUndoRedo(updatedMixtape);
       setStatusText('Undo successful');
+      // Reset the form to show the updated values
+      resetForm(updatedMixtape);
     } catch (error) {
       console.error('Error undoing:', error);
       setStatusText('Undo failed');
@@ -111,6 +118,8 @@ export default function MixtapeEditorToolbar({
       
       onUndoRedo(updatedMixtape);
       setStatusText('Redo successful');
+      // Reset the form to show the updated values
+      resetForm(updatedMixtape);
     } catch (error) {
       console.error('Error redoing:', error);
       setStatusText('Redo failed');
@@ -158,17 +167,17 @@ export default function MixtapeEditorToolbar({
           >
             {isUndoing ? (
               <>
-                <History size={16} className="animate-spin" />
+                <History size={16} className={styles.spinReverse} />
                 <span>Undoing...</span>
               </>
             ) : isRedoing ? (
               <>
-                <History size={16} className="animate-spin scale-x-[-1]" />
+                <History size={16} className={`${styles.spinReverse} scale-x-[-1]`} />
                 <span>Redoing...</span>
               </>
             ) : isSaving ? (
               <>
-                <RefreshCcw size={16} className="animate-spin" />
+                <RefreshCcw size={16} className={styles.spinReverse} />
                 <span>Saving...</span>
               </>
             ) : (

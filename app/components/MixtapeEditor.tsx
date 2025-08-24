@@ -10,7 +10,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse } from '../client';
 import { normalizeTrackToRequest } from '../util/track-util';
 import MixtapeEditorToolbar from './MixtapeEditorToolbar';
-import { MixtapeEditorForm, FormValues } from './MixtapeEditorForm';
+import { MixtapeEditorForm, FormValues, mixtapeToFormValues } from './MixtapeEditorForm';
 
 export interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
@@ -27,6 +27,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpda
   const { isAuthenticated } = useAuth();
   const currentPath = usePathname();
   const router = useRouter();
+  const [statusText, setStatusText] = useState<string>('');
 
   const isAnonymousMixtape = !mixtape.stack_auth_user_id;
 
@@ -76,6 +77,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpda
       
       // Saved successfully
       setHasUnsavedChanges(false);
+      setStatusText('Saved');
     } catch (error) {
       console.error('Error saving mixtape:', error);
     } finally {
@@ -153,17 +155,8 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpda
       )}
 
       {/* Toolbar is rendered inside Formik below to access live form state */}
-
       <Formik
-        initialValues={{
-          name: mixtape.name,
-          intro_text: mixtape.intro_text || '',
-          subtitle1: mixtape.subtitle1 || '',
-          subtitle2: mixtape.subtitle2 || '',
-          subtitle3: mixtape.subtitle3 || '',
-          is_public: mixtape.is_public,
-          tracks: mixtape.tracks
-        }}
+        initialValues={mixtapeToFormValues(mixtape)}
         // We use optimistic UI updates, so the values are usually the most up to date
         // whereas the mixtape values from the MixtapeContext are sometimes slightly stale.
         // If we left this enabled, we would see a flash of the stale data when the mixtape
@@ -171,7 +164,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpda
         enableReinitialize={false}
         onSubmit={() => {}} // We handle saving via our custom handlers
       >
-        {({ values, setFieldValue }) => (
+        {({ values, setFieldValue, resetForm }) => (
           <>
             {/* Toolbar has access to live Formik context now */}
             <MixtapeEditorToolbar
@@ -181,6 +174,9 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpda
               setFieldValue={setFieldValue}
               handleSave={handleSave}
               onUndoRedo={handleUndoRedo}
+              resetForm={(updatedMixtape: MixtapeResponse) => resetForm({ values: mixtapeToFormValues(updatedMixtape) })}
+              statusText={statusText}
+              setStatusText={setStatusText}
             />
 
             <MixtapeEditorForm
