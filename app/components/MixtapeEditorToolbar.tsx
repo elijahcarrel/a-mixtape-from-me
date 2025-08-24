@@ -57,14 +57,15 @@ export default function MixtapeEditorToolbar({
   const [isUndoing, setIsUndoing] = useState(false);
   const [isRedoing, setIsRedoing] = useState(false);
 
-  const copyToClipboard = async (text: string, successMsg: string) => {
+  const copyToClipboard = async (text: string): Promise<boolean> => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(successMsg);
     } catch (_) {
       // Fallback
       toast.error('Unable to copy to clipboard');
+      return false
     }
+    return true
   };
 
   const mixtapeUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/mixtape/${mixtape.public_id}`;
@@ -164,12 +165,11 @@ export default function MixtapeEditorToolbar({
                 if (resp.spotify_playlist_url) {
                   await copyToClipboard(
                     resp.spotify_playlist_url,
-                    'Spotify playlist URL copied!'
                   );
                   // Show toast with link
                   toast.success(
-                    <>
-                      Spotify playlist exported!{" "}
+                    <span>
+                      Spotify playlist copied to clipboard!{" "}
                       <Link 
                         href={resp.spotify_playlist_url} 
                         target="_blank" 
@@ -178,7 +178,7 @@ export default function MixtapeEditorToolbar({
                       >
                         Open in Spotify
                       </Link>
-                    </>,
+                    </span>,
                     { duration: 10000 }
                   );
                 }
@@ -274,7 +274,12 @@ export default function MixtapeEditorToolbar({
                 <button
                   type="button"
                   className={`${commonBtnStyles} whitespace-nowrap text-sm`}
-                  onClick={() => copyToClipboard(mixtapeUrl, 'Link copied!')}
+                  onClick={async () => {
+                    const success = await copyToClipboard(mixtapeUrl)
+                    if (success) {
+                      toast.success('Link copied to clipboard!')
+                    }
+                  }}
                 >
                   Copy
                 </button>

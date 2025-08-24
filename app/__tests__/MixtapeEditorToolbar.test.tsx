@@ -456,7 +456,7 @@ describe('MixtapeEditorToolbar', () => {
         expect.objectContaining({
           props: expect.objectContaining({
             children: expect.arrayContaining([
-              'Spotify playlist exported!',
+              'Spotify playlist copied to clipboard!',
               expect.objectContaining({
                 props: expect.objectContaining({
                   children: 'Open in Spotify'
