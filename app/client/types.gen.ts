@@ -463,12 +463,9 @@ export type CreateMixtapeApiMixtapePostError = CreateMixtapeApiMixtapePostErrors
 
 export type CreateMixtapeApiMixtapePostResponses = {
     /**
-     * Response Create Mixtape Api Mixtape Post
      * Successful Response
      */
-    201: {
-        [key: string]: unknown;
-    };
+    201: MixtapeResponse;
 };
 
 export type CreateMixtapeApiMixtapePostResponse = CreateMixtapeApiMixtapePostResponses[keyof CreateMixtapeApiMixtapePostResponses];
@@ -496,12 +493,9 @@ export type ClaimMixtapeApiMixtapePublicIdClaimPostError = ClaimMixtapeApiMixtap
 
 export type ClaimMixtapeApiMixtapePublicIdClaimPostResponses = {
     /**
-     * Response Claim Mixtape Api Mixtape  Public Id  Claim Post
      * Successful Response
      */
-    200: {
-        [key: string]: unknown;
-    };
+    200: MixtapeResponse;
 };
 
 export type ClaimMixtapeApiMixtapePublicIdClaimPostResponse = ClaimMixtapeApiMixtapePublicIdClaimPostResponses[keyof ClaimMixtapeApiMixtapePublicIdClaimPostResponses];
@@ -559,12 +553,9 @@ export type UpdateMixtapeApiMixtapePublicIdPutError = UpdateMixtapeApiMixtapePub
 
 export type UpdateMixtapeApiMixtapePublicIdPutResponses = {
     /**
-     * Response Update Mixtape Api Mixtape  Public Id  Put
      * Successful Response
      */
-    200: {
-        [key: string]: unknown;
-    };
+    200: MixtapeResponse;
 };
 
 export type UpdateMixtapeApiMixtapePublicIdPutResponse = UpdateMixtapeApiMixtapePublicIdPutResponses[keyof UpdateMixtapeApiMixtapePublicIdPutResponses];

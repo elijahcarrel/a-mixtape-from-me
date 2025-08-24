@@ -8,13 +8,15 @@ import {
   Eye,
   RefreshCcw,
   CloudCheck,
+  History,
   X,
 } from 'lucide-react';
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';
-import { useTheme } from './ThemeProvider';
 import { FormValues } from './MixtapeEditorForm';
+import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
+import styles from './MixtapeEditorToolbar.module.scss';
 
 interface MixtapeEditorToolbarProps {
   mixtape: MixtapeResponse;
@@ -22,6 +24,10 @@ interface MixtapeEditorToolbarProps {
   values: FormValues;
   setFieldValue: (field: string, value: any) => void;
   handleSave: (values: FormValues, immediate: boolean) => void;
+  onUndoRedo: (updatedMixtape: MixtapeResponse) => void;
+  resetForm: (updatedMixtape: MixtapeResponse) => void;
+  statusText: string;
+  setStatusText: (text: string) => void;
 }
 
 export default function MixtapeEditorToolbar({
@@ -30,9 +36,13 @@ export default function MixtapeEditorToolbar({
   values,
   setFieldValue,
   handleSave,
+  onUndoRedo,
+  resetForm,
+  statusText,
+  setStatusText,
 }: MixtapeEditorToolbarProps) {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { makeRequest } = useAuthenticatedRequest();
 
   // Prefetch viewer route for faster navigation
   useEffect(() => {
@@ -43,6 +53,9 @@ export default function MixtapeEditorToolbar({
   const [isShareOpen, setIsShareOpen] = useState(false);
   // Toast message state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Undo/redo loading states
+  const [isUndoing, setIsUndoing] = useState(false);
+  const [isRedoing, setIsRedoing] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -68,6 +81,52 @@ export default function MixtapeEditorToolbar({
     handleSave({ ...values, is_public: newValue }, false);
   };
 
+  const handleUndo = async () => {
+    if (!mixtape.can_undo || isUndoing) return;
+    
+    setIsUndoing(true);
+    setStatusText('Undoing...');
+    try {
+      const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/undo`, {
+        method: 'POST',
+      });
+      
+      onUndoRedo(updatedMixtape);
+      setStatusText('Undo successful');
+      // Reset the form to show the updated values
+      resetForm(updatedMixtape);
+    } catch (error) {
+      console.error('Error undoing:', error);
+      setStatusText('Undo failed');
+      showToast('Error undoing changes');
+    } finally {
+      setIsUndoing(false);
+    }
+  };
+
+  const handleRedo = async () => {
+    if (!mixtape.can_redo || isRedoing) return;
+    
+    setIsRedoing(true);
+    setStatusText('Redoing...');
+    try {
+      const updatedMixtape = await makeRequest(`/api/mixtape/${mixtape.public_id}/redo`, {
+        method: 'POST',
+      });
+      
+      onUndoRedo(updatedMixtape);
+      setStatusText('Redo successful');
+      // Reset the form to show the updated values
+      resetForm(updatedMixtape);
+    } catch (error) {
+      console.error('Error redoing:', error);
+      setStatusText('Redo failed');
+      showToast('Error redoing changes');
+    } finally {
+      setIsRedoing(false);
+    }
+  };
+
   const commonBtnStyles = '';// styles are handled by ToolbarButton components
 
   return (
@@ -76,10 +135,22 @@ export default function MixtapeEditorToolbar({
       <HeaderContainer>
         <div className="flex items-center space-x-1 sm:space-x-2">
           {/* Undo */}
-          <ToolbarButton icon={<Undo2 size={20} />} tooltip="Undo" onClick={() => {}} />
+          <ToolbarButton 
+            icon={<Undo2 size={20} />} 
+            tooltip="Undo" 
+            onClick={handleUndo}
+            disabled={!mixtape.can_undo || isUndoing}
+            data-testid="undo-button"
+          />
 
           {/* Redo */}
-          <ToolbarButton icon={<Redo2 size={20} />} tooltip="Redo" onClick={() => {}} />
+          <ToolbarButton 
+            icon={<Redo2 size={20} />} 
+            tooltip="Redo" 
+            onClick={handleRedo}
+            disabled={!mixtape.can_redo || isRedoing}
+            data-testid="redo-button"
+          />
 
           {/* Share */}
           <ToolbarButton icon={<Share2 size={20} />} tooltip="Share" onClick={() => setIsShareOpen(true)} data-testid="share-button" />
@@ -90,14 +161,29 @@ export default function MixtapeEditorToolbar({
           {/* Status */}
           <div
             className="flex items-center space-x-1 ml-2 text-xs sm:text-sm"
-            data-testid="saving-indicator"
+            data-testid="status-indicator"
           >
-            {isSaving ? (
-              <RefreshCcw size={16} className="animate-spin" />
+            {isUndoing ? (
+              <>
+                <History size={16} className={styles.spinReverse} />
+                <span>Undoing...</span>
+              </>
+            ) : isRedoing ? (
+              <>
+                <History size={16} className={`${styles.spinReverse} scale-x-[-1]`} />
+                <span>Redoing...</span>
+              </>
+            ) : isSaving ? (
+              <>
+                <RefreshCcw size={16} className={styles.spinReverse} />
+                <span>Saving...</span>
+              </>
             ) : (
-              <CloudCheck size={16} />
+              <>
+                <CloudCheck size={16} />
+                <span>{statusText}</span>
+              </>
             )}
-            <span>{isSaving ? 'Saving...' : 'Saved'}</span>
           </div>
         </div>
 
@@ -117,11 +203,7 @@ export default function MixtapeEditorToolbar({
       {/* Share Modal */}
       {isShareOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4">
-          <div
-            className={`w-full max-w-sm rounded-lg p-4 sm:p-6 ${
-              theme === 'dark' ? 'bg-neutral-800 text-neutral-100' : 'bg-white text-neutral-900'
-            }`}
-          >
+          <div className="w-full max-w-sm rounded-lg p-4 sm:p-6 bg-white text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Share Mixtape</h2>
               <button
@@ -155,9 +237,7 @@ export default function MixtapeEditorToolbar({
                   type="text"
                   readOnly
                   value={mixtapeUrl}
-                  className={`flex-1 px-2 py-1 border rounded bg-transparent text-sm overflow-hidden truncate ${
-                    theme === 'dark' ? 'border-amber-600' : 'border-amber-300'
-                  }`}
+                  className="flex-1 px-2 py-1 border rounded bg-transparent text-sm overflow-hidden truncate border-amber-300 dark:border-amber-600"
                 />
                 <button
                   type="button"
@@ -171,11 +251,7 @@ export default function MixtapeEditorToolbar({
 
             <button
               type="button"
-              className={`w-full mt-2 text-sm font-medium ${
-                theme === 'dark'
-                  ? 'bg-amber-600 text-white hover:bg-amber-500'
-                  : 'bg-amber-600 text-white hover:bg-amber-700'
-              } px-3 py-2 rounded-lg transition-colors`}
+              className="w-full mt-2 text-sm font-medium bg-amber-600 text-white hover:bg-amber-700 dark:hover:bg-amber-500 px-3 py-2 rounded-lg transition-colors"
               onClick={() => setIsShareOpen(false)}
             >
               Done

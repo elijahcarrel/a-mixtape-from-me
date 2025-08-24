@@ -58,9 +58,11 @@ Create a `.env.local` file in the root directory with the following variables:
 # Database
 DATABASE_URL=postgresql://... (from Neon)
 
-# Spotify API
+# Spotify API (fetch these from the spotify developer dashboard)
 SPOTIFY_CLIENT_ID=your_spotify_client_id
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+# Spotify refresh token (see instructions below)
+SPOTIFY_REFRESH_TOKEN=your_spotify_refresh_token
 
 # Next.js
 NEXT_PUBLIC_VERCEL_URL=http://localhost:3000
@@ -75,6 +77,33 @@ STACK_SECRET_SERVER_KEY=your_stack_secret_server_key
 ```
 
 > **Note:** Never commit your actual secret values. See `.env.example` for a template.
+
+#### Fetching the spotify refresh token
+Fetch a long-lived Spotify refresh token by first whitelisting an arbitrary
+localhost URL (let's say http://127.0.0.1:53682/callback) in the Spotify
+developer dashboard, then manually logging in using the system user going to
+e.g.
+```
+https://accounts.spotify.com/authorize
+  ?client_id=your_spotify_client_id
+  &response_type=code
+  &redirect_uri=http%3A%2F%2F127.0.0.1%3A53682%2Fcallback
+  &scope=playlist-modify-public%20playlist-modify-private
+  &state=xyz123
+  &show_dialog=true
+```
+performing the authentication using the system user account, copying the `code`
+from the (dead) URL that you are subsequently redirected to, and then exchanging
+it for a refresh token with e.g.:
+```
+curl -X POST "https://accounts.spotify.com/api/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -u "your_spotify_client_id:your_spotify_client_secret" \
+  -d "grant_type=authorization_code" \
+  -d "code=PASTE_AUTH_CODE_HERE" \
+  -d "redirect_uri=http://127.0.0.1:53682/callback"
+```
+This will return a JSON blob containing a `refresh_token`.
 
 ### 3. Install Dependencies
 

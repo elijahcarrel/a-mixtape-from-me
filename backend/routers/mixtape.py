@@ -62,7 +62,7 @@ def parse_track(track: MixtapeTrackRequest, spotify_client: SpotifyClient) -> Mi
 
 
 
-@router.post("", response_model=dict, status_code=201)
+@router.post("", response_model=MixtapeResponse, status_code=201)
 def create_mixtape(
     request: MixtapeRequest,
     session: Session = Depends(get_write_session),
@@ -106,13 +106,14 @@ def create_mixtape(
     session.add(mixtape) # add root object if not already present.
     session.commit()
 
-    return {"public_id": public_id}
+    return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
 
-@router.post("/{public_id}/claim", response_model=dict)
+@router.post("/{public_id}/claim", response_model=MixtapeResponse)
 def claim_mixtape(
     public_id: str,
     session: Session = Depends(get_write_session),
     authenticated_user: AuthenticatedUser = Depends(get_user),
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     """Claim an anonymous mixtape, making the authenticated user the owner."""
     stack_auth_user_id = authenticated_user.get_user_id()
@@ -135,7 +136,7 @@ def claim_mixtape(
     session.add(mixtape) # add root object if not already present.
     session.commit()
 
-    return {"version": mixtape.version}
+    return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
 
 @router.get("", response_model=list[MixtapeOverview])
 def list_my_mixtapes(
@@ -276,7 +277,7 @@ def get_mixtape(
 
     return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
 
-@router.put("/{public_id}", response_model=dict)
+@router.put("/{public_id}", response_model=MixtapeResponse)
 def update_mixtape(
     public_id: str,
     request: MixtapeRequest,
@@ -337,7 +338,7 @@ def update_mixtape(
 
     session.commit()
 
-    return {"version": mixtape.version}
+    return load_mixtape_api_models_from_dbmodel(spotify_client, mixtape)
 
 @router.post("/{public_id}/undo", response_model=MixtapeResponse)
 def undo_mixtape(

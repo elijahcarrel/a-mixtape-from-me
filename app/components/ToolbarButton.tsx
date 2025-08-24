@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import Tooltip from './Tooltip';
-import { useTheme } from './ThemeProvider';
 
 const base = 'p-2 rounded-md transition-colors duration-150 focus:outline-none';
 
@@ -13,9 +12,7 @@ interface ToolbarButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 export function ToolbarButton({ icon, tooltip, label, className = '', withTooltip = true, ...rest }: ToolbarButtonProps) {
-  const { theme } = useTheme();
-  const hoverClass = theme === 'dark' ? 'hover:bg-amber-700/30' : 'hover:bg-amber-100';
-  const combined = `${base} ${hoverClass} ${className}`;
+  const combined = `${base} hover:bg-amber-100 dark:hover:bg-amber-700/30 ${className}`;
   const btn = (
     <button
       type="button"
@@ -42,9 +39,7 @@ interface ToolbarButtonLinkProps {
 }
 
 export function ToolbarButtonLink({ href, tooltip, icon, label, prefetch = true, className = '', withTooltip = true, ...rest }: ToolbarButtonLinkProps) {
-  const { theme } = useTheme();
-  const hoverClass = theme === 'dark' ? 'hover:bg-amber-700/30' : 'hover:bg-amber-100';
-  const combined = `${base} flex items-center space-x-1 ${hoverClass} ${className}`;
+  const combined = `${base} flex items-center space-x-1 hover:bg-amber-100 dark:hover:bg-amber-700/30 ${className}`;
   const link = (
     <Link
       href={href}

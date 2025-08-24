@@ -117,8 +117,9 @@ describe('Mixtape Editing Workflow', () => {
 
   it('completes full mixtape editing workflow', async () => {
     const mockRefetch = jest.fn();
+    const mockOnMixtapeUpdated = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData, refetch: mockRefetch }}>
+      <MixtapeContext.Provider value={{ mixtape: mockMixtapeData, refetch: mockRefetch, onMixtapeUpdated: mockOnMixtapeUpdated }}>
         <EditMixtapePage />
       </MixtapeContext.Provider>
     );
@@ -161,8 +162,9 @@ describe('Mixtape Editing Workflow', () => {
     };
     
     const mockRefetch3 = jest.fn();
+    const mockOnMixtapeUpdated3 = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: emptyMixtape, refetch: mockRefetch3 }}>
+      <MixtapeContext.Provider value={{ mixtape: emptyMixtape, refetch: mockRefetch3, onMixtapeUpdated: mockOnMixtapeUpdated3 }}>
         <EditMixtapePage />
       </MixtapeContext.Provider>
     );
@@ -183,8 +185,9 @@ describe('Mixtape Editing Workflow', () => {
     };
     
     const mockRefetch4 = jest.fn();
+    const mockOnMixtapeUpdated4 = jest.fn();
     render(
-      <MixtapeContext.Provider value={{ mixtape: multiTrackMixtape, refetch: mockRefetch4 }}>
+      <MixtapeContext.Provider value={{ mixtape: multiTrackMixtape, refetch: mockRefetch4, onMixtapeUpdated: mockOnMixtapeUpdated4 }}>
         <EditMixtapePage />
       </MixtapeContext.Provider>
     );

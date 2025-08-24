@@ -4,28 +4,28 @@ import { useState, useCallback } from 'react';
 import { Formik } from 'formik';
 import { debounce } from 'lodash';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
-import { useTheme } from './ThemeProvider';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { MixtapeResponse, MixtapeTrackRequest, MixtapeTrackResponse } from '../client';
 import { normalizeTrackToRequest } from '../util/track-util';
 import MixtapeEditorToolbar from './MixtapeEditorToolbar';
-import { MixtapeEditorForm, FormValues } from './MixtapeEditorForm';
+import { MixtapeEditorForm, FormValues, mixtapeToFormValues } from './MixtapeEditorForm';
 
 export interface MixtapeEditorProps {
   mixtape: MixtapeResponse;
   onMixtapeClaimed?: () => void;
+  onMixtapeUpdated?: (updatedMixtape: MixtapeResponse) => void;
 }
 
-export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEditorProps) {
+export default function MixtapeEditor({ mixtape, onMixtapeClaimed, onMixtapeUpdated }: MixtapeEditorProps) {
   const [isSaving, setIsSaving] = useState(false); // request in-flight
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const { makeRequest } = useAuthenticatedRequest();
-  const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const currentPath = usePathname();
   const router = useRouter();
+  const [statusText, setStatusText] = useState<string>('');
 
   const isAnonymousMixtape = !mixtape.stack_auth_user_id;
 
@@ -55,7 +55,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
   const immediateSave = useCallback(async (values: FormValues) => {
     setIsSaving(true);
     try {
-      await makeRequest(`/api/mixtape/${mixtape.public_id}`, {
+      const response = await makeRequest(`/api/mixtape/${mixtape.public_id}`, {
         method: 'PUT',
         body: {
           name: values.name,
@@ -67,14 +67,21 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
           tracks: values.tracks.map(normalizeTrackToRequest)
         }
       });
+      
+      // Use the response directly to update the layout context
+      if (response && onMixtapeUpdated) {
+        onMixtapeUpdated(response);
+      }
+      
       // Saved successfully
       setHasUnsavedChanges(false);
+      setStatusText('Saved');
     } catch (error) {
       console.error('Error saving mixtape:', error);
     } finally {
       setIsSaving(false);
     }
-  }, [mixtape.public_id, makeRequest]);
+  }, [mixtape.public_id, makeRequest, onMixtapeUpdated]);
 
   // Debounced save function for text changes
   // TODO: fix this. Error is "React Hook useCallback received a function whose dependencies are unknown. Pass an inline function instead..
@@ -98,15 +105,18 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
     }
   }, [immediateSave, debouncedSave]);
 
+  // Handle undo/redo responses
+  const handleUndoRedo = useCallback((updatedMixtape: MixtapeResponse) => {
+    if (onMixtapeUpdated) {
+      onMixtapeUpdated(updatedMixtape);
+    }
+  }, [onMixtapeUpdated]);
+
   return (
     <div className="space-y-4 sm:space-y-6 relative">
       {/* Anonymous Mixtape Warning */}
       {isAnonymousMixtape && (
-        <div className={`p-3 sm:p-4 rounded-lg border-2 ${
-          theme === 'dark' 
-            ? 'bg-amber-900/20 border-amber-600 text-amber-200' 
-            : 'bg-amber-50 border-amber-300 text-amber-800'
-        }`}>
+        <div className="p-3 sm:p-4 rounded-lg border-2 bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:border-amber-600 dark:text-amber-200">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="font-semibold mb-2 text-sm sm:text-base">
@@ -125,11 +135,7 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
                   isClaiming 
                     ? 'opacity-50 cursor-not-allowed' 
                     : 'hover:opacity-80'
-                } ${
-                  theme === 'dark'
-                    ? 'bg-amber-600 text-white hover:bg-amber-500'
-                    : 'bg-amber-600 text-white hover:bg-amber-700'
-                }`}
+                } bg-amber-600 text-white hover:bg-amber-700 dark:hover:bg-amber-500`}
               >
                 {isClaiming ? 'Claiming...' : (isAuthenticated ? 'Claim Mixtape' : 'Sign In')}
               </button>
@@ -139,21 +145,16 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
       )}
 
       {/* Toolbar is rendered inside Formik below to access live form state */}
-
       <Formik
-        initialValues={{
-          name: mixtape.name,
-          intro_text: mixtape.intro_text || '',
-          subtitle1: mixtape.subtitle1 || '',
-          subtitle2: mixtape.subtitle2 || '',
-          subtitle3: mixtape.subtitle3 || '',
-          is_public: mixtape.is_public,
-          tracks: mixtape.tracks
-        }}
-        enableReinitialize={true}
+        initialValues={mixtapeToFormValues(mixtape)}
+        // We use optimistic UI updates, so the values are usually the most up to date
+        // whereas the mixtape values from the MixtapeContext are sometimes slightly stale.
+        // If we left this enabled, we would see a flash of the stale data when the mixtape
+        // auto-saves.
+        enableReinitialize={false}
         onSubmit={() => {}} // We handle saving via our custom handlers
       >
-        {({ values, setFieldValue }) => (
+        {({ values, setFieldValue, resetForm }) => (
           <>
             {/* Toolbar has access to live Formik context now */}
             <MixtapeEditorToolbar
@@ -162,6 +163,10 @@ export default function MixtapeEditor({ mixtape, onMixtapeClaimed }: MixtapeEdit
               values={values}
               setFieldValue={setFieldValue}
               handleSave={handleSave}
+              onUndoRedo={handleUndoRedo}
+              resetForm={(updatedMixtape: MixtapeResponse) => resetForm({ values: mixtapeToFormValues(updatedMixtape) })}
+              statusText={statusText}
+              setStatusText={setStatusText}
             />
 
             <MixtapeEditorForm

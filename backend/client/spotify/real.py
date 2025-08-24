@@ -1,6 +1,7 @@
 import base64
 import os
 import threading
+import time
 from collections import OrderedDict
 from typing import Any
 
@@ -15,27 +16,53 @@ from .client import (
 
 class SpotifyClient(AbstractSpotifyClient):
     def __init__(self):
-        # The OAuth token must have the playlist-modify-public (and optionally
-        # playlist-modify-private) scopes. For backend jobs we read it from an
-        # env var set at runtime (e.g. via secrets manager). The token is short-
-        # lived, but for simplicity we assume the operator refreshes it.
-        self._access_token = os.environ["SPOTIFY_OAUTH_TOKEN"]
+        self.client_id = os.environ["SPOTIFY_CLIENT_ID"]
+        self.client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
+        self.refresh_token = os.environ["SPOTIFY_REFRESH_TOKEN"]
 
         # Cache for track look-ups to avoid repeated API calls during a single
         # request burst.
         self.track_cache_size = int(os.environ.get("SPOTIFY_TRACK_CACHE_SIZE", 500))
         self.track_cache = OrderedDict[str, SpotifyTrack]()  # track_id -> SpotifyTrack
         self._cache_lock = threading.Lock()
+        self._token_lock = threading.Lock()
+        self._access_token: str | None = None
+        self._token_expiration: float = 0.0
 
-        self._user_id: str | None = None  # populated lazily
+    def get_spotify_access_token(self) -> str:
+        """
+        Obtain a Spotify access token using Authorization Code flow.
+        A long-lived refresh token (SPOTIFY_REFRESH_TOKEN) is exchanged for a short-lived
+        access token which is cached in-memory until close to expiration.
+        """
 
-    # --- Auth helpers ---
-    def get_spotify_access_token(self)->str:
-        """Return the bearer token provided via env var."""
-        return self._access_token
+        with self._token_lock:
+            # Reuse cached token if still valid (leave 60-second buffer)
+            if self._access_token and time.time() < self._token_expiration - 60:
+                return self._access_token
 
-    def _auth_headers(self)->dict[str, str]:
-        return {"Authorization": f"Bearer {self.get_spotify_access_token()}"}
+            url = "https://accounts.spotify.com/api/token"
+            auth_string = f"{self.client_id}:{self.client_secret}"
+            auth_bytes = auth_string.encode("utf-8")
+            auth_b64 = str(base64.b64encode(auth_bytes), "utf-8")
+            headers = {
+                "Authorization": f"Basic {auth_b64}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+            data = {
+                "grant_type": "refresh_token",
+                "refresh_token": self.refresh_token,
+            }
+
+            response = requests.post(url, headers=headers, data=data)
+            if response.status_code == 200:
+                payload = response.json()
+                self._access_token = str(payload["access_token"])
+                expires_in = int(payload.get("expires_in", 3600))
+                self._token_expiration = time.time() + expires_in
+                return self._access_token
+            else:
+                raise Exception(f"Failed to refresh Spotify access token: {response.text}")
 
     def spotify_api_request(self, method: str, endpoint: str, **kwargs)->Any:
         """Low-level HTTP helper (raises on non-2xx)."""
