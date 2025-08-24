@@ -4,7 +4,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserButton } from '@stackframe/stack';
 import UserButtonContainer from './layout/UserButtonContainer';
-import { useThemeForStackAuth } from './ThemeProvider';
+import { useTheme } from './ThemeProvider';
 
 // Custom hook to track window width
 function useWindowWidth() {
@@ -28,7 +28,7 @@ function useWindowWidth() {
 
 export default function UserButtonHeader() {
   const router = useRouter();
-  const { theme, setTheme } = useThemeForStackAuth();
+  const { theme, setTheme } = useTheme();
   const windowWidth = useWindowWidth();
   
   // Show user info only on screens wider than 640px (sm breakpoint)
@@ -37,6 +37,8 @@ export default function UserButtonHeader() {
   // Proper theme toggle that updates the theme context
   const handleColorModeToggle = useCallback(() => {
     const next = theme === 'dark' ? 'light' : 'dark';
+    console.log('theme', theme);
+    console.log('next', next);
     setTheme(next);
   }, [theme, setTheme]);
 

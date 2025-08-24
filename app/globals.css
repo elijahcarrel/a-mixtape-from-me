@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* We manage light/dark mode via a custom user theme toggle, so we cannot just infer it from the system. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --sepia-light: #F4EDE4;
   --sepia-dark: #2D2D2D;
