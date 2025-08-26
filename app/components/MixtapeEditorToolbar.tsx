@@ -7,9 +7,6 @@ import {
   Share2,
   ExternalLink,
   Eye,
-  RefreshCcw,
-  CloudCheck,
-  History,
   X,
 } from 'lucide-react';
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
@@ -17,7 +14,7 @@ import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';
 import { FormValues } from './MixtapeEditorForm';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
-import styles from './MixtapeEditorToolbar.module.scss';
+import StatusIndicator from './StatusIndicator';
 import Link from 'next/link';
 
 interface MixtapeEditorToolbarProps {
@@ -201,33 +198,15 @@ export default function MixtapeEditorToolbar({
 
           {/* Status */}
           <div
-            className="flex items-center space-x-1 ml-2 text-xs sm:text-sm"
+            className="flex items-center ml-2 text-xs sm:text-sm"
             data-testid="status-indicator"
           >
-            {isUndoing ? (
-              <>
-                <History size={20} className={`${styles.spinReverse} opacity-50`} />
-                <span className="opacity-50">Undoing...</span>
-              </>
-            ) : isRedoing ? (
-              <>
-                <History
-                  size={20}
-                  className={`${styles.spinReverse} scale-x-[-1] opacity-50`}
-                />
-                <span className="opacity-50">Redoing...</span>
-              </>
-            ) : isSaving ? (
-              <>
-                <RefreshCcw size={20} className={`${styles.spinReverse} opacity-50`} />
-                <span className="opacity-50">Saving...</span>
-              </>
-            ) : (
-              <>
-                <CloudCheck size={20} className="opacity-50" />
-                <span className="opacity-50">{statusText}</span>
-              </>
-            )}
+            <StatusIndicator
+              isUndoing={isUndoing}
+              isRedoing={isRedoing}
+              isSaving={isSaving}
+              statusText={statusText}
+            />
           </div>
         </div>
 
