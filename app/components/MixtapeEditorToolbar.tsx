@@ -1,23 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import {
-  Undo2,
-  Redo2,
-  Share2,
-  ExternalLink,
-  Eye,
-  RefreshCcw,
-  CloudCheck,
-  History,
-  X,
-} from 'lucide-react';
+import { Undo2, Redo2, Share2, ExternalLink, Eye, X } from 'lucide-react';
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';
 import { FormValues } from './MixtapeEditorForm';
 import { useAuthenticatedRequest } from '../hooks/useAuthenticatedRequest';
-import styles from './MixtapeEditorToolbar.module.scss';
+import StatusIndicator from './StatusIndicator';
 import Link from 'next/link';
 
 interface MixtapeEditorToolbarProps {
@@ -201,33 +191,15 @@ export default function MixtapeEditorToolbar({
 
           {/* Status */}
           <div
-            className="flex items-center space-x-1 ml-2 text-xs sm:text-sm"
+            className="flex items-center ml-2 text-xs sm:text-sm"
             data-testid="status-indicator"
           >
-            {isUndoing ? (
-              <>
-                <History size={16} className={styles.spinReverse} />
-                <span>Undoing...</span>
-              </>
-            ) : isRedoing ? (
-              <>
-                <History
-                  size={16}
-                  className={`${styles.spinReverse} scale-x-[-1]`}
-                />
-                <span>Redoing...</span>
-              </>
-            ) : isSaving ? (
-              <>
-                <RefreshCcw size={16} className={styles.spinReverse} />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <CloudCheck size={16} />
-                <span>{statusText}</span>
-              </>
-            )}
+            <StatusIndicator
+              isUndoing={isUndoing}
+              isRedoing={isRedoing}
+              isSaving={isSaving}
+              statusText={statusText}
+            />
           </div>
         </div>
 
@@ -238,7 +210,7 @@ export default function MixtapeEditorToolbar({
             icon={<Eye size={20} />}
             tooltip="Preview"
             label="Preview"
-            withTooltip={false}
+            withTooltip={true}
             data-testid="preview-button"
           />
         </div>

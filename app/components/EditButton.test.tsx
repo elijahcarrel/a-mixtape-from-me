@@ -48,8 +48,19 @@ describe('EditButton', () => {
         <EditButton mixtape={mixtape} />
       </ThemeProvider>
     );
-    expect(screen.getByTestId('edit-button')).toBeInTheDocument();
-    expect(screen.getByText('Edit')).toBeInTheDocument();
+    // Should have two responsive versions
+    const editButtons = screen.getAllByTestId('edit-button');
+    expect(editButtons).toHaveLength(2);
+
+    // Check that the text appears in the large screen version
+    const allEditButtons = screen.getAllByTestId('edit-button');
+    const largeScreenButton = allEditButtons.find(button =>
+      button.closest('.hidden.sm\\:block')
+    );
+    expect(largeScreenButton).toBeDefined();
+
+    const editText = largeScreenButton?.querySelector('span');
+    expect(editText).toHaveTextContent('Edit');
   });
 
   it('renders link to edit page', () => {
@@ -59,8 +70,14 @@ describe('EditButton', () => {
         <EditButton mixtape={mixtape} />
       </ThemeProvider>
     );
-    const link = screen.getByTestId('edit-button');
-    expect(link).toHaveAttribute('href', '/mixtape/abc123/edit');
+    // Should have two responsive versions
+    const editButtons = screen.getAllByTestId('edit-button');
+    expect(editButtons).toHaveLength(2);
+
+    // Check that both have the correct href
+    editButtons.forEach(button => {
+      expect(button).toHaveAttribute('href', '/mixtape/abc123/edit');
+    });
   });
 
   it('does not render for non-owner', () => {

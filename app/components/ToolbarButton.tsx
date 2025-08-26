@@ -10,6 +10,7 @@ interface ToolbarButtonProps
   tooltip?: string;
   label?: string;
   withTooltip?: boolean;
+  disabled?: boolean;
 }
 
 export function ToolbarButton({
@@ -18,17 +19,23 @@ export function ToolbarButton({
   label,
   className = '',
   withTooltip = true,
+  disabled = false,
   ...rest
 }: ToolbarButtonProps) {
-  const combined = `${base} hover:bg-amber-100 dark:hover:bg-amber-700/30 ${className}`;
+  const disabledStyles = disabled
+    ? 'opacity-50 cursor-default'
+    : 'hover:bg-amber-100 dark:hover:bg-amber-700/30 cursor-pointer';
+
+  const combined = `${base} ${disabledStyles} ${className}`;
   const btn = (
-    <button type="button" className={combined} {...rest}>
+    <button type="button" className={combined} disabled={disabled} {...rest}>
       {icon}
       {label && <span className="text-sm ml-1">{label}</span>}
     </button>
   );
 
-  return withTooltip && tooltip ? (
+  // Don't show tooltip when disabled - it's confusing UX
+  return withTooltip && tooltip && !disabled ? (
     <Tooltip content={tooltip}>{btn}</Tooltip>
   ) : (
     btn
@@ -43,6 +50,7 @@ interface ToolbarButtonLinkProps {
   prefetch?: boolean;
   className?: string;
   withTooltip?: boolean;
+  disabled?: boolean;
   'data-testid'?: string;
 }
 
@@ -54,17 +62,58 @@ export function ToolbarButtonLink({
   prefetch = true,
   className = '',
   withTooltip = true,
+  disabled = false,
   ...rest
 }: ToolbarButtonLinkProps) {
-  const combined = `${base} flex items-center space-x-1 hover:bg-amber-100 dark:hover:bg-amber-700/30 ${className}`;
+  const disabledStyles = disabled
+    ? 'opacity-50 cursor-not-allowed pointer-events-none'
+    : 'hover:bg-amber-100 dark:hover:bg-amber-700/30 cursor-pointer';
+
+  const combined = `${base} flex items-center space-x-1 ${disabledStyles} ${className}`;
+
+  // If we have a label, implement responsive behavior
+  if (label) {
+    // On small screens: show tooltip, hide label
+    const smallScreenLink = (
+      <Link href={href} prefetch={prefetch} className={combined} {...rest}>
+        {icon}
+      </Link>
+    );
+
+    // On large screens: show label, no tooltip
+    const largeScreenLink = (
+      <Link href={href} prefetch={prefetch} className={combined} {...rest}>
+        {icon}
+        <span className="text-sm">{label}</span>
+      </Link>
+    );
+
+    return (
+      <>
+        {/* Small screens: tooltip + icon only */}
+        <div className="sm:hidden">
+          {withTooltip && tooltip && !disabled ? (
+            <Tooltip content={tooltip}>{smallScreenLink}</Tooltip>
+          ) : (
+            smallScreenLink
+          )}
+        </div>
+
+        {/* Large screens: icon + label, no tooltip */}
+        <div className="hidden sm:block">{largeScreenLink}</div>
+      </>
+    );
+  }
+
+  // No label case - use original behavior
   const link = (
     <Link href={href} prefetch={prefetch} className={combined} {...rest}>
       {icon}
-      {label && <span className="text-sm">{label}</span>}
     </Link>
   );
 
-  return withTooltip && tooltip ? (
+  // Don't show tooltip when disabled - it's confusing UX
+  return withTooltip && tooltip && !disabled ? (
     <Tooltip content={tooltip}>{link}</Tooltip>
   ) : (
     link
