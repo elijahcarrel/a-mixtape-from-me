@@ -603,19 +603,19 @@ describe('MixtapeEditor', () => {
     // Should have two responsive versions of the preview button
     const previewButtons = screen.getAllByTestId('preview-button');
     expect(previewButtons).toHaveLength(2);
-    
+
     // Check that both have the correct href
     previewButtons.forEach(button => {
       expect(button).toHaveAttribute('href', '/mixtape/test-mixtape-123');
     });
-    
+
     // Check that the text appears in the large screen version (not in tooltip)
     const allPreviewButtons = screen.getAllByTestId('preview-button');
-    const largeScreenButton = allPreviewButtons.find(button => 
+    const largeScreenButton = allPreviewButtons.find(button =>
       button.closest('.hidden.sm\\:block')
     );
     expect(largeScreenButton).toBeDefined();
-    
+
     const previewText = largeScreenButton?.querySelector('span');
     expect(previewText).toHaveTextContent('Preview');
   });
