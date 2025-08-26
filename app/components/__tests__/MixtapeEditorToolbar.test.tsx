@@ -463,6 +463,104 @@ describe('MixtapeEditorToolbar', () => {
     expect(mockPrefetch).toHaveBeenCalledWith('/mixtape/test-mixtape-123');
   });
 
+  describe('Responsive behavior', () => {
+    describe('Status indicator', () => {
+      it('shows tooltip on small screens and text on large screens', () => {
+        renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+
+        const statusIndicator = screen.getByTestId('status-indicator');
+        
+        // On small screens: should have tooltip, text should be hidden
+        const smallScreenText = statusIndicator.querySelector('span');
+        expect(smallScreenText).toHaveClass('hidden', 'sm:inline');
+        
+        // On small screens: should have tooltip wrapper
+        const tooltipWrapper = statusIndicator.querySelector('.sm\\:hidden');
+        expect(tooltipWrapper).toBeInTheDocument();
+        
+        // On large screens: should have visible text span
+        const largeScreenText = statusIndicator.querySelector('.hidden.sm\\:inline');
+        expect(largeScreenText).toBeInTheDocument();
+        expect(largeScreenText).toHaveTextContent('Saved');
+      });
+
+      it('shows tooltip on small screens when status is "Saving..."', () => {
+        renderWithTheme(
+          <MixtapeEditorToolbar
+            {...defaultProps}
+            statusText="Saving..."
+            isSaving={true}
+          />
+        );
+
+        const statusIndicator = screen.getByTestId('status-indicator');
+        
+        // Small screen tooltip wrapper should exist
+        const tooltipWrapper = statusIndicator.querySelector('.sm\\:hidden');
+        expect(tooltipWrapper).toBeInTheDocument();
+        
+        // Large screen text should exist and be hidden on small screens
+        const largeScreenText = statusIndicator.querySelector('.hidden.sm\\:inline');
+        expect(largeScreenText).toBeInTheDocument();
+        expect(largeScreenText).toHaveTextContent('Saving...');
+      });
+    });
+
+    describe('Preview button', () => {
+      it('shows tooltip on small screens and text on large screens', () => {
+        renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+
+        // Should have two responsive versions
+        const previewButtons = screen.getAllByTestId('preview-button');
+        expect(previewButtons).toHaveLength(2);
+
+        // Small screen version (with tooltip)
+        const smallScreenButton = previewButtons[0];
+        expect(smallScreenButton.closest('.sm\\:hidden')).toBeInTheDocument();
+        
+        // Large screen version (with text)
+        const largeScreenButton = previewButtons[1];
+        expect(largeScreenButton.closest('.hidden.sm\\:block')).toBeInTheDocument();
+        
+        // Large screen version should have the "Preview" text
+        const previewText = largeScreenButton.querySelector('span');
+        expect(previewText).toBeInTheDocument();
+        expect(previewText).toHaveTextContent('Preview');
+        expect(previewText).not.toHaveClass('hidden', 'sm:inline');
+      });
+
+      it('small screen version shows only icon without text', () => {
+        renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+
+        const previewButtons = screen.getAllByTestId('preview-button');
+        const smallScreenButton = previewButtons[0];
+        
+        // Small screen version should not have text span
+        const textSpan = smallScreenButton.querySelector('span');
+        expect(textSpan).not.toBeInTheDocument();
+        
+        // Should only have the icon
+        const icon = smallScreenButton.querySelector('svg');
+        expect(icon).toBeInTheDocument();
+      });
+
+      it('large screen version shows icon with text', () => {
+        renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
+
+        const previewButtons = screen.getAllByTestId('preview-button');
+        const largeScreenButton = previewButtons[1];
+        
+        // Should have both icon and text
+        const icon = largeScreenButton.querySelector('svg');
+        expect(icon).toBeInTheDocument();
+        
+        const textSpan = largeScreenButton.querySelector('span');
+        expect(textSpan).toBeInTheDocument();
+        expect(textSpan).toHaveTextContent('Preview');
+      });
+    });
+  });
+
   describe('Spotify Export', () => {
     beforeEach(() => {
       // Mock navigator.clipboard
