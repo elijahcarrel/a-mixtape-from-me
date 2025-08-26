@@ -17,7 +17,6 @@ export default function StatusItem({
   return (
     <div className="flex items-center space-x-1 group relative">
       <div
-        className="cursor-help"
         title={text}
       >
         <Icon size={20} className={iconClassName} />
