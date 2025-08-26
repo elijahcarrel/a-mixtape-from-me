@@ -100,7 +100,11 @@ describe('MixtapeEditorToolbar', () => {
     expect(screen.getByTestId('undo-button')).toBeInTheDocument();
     expect(screen.getByTestId('redo-button')).toBeInTheDocument();
     expect(screen.getByTestId('share-button')).toBeInTheDocument();
-    expect(screen.getByTestId('preview-button')).toBeInTheDocument();
+    
+    // Preview button has responsive versions (small and large screen)
+    const previewButtons = screen.getAllByTestId('preview-button');
+    expect(previewButtons).toHaveLength(2);
+    
     expect(screen.getByTestId('status-indicator')).toBeInTheDocument();
   });
 

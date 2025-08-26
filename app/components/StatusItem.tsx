@@ -17,11 +17,20 @@ export default function StatusItem({
 }: StatusItemProps) {
   return (
     <div className="flex items-center space-x-1 group relative">
-      <Tooltip content={text}>
-        <div>
-          <Icon size={20} className={`opacity-50 ${iconClassName}`} />
-        </div>
-      </Tooltip>
+      {/* Only show tooltip on small screens */}
+      <div className="sm:hidden">
+        <Tooltip content={text}>
+          <div>
+            <Icon size={20} className={`opacity-50 ${iconClassName}`} />
+          </div>
+        </Tooltip>
+      </div>
+      
+      {/* Show icon without tooltip on larger screens */}
+      <div className="hidden sm:block">
+        <Icon size={20} className={`opacity-50 ${iconClassName}`} />
+      </div>
+      
       <span className={`opacity-50 hidden sm:inline ${textClassName}`}>
         {text}
       </span>

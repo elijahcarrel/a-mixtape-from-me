@@ -70,10 +70,47 @@ export function ToolbarButtonLink({
     : 'hover:bg-amber-100 dark:hover:bg-amber-700/30 cursor-pointer';
   
   const combined = `${base} flex items-center space-x-1 ${disabledStyles} ${className}`;
+  
+  // If we have a label, implement responsive behavior
+  if (label) {
+    // On small screens: show tooltip, hide label
+    const smallScreenLink = (
+      <Link href={href} prefetch={prefetch} className={combined} {...rest}>
+        {icon}
+      </Link>
+    );
+    
+    // On large screens: show label, no tooltip
+    const largeScreenLink = (
+      <Link href={href} prefetch={prefetch} className={combined} {...rest}>
+        {icon}
+        <span className="text-sm">{label}</span>
+      </Link>
+    );
+    
+    return (
+      <>
+        {/* Small screens: tooltip + icon only */}
+        <div className="sm:hidden">
+          {withTooltip && tooltip && !disabled ? (
+            <Tooltip content={tooltip}>{smallScreenLink}</Tooltip>
+          ) : (
+            smallScreenLink
+          )}
+        </div>
+        
+        {/* Large screens: icon + label, no tooltip */}
+        <div className="hidden sm:block">
+          {largeScreenLink}
+        </div>
+      </>
+    );
+  }
+  
+  // No label case - use original behavior
   const link = (
     <Link href={href} prefetch={prefetch} className={combined} {...rest}>
       {icon}
-      {label && <span className="text-sm">{label}</span>}
     </Link>
   );
 
