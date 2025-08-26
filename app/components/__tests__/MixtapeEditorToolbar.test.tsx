@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import MixtapeEditorToolbar from '../components/MixtapeEditorToolbar';
-import { MixtapeResponse } from '../client';
-import { FormValues } from '../components/MixtapeEditorForm';
-import ThemeProvider from '../components/ThemeProvider';
+import MixtapeEditorToolbar from '../MixtapeEditorToolbar';
+import { MixtapeResponse } from '../../client';
+import { FormValues } from '../MixtapeEditorForm';
+import ThemeProvider from '../ThemeProvider';
 import toast from 'react-hot-toast';
 
 // Mock next/navigation

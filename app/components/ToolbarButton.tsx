@@ -10,6 +10,7 @@ interface ToolbarButtonProps
   tooltip?: string;
   label?: string;
   withTooltip?: boolean;
+  disabled?: boolean;
 }
 
 export function ToolbarButton({
@@ -18,17 +19,23 @@ export function ToolbarButton({
   label,
   className = '',
   withTooltip = true,
+  disabled = false,
   ...rest
 }: ToolbarButtonProps) {
-  const combined = `${base} hover:bg-amber-100 dark:hover:bg-amber-700/30 ${className}`;
+  const disabledStyles = disabled 
+    ? 'opacity-50 cursor-default' 
+    : 'hover:bg-amber-100 dark:hover:bg-amber-700/30 cursor-pointer';
+  
+  const combined = `${base} ${disabledStyles} ${className}`;
   const btn = (
-    <button type="button" className={combined} {...rest}>
+    <button type="button" className={combined} disabled={disabled} {...rest}>
       {icon}
       {label && <span className="text-sm ml-1">{label}</span>}
     </button>
   );
 
-  return withTooltip && tooltip ? (
+  // Don't show tooltip when disabled - it's confusing UX
+  return withTooltip && tooltip && !disabled ? (
     <Tooltip content={tooltip}>{btn}</Tooltip>
   ) : (
     btn
@@ -43,6 +50,7 @@ interface ToolbarButtonLinkProps {
   prefetch?: boolean;
   className?: string;
   withTooltip?: boolean;
+  disabled?: boolean;
   'data-testid'?: string;
 }
 
@@ -54,9 +62,14 @@ export function ToolbarButtonLink({
   prefetch = true,
   className = '',
   withTooltip = true,
+  disabled = false,
   ...rest
 }: ToolbarButtonLinkProps) {
-  const combined = `${base} flex items-center space-x-1 hover:bg-amber-100 dark:hover:bg-amber-700/30 ${className}`;
+  const disabledStyles = disabled 
+    ? 'opacity-50 cursor-not-allowed pointer-events-none' 
+    : 'hover:bg-amber-100 dark:hover:bg-amber-700/30 cursor-pointer';
+  
+  const combined = `${base} flex items-center space-x-1 ${disabledStyles} ${className}`;
   const link = (
     <Link href={href} prefetch={prefetch} className={combined} {...rest}>
       {icon}
@@ -64,7 +77,8 @@ export function ToolbarButtonLink({
     </Link>
   );
 
-  return withTooltip && tooltip ? (
+  // Don't show tooltip when disabled - it's confusing UX
+  return withTooltip && tooltip && !disabled ? (
     <Tooltip content={tooltip}>{link}</Tooltip>
   ) : (
     link
