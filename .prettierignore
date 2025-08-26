@@ -2,6 +2,11 @@
 node_modules/
 venv/
 
+# Backend python files (this is best left to the backend linter, ruff)
+backend/
+scripts/
+api/
+
 # Build outputs
 .next/
 out/
