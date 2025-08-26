@@ -6,7 +6,5 @@ export default defineConfig({
     path: 'app/client',
     format: 'prettier',
   },
-  plugins: [
-    '@hey-api/typescript',
-  ],
+  plugins: ['@hey-api/typescript'],
 });
