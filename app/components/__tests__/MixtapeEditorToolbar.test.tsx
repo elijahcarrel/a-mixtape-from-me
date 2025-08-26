@@ -100,11 +100,11 @@ describe('MixtapeEditorToolbar', () => {
     expect(screen.getByTestId('undo-button')).toBeInTheDocument();
     expect(screen.getByTestId('redo-button')).toBeInTheDocument();
     expect(screen.getByTestId('share-button')).toBeInTheDocument();
-    
+
     // Preview button has responsive versions (small and large screen)
     const previewButtons = screen.getAllByTestId('preview-button');
     expect(previewButtons).toHaveLength(2);
-    
+
     expect(screen.getByTestId('status-indicator')).toBeInTheDocument();
   });
 
@@ -415,7 +415,9 @@ describe('MixtapeEditorToolbar', () => {
     );
 
     // Look for the visible text span, not the tooltip
-    const statusText = screen.getByTestId('status-indicator').querySelector('span');
+    const statusText = screen
+      .getByTestId('status-indicator')
+      .querySelector('span');
     expect(statusText).toHaveTextContent('Saving...');
   });
 
@@ -423,7 +425,9 @@ describe('MixtapeEditorToolbar', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
 
     // Look for the visible text span, not the tooltip
-    const statusText = screen.getByTestId('status-indicator').querySelector('span');
+    const statusText = screen
+      .getByTestId('status-indicator')
+      .querySelector('span');
     expect(statusText).toHaveTextContent('Saved');
   });
 

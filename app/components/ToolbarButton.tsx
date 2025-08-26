@@ -22,10 +22,10 @@ export function ToolbarButton({
   disabled = false,
   ...rest
 }: ToolbarButtonProps) {
-  const disabledStyles = disabled 
-    ? 'opacity-50 cursor-default' 
+  const disabledStyles = disabled
+    ? 'opacity-50 cursor-default'
     : 'hover:bg-amber-100 dark:hover:bg-amber-700/30 cursor-pointer';
-  
+
   const combined = `${base} ${disabledStyles} ${className}`;
   const btn = (
     <button type="button" className={combined} disabled={disabled} {...rest}>
@@ -65,12 +65,12 @@ export function ToolbarButtonLink({
   disabled = false,
   ...rest
 }: ToolbarButtonLinkProps) {
-  const disabledStyles = disabled 
-    ? 'opacity-50 cursor-not-allowed pointer-events-none' 
+  const disabledStyles = disabled
+    ? 'opacity-50 cursor-not-allowed pointer-events-none'
     : 'hover:bg-amber-100 dark:hover:bg-amber-700/30 cursor-pointer';
-  
+
   const combined = `${base} flex items-center space-x-1 ${disabledStyles} ${className}`;
-  
+
   // If we have a label, implement responsive behavior
   if (label) {
     // On small screens: show tooltip, hide label
@@ -79,7 +79,7 @@ export function ToolbarButtonLink({
         {icon}
       </Link>
     );
-    
+
     // On large screens: show label, no tooltip
     const largeScreenLink = (
       <Link href={href} prefetch={prefetch} className={combined} {...rest}>
@@ -87,7 +87,7 @@ export function ToolbarButtonLink({
         <span className="text-sm">{label}</span>
       </Link>
     );
-    
+
     return (
       <>
         {/* Small screens: tooltip + icon only */}
@@ -98,15 +98,13 @@ export function ToolbarButtonLink({
             smallScreenLink
           )}
         </div>
-        
+
         {/* Large screens: icon + label, no tooltip */}
-        <div className="hidden sm:block">
-          {largeScreenLink}
-        </div>
+        <div className="hidden sm:block">{largeScreenLink}</div>
       </>
     );
   }
-  
+
   // No label case - use original behavior
   const link = (
     <Link href={href} prefetch={prefetch} className={combined} {...rest}>

@@ -46,10 +46,5 @@ export default function StatusIndicator({
     );
   }
 
-  return (
-    <StatusItem
-      icon={CloudCheck}
-      text={statusText}
-    />
-  );
+  return <StatusItem icon={CloudCheck} text={statusText} />;
 }

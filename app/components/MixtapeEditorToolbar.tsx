@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import {
-  Undo2,
-  Redo2,
-  Share2,
-  ExternalLink,
-  Eye,
-  X,
-} from 'lucide-react';
+import { Undo2, Redo2, Share2, ExternalLink, Eye, X } from 'lucide-react';
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '../client';
 import HeaderContainer from './layout/HeaderContainer';

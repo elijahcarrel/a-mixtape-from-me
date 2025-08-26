@@ -25,12 +25,12 @@ export default function StatusItem({
           </div>
         </Tooltip>
       </div>
-      
+
       {/* Show icon without tooltip on larger screens */}
       <div className="hidden sm:block">
         <Icon size={20} className={`opacity-50 ${iconClassName}`} />
       </div>
-      
+
       <span className={`opacity-50 hidden sm:inline ${textClassName}`}>
         {text}
       </span>
