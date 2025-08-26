@@ -293,7 +293,11 @@ describe('MixtapeEditor', () => {
 
     // Look for the saving indicator
     expect(screen.getByTestId('status-indicator')).toBeInTheDocument();
-    expect(screen.getByText('Saving...')).toBeInTheDocument();
+    // Look for the visible text span, not the tooltip
+    const statusText = screen
+      .getByTestId('status-indicator')
+      .querySelector('span');
+    expect(statusText).toHaveTextContent('Saving...');
   });
 
   it('calls save API when form values change', async () => {
@@ -596,10 +600,24 @@ describe('MixtapeEditor', () => {
 
   it('renders the Preview link', () => {
     render(<MixtapeEditor mixtape={mockMixtapeData} />);
-    const previewLink = screen.getByTestId('preview-button');
-    expect(previewLink).toBeInTheDocument();
-    expect(previewLink).toHaveAttribute('href', '/mixtape/test-mixtape-123');
-    expect(screen.getByText('Preview')).toBeInTheDocument();
+    // Should have two responsive versions of the preview button
+    const previewButtons = screen.getAllByTestId('preview-button');
+    expect(previewButtons).toHaveLength(2);
+    
+    // Check that both have the correct href
+    previewButtons.forEach(button => {
+      expect(button).toHaveAttribute('href', '/mixtape/test-mixtape-123');
+    });
+    
+    // Check that the text appears in the large screen version (not in tooltip)
+    const allPreviewButtons = screen.getAllByTestId('preview-button');
+    const largeScreenButton = allPreviewButtons.find(button => 
+      button.closest('.hidden.sm\\:block')
+    );
+    expect(largeScreenButton).toBeDefined();
+    
+    const previewText = largeScreenButton?.querySelector('span');
+    expect(previewText).toHaveTextContent('Preview');
   });
 
   // NEW TESTS: Testing the bug fix and new functionality
