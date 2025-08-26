@@ -9,7 +9,10 @@ interface EditButtonProps {
   'data-testid'?: string;
 }
 
-export default function EditButton({ mixtape, 'data-testid': dataTestId }: EditButtonProps) {
+export default function EditButton({
+  mixtape,
+  'data-testid': dataTestId,
+}: EditButtonProps) {
   const { user } = useAuth({ requireAuth: false });
 
   if (!user || user.id !== mixtape.stack_auth_user_id) {
@@ -26,4 +29,4 @@ export default function EditButton({ mixtape, 'data-testid': dataTestId }: EditB
       data-testid={dataTestId ?? 'edit-button'}
     />
   );
-} 
+}

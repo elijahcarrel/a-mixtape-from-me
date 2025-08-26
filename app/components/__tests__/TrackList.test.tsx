@@ -9,7 +9,9 @@ const mockTrackDetails1 = {
   artists: [{ name: 'Artist 1' }],
   album: {
     name: 'Album 1',
-    images: [{ url: 'https://example.com/image1.jpg', width: 300, height: 300 }],
+    images: [
+      { url: 'https://example.com/image1.jpg', width: 300, height: 300 },
+    ],
   },
   uri: 'spotify:track:track1',
 };
@@ -19,7 +21,9 @@ const mockTrackDetails2 = {
   artists: [{ name: 'Artist 2' }],
   album: {
     name: 'Album 2',
-    images: [{ url: 'https://example.com/image2.jpg', width: 300, height: 300 }],
+    images: [
+      { url: 'https://example.com/image2.jpg', width: 300, height: 300 },
+    ],
   },
   uri: 'spotify:track:track2',
 };
@@ -41,7 +45,11 @@ describe('TrackList', () => {
   it('shows empty state when no tracks are present', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={[]} onRemoveTrack={mockOnRemoveTrack} />);
-    expect(screen.getByText('No tracks added yet. Search for tracks above to get started!')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'No tracks added yet. Search for tracks above to get started!'
+      )
+    ).toBeInTheDocument();
   });
 
   it('displays tracks with details', () => {
@@ -53,8 +61,14 @@ describe('TrackList', () => {
     expect(screen.getByText('Test Track 2')).toBeInTheDocument();
     expect(screen.getByText('Artist 2')).toBeInTheDocument();
     // Track texts (personal messages)
-    expect(screen.getByText('This song always reminds me of our road trip to Big Sur!')).toBeInTheDocument();
-    expect(screen.getByText('You played this for me on our first date. <3')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This song always reminds me of our road trip to Big Sur!'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('You played this for me on our first date. <3')
+    ).toBeInTheDocument();
   });
 
   it('shows album art when available', () => {
@@ -71,7 +85,18 @@ describe('TrackList', () => {
       album: { name: 'Album 1', images: [] },
     };
     const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[{ track_position: 1, track_text: 'A special note for you', track: trackWithoutImage }]} onRemoveTrack={mockOnRemoveTrack} />);
+    render(
+      <TrackList
+        tracks={[
+          {
+            track_position: 1,
+            track_text: 'A special note for you',
+            track: trackWithoutImage,
+          },
+        ]}
+        onRemoveTrack={mockOnRemoveTrack}
+      />
+    );
     // There are two 'No Image' elements: one in album art, one possibly in track_text. Use getAllByText.
     expect(screen.getAllByText('No Image').length).toBeGreaterThanOrEqual(1);
   });
@@ -87,8 +112,14 @@ describe('TrackList', () => {
   it('displays track_text if present', () => {
     const mockOnRemoveTrack = jest.fn();
     render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
-    expect(screen.getByText('This song always reminds me of our road trip to Big Sur!')).toBeInTheDocument();
-    expect(screen.getByText('You played this for me on our first date. <3')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This song always reminds me of our road trip to Big Sur!'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('You played this for me on our first date. <3')
+    ).toBeInTheDocument();
   });
 
   it('handles multiple artists correctly', () => {
@@ -97,7 +128,18 @@ describe('TrackList', () => {
       artists: [{ name: 'Artist 1' }, { name: 'Artist 2' }],
     };
     const mockOnRemoveTrack = jest.fn();
-    render(<TrackList tracks={[{ track_position: 1, track_text: 'A duet for us', track: trackWithMultipleArtists }]} onRemoveTrack={mockOnRemoveTrack} />);
+    render(
+      <TrackList
+        tracks={[
+          {
+            track_position: 1,
+            track_text: 'A duet for us',
+            track: trackWithMultipleArtists,
+          },
+        ]}
+        onRemoveTrack={mockOnRemoveTrack}
+      />
+    );
     expect(screen.getByText('Artist 1, Artist 2')).toBeInTheDocument();
   });
 
@@ -109,14 +151,21 @@ describe('TrackList', () => {
         track_text: undefined,
         track: mockTrackDetails1,
       };
-      render(<TrackList tracks={[trackWithoutNote]} onRemoveTrack={mockOnRemoveTrack} />);
+      render(
+        <TrackList
+          tracks={[trackWithoutNote]}
+          onRemoveTrack={mockOnRemoveTrack}
+        />
+      );
       expect(screen.getByText('Add note')).toBeInTheDocument();
       expect(screen.getByText('No note')).toBeInTheDocument();
     });
 
     it('shows "Edit note" button when track has a note', () => {
       const mockOnRemoveTrack = jest.fn();
-      render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
+      render(
+        <TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />
+      );
       expect(screen.getAllByText('Edit note')).toHaveLength(2);
     });
 
@@ -127,11 +176,16 @@ describe('TrackList', () => {
         track_text: undefined,
         track: mockTrackDetails1,
       };
-      render(<TrackList tracks={[trackWithoutNote]} onRemoveTrack={mockOnRemoveTrack} />);
-      
+      render(
+        <TrackList
+          tracks={[trackWithoutNote]}
+          onRemoveTrack={mockOnRemoveTrack}
+        />
+      );
+
       const addNoteButton = screen.getByText('Add note');
       fireEvent.click(addNoteButton);
-      
+
       expect(screen.getByTestId('track-textarea-1')).toBeInTheDocument();
       expect(screen.getByText('Save')).toBeInTheDocument();
       expect(screen.getByText('Cancel')).toBeInTheDocument();
@@ -139,14 +193,18 @@ describe('TrackList', () => {
 
     it('opens textarea with existing text when "Edit note" is clicked', () => {
       const mockOnRemoveTrack = jest.fn();
-      render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />);
-      
+      render(
+        <TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} />
+      );
+
       const editNoteButton = screen.getByTestId('edit-track-text-1');
       fireEvent.click(editNoteButton);
-      
+
       const textarea = screen.getByTestId('track-textarea-1');
       expect(textarea).toBeInTheDocument();
-      expect((textarea as HTMLTextAreaElement).value).toBe('This song always reminds me of our road trip to Big Sur!');
+      expect((textarea as HTMLTextAreaElement).value).toBe(
+        'This song always reminds me of our road trip to Big Sur!'
+      );
     });
 
     it('calls onEditTrackText when Save is clicked', () => {
@@ -157,20 +215,26 @@ describe('TrackList', () => {
         track_text: undefined,
         track: mockTrackDetails1,
       };
-      render(<TrackList tracks={[trackWithoutNote]} onRemoveTrack={mockOnRemoveTrack} onEditTrackText={mockOnEditTrackText} />);
-      
+      render(
+        <TrackList
+          tracks={[trackWithoutNote]}
+          onRemoveTrack={mockOnRemoveTrack}
+          onEditTrackText={mockOnEditTrackText}
+        />
+      );
+
       // Open editor
       const addNoteButton = screen.getByText('Add note');
       fireEvent.click(addNoteButton);
-      
+
       // Type in textarea
       const textarea = screen.getByTestId('track-textarea-1');
       fireEvent.change(textarea, { target: { value: 'New note text' } });
-      
+
       // Save
       const saveButton = screen.getByText('Save');
       fireEvent.click(saveButton);
-      
+
       expect(mockOnEditTrackText).toHaveBeenCalledWith(1, 'New note text');
     });
 
@@ -181,16 +245,21 @@ describe('TrackList', () => {
         track_text: undefined,
         track: mockTrackDetails1,
       };
-      render(<TrackList tracks={[trackWithoutNote]} onRemoveTrack={mockOnRemoveTrack} />);
-      
+      render(
+        <TrackList
+          tracks={[trackWithoutNote]}
+          onRemoveTrack={mockOnRemoveTrack}
+        />
+      );
+
       // Open editor
       const addNoteButton = screen.getByText('Add note');
       fireEvent.click(addNoteButton);
-      
+
       // Cancel
       const cancelButton = screen.getByText('Cancel');
       fireEvent.click(cancelButton);
-      
+
       // Editor should be closed
       expect(screen.queryByTestId('track-textarea-1')).not.toBeInTheDocument();
       expect(screen.queryByText('Save')).not.toBeInTheDocument();
@@ -205,12 +274,17 @@ describe('TrackList', () => {
         track_text: longTrackText,
         track: mockTrackDetails1,
       };
-      render(<TrackList tracks={[trackWithLongNote]} onRemoveTrack={mockOnRemoveTrack} />);
-      
+      render(
+        <TrackList
+          tracks={[trackWithLongNote]}
+          onRemoveTrack={mockOnRemoveTrack}
+        />
+      );
+
       // Should show truncated text (first 80 chars + ...)
       const truncatedText = 'A'.repeat(80) + '...';
       expect(screen.getByText(truncatedText)).toBeInTheDocument();
-      
+
       // Should not show the full text
       expect(screen.queryByText(longTrackText)).not.toBeInTheDocument();
     });
@@ -223,8 +297,13 @@ describe('TrackList', () => {
         track_text: shortTrackText,
         track: mockTrackDetails1,
       };
-      render(<TrackList tracks={[trackWithShortNote]} onRemoveTrack={mockOnRemoveTrack} />);
-      
+      render(
+        <TrackList
+          tracks={[trackWithShortNote]}
+          onRemoveTrack={mockOnRemoveTrack}
+        />
+      );
+
       // Should show the full text
       expect(screen.getByText(shortTrackText)).toBeInTheDocument();
     });
@@ -232,22 +311,28 @@ describe('TrackList', () => {
     it('allows editing multiple tracks independently', () => {
       const mockOnRemoveTrack = jest.fn();
       const mockOnEditTrackText = jest.fn();
-      render(<TrackList tracks={mockTracks} onRemoveTrack={mockOnRemoveTrack} onEditTrackText={mockOnEditTrackText} />);
-      
+      render(
+        <TrackList
+          tracks={mockTracks}
+          onRemoveTrack={mockOnRemoveTrack}
+          onEditTrackText={mockOnEditTrackText}
+        />
+      );
+
       // Open editor for first track
       const editNoteButton1 = screen.getByTestId('edit-track-text-1');
       fireEvent.click(editNoteButton1);
-      
+
       // Should show textarea for track 1
       expect(screen.getByTestId('track-textarea-1')).toBeInTheDocument();
-      
+
       // Open editor for second track
       const editNoteButton2 = screen.getByTestId('edit-track-text-2');
       fireEvent.click(editNoteButton2);
-      
+
       // Should show textarea for track 2 and close track 1
       expect(screen.getByTestId('track-textarea-2')).toBeInTheDocument();
       expect(screen.queryByTestId('track-textarea-1')).not.toBeInTheDocument();
     });
   });
-}); 
+});

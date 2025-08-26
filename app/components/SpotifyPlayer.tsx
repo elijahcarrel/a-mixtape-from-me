@@ -56,11 +56,16 @@ export default function SpotifyPlayer({
       };
 
       // Inject script tag if not already present.
-      if (!document.querySelector('script[src="https://open.spotify.com/embed/iframe-api/v1"]')) {
+      if (
+        !document.querySelector(
+          'script[src="https://open.spotify.com/embed/iframe-api/v1"]'
+        )
+      ) {
         const script = document.createElement('script');
         script.src = 'https://open.spotify.com/embed/iframe-api/v1';
         script.async = true;
-        script.onerror = () => reject(new Error('Failed to load Spotify iframe API'));
+        script.onerror = () =>
+          reject(new Error('Failed to load Spotify iframe API'));
         document.body.appendChild(script);
       }
     });
@@ -73,7 +78,7 @@ export default function SpotifyPlayer({
     let isMounted = true;
 
     loadSpotifyApi()
-      .then((IFrameAPI) => {
+      .then(IFrameAPI => {
         if (!isMounted) return;
         setIsApiReady(true);
 
@@ -117,12 +122,14 @@ export default function SpotifyPlayer({
 
           // Some browsers fire separate events for play/pause. Capture them too.
           EmbedController.addListener('play', () => onIsPlayingChange?.(true));
-          EmbedController.addListener('pause', () => onIsPlayingChange?.(false));
+          EmbedController.addListener('pause', () =>
+            onIsPlayingChange?.(false)
+          );
         };
 
         IFrameAPI.createController(element, options, callback);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Spotify iframe API failed to load', err);
       });
 
@@ -151,7 +158,10 @@ export default function SpotifyPlayer({
     <div
       ref={containerRef}
       className={className}
-      style={{ width: typeof width === 'number' ? `${width}px` : width, height }}
+      style={{
+        width: typeof width === 'number' ? `${width}px` : width,
+        height,
+      }}
       data-testid="spotify-player-container"
       data-track-uri={uri}
     />

@@ -9,9 +9,13 @@ export const useUser = jest.fn(() => ({
 }));
 
 export const UserButton = jest.fn(({ children, ...props }) => {
-  return <div data-testid="user-button" {...props}>{children}</div>;
+  return (
+    <div data-testid="user-button" {...props}>
+      {children}
+    </div>
+  );
 });
 
 export const RequireAuth = jest.fn(({ children }) => {
   return <div data-testid="require-auth">{children}</div>;
-}); 
+});

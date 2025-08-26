@@ -1,8 +1,5 @@
 import type { Auth } from '../core/auth';
-import type {
-  Client as CoreClient,
-  Config as CoreConfig,
-} from '../core/types';
+import type { Client as CoreClient, Config as CoreConfig } from '../core/types';
 import type { Middleware } from './utils';
 
 export type ResponseStyle = 'data' | 'fields';
@@ -138,7 +135,7 @@ type MethodFn = <
   ThrowOnError extends boolean = false,
   TResponseStyle extends ResponseStyle = 'fields',
 >(
-  options: Omit<RequestOptions<TResponseStyle, ThrowOnError>, 'method'>,
+  options: Omit<RequestOptions<TResponseStyle, ThrowOnError>, 'method'>
 ) => RequestResult<TData, TError, ThrowOnError, TResponseStyle>;
 
 type RequestFn = <
@@ -148,7 +145,7 @@ type RequestFn = <
   TResponseStyle extends ResponseStyle = 'fields',
 >(
   options: Omit<RequestOptions<TResponseStyle, ThrowOnError>, 'method'> &
-    Pick<Required<RequestOptions<TResponseStyle, ThrowOnError>>, 'method'>,
+    Pick<Required<RequestOptions<TResponseStyle, ThrowOnError>>, 'method'>
 ) => RequestResult<TData, TError, ThrowOnError, TResponseStyle>;
 
 type BuildUrlFn = <
@@ -159,7 +156,7 @@ type BuildUrlFn = <
     url: string;
   },
 >(
-  options: Pick<TData, 'url'> & Options<TData>,
+  options: Pick<TData, 'url'> & Options<TData>
 ) => string;
 
 export type Client = CoreClient<RequestFn, Config, MethodFn, BuildUrlFn> & {
@@ -175,7 +172,7 @@ export type Client = CoreClient<RequestFn, Config, MethodFn, BuildUrlFn> & {
  * to ensure your client always has the correct values.
  */
 export type CreateClientConfig<T extends ClientOptions = ClientOptions> = (
-  override?: Config<ClientOptions & T>,
+  override?: Config<ClientOptions & T>
 ) => Config<Required<ClientOptions> & T>;
 
 export interface TDataShape {

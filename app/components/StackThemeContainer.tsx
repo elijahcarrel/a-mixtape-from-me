@@ -48,20 +48,16 @@ const stackThemeConfig = {
 };
 
 type Props = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 export default function StackThemeContainer({ children }: Props) {
   const { theme } = useTheme();
 
   // Select the appropriate stack-auth theme variant based on current theme.
   const selectedStackAuthTheme = {
     ...stackThemeConfig,
-    ...stackThemeConfig[theme]
+    ...stackThemeConfig[theme],
   };
 
-  return (
-    <StackTheme theme={selectedStackAuthTheme}>
-      {children}
-    </StackTheme>
-  );
+  return <StackTheme theme={selectedStackAuthTheme}>{children}</StackTheme>;
 }

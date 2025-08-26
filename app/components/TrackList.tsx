@@ -37,7 +37,12 @@ const getTrackId = (track: MixtapeTrackResponse): string => {
   return `${track.track_position}`;
 };
 
-export default function TrackList({ tracks, onRemoveTrack, onEditTrackText, onReorder }: TrackListProps) {
+export default function TrackList({
+  tracks,
+  onRemoveTrack,
+  onEditTrackText,
+  onReorder,
+}: TrackListProps) {
   const [editingTrack, setEditingTrack] = useState<number | null>(null);
 
   // -- Drag & Drop Setup --
@@ -61,8 +66,8 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText, onRe
       return;
     }
 
-    const oldIndex = tracks.findIndex((t) => getTrackId(t) === active.id);
-    const newIndex = tracks.findIndex((t) => getTrackId(t) === over.id);
+    const oldIndex = tracks.findIndex(t => getTrackId(t) === active.id);
+    const newIndex = tracks.findIndex(t => getTrackId(t) === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
     const newArr = arrayMove(tracks, oldIndex, newIndex).map((t, idx) => ({
@@ -76,7 +81,9 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText, onRe
   if (tracks.length === 0) {
     return (
       <div className="text-center py-6 sm:py-8 text-amber-600 dark:text-neutral-300">
-        <p className="text-sm sm:text-base">No tracks added yet. Search for tracks above to get started!</p>
+        <p className="text-sm sm:text-base">
+          No tracks added yet. Search for tracks above to get started!
+        </p>
       </div>
     );
   }
@@ -88,17 +95,24 @@ export default function TrackList({ tracks, onRemoveTrack, onEditTrackText, onRe
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={tracks.map(getTrackId)} strategy={verticalListSortingStrategy}>
+      <SortableContext
+        items={tracks.map(getTrackId)}
+        strategy={verticalListSortingStrategy}
+      >
         <div className="space-y-2 sm:space-y-3">
-          {tracks.map((track) => (
+          {tracks.map(track => (
             <SortableTrack
               key={getTrackId(track)}
               track={track}
               trackId={getTrackId(track)}
               isEditing={editingTrack === track.track_position}
-              onEditTrackText={(newText: string) => onEditTrackText?.(track.track_position, newText)}
+              onEditTrackText={(newText: string) =>
+                onEditTrackText?.(track.track_position, newText)
+              }
               onRemoveTrack={() => onRemoveTrack(track.track_position)}
-              setIsEditingTrack={(isEditing: boolean) => setEditingTrack(isEditing ? track.track_position : null)}
+              setIsEditingTrack={(isEditing: boolean) =>
+                setEditingTrack(isEditing ? track.track_position : null)
+              }
             />
           ))}
         </div>

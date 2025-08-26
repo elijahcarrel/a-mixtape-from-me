@@ -41,9 +41,14 @@ export function useApiRequest<T = any>({
   const makeRequest = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const responseData = await makeAuthenticatedRequest(url, { method, body, headers }, user, router);
+      const responseData = await makeAuthenticatedRequest(
+        url,
+        { method, body, headers },
+        user,
+        router
+      );
       setData(responseData as T);
       onSuccess?.(responseData as T);
     } catch (err: any) {
@@ -66,4 +71,4 @@ export function useApiRequest<T = any>({
   };
 
   return { data, loading, error, refetch };
-} 
+}

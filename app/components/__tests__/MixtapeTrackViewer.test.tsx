@@ -56,16 +56,17 @@ const mockMixtape: MixtapeResponse = {
 jest.mock('../EditButton', () => {
   const mockReact = require('react');
   return function MockEditButton() {
-    return (
-      <div data-testid="mock-edit-button" />
-    );
+    return <div data-testid="mock-edit-button" />;
   };
 });
 
 // Mock SpotifyPlayer to avoid loading external script during tests
 jest.mock('../SpotifyPlayer', () => {
   const mockReact = require('react');
-  return function MockSpotifyPlayer(props: { uri: string; onTrackEnd?: () => void }) {
+  return function MockSpotifyPlayer(props: {
+    uri: string;
+    onTrackEnd?: () => void;
+  }) {
     // invoke onTrackEnd immediately for test when supplied
     mockReact.useEffect(() => {
       props.onTrackEnd?.();
@@ -87,7 +88,11 @@ describe('MixtapeTrackViewer', () => {
     expect(screen.getByText('Track 1 of 2')).toBeInTheDocument();
     expect(screen.getByText('Mock Song One')).toBeInTheDocument();
     expect(screen.getByText('Mock Artist')).toBeInTheDocument();
-    expect(screen.getByText('This song always reminds me of our road trip to Big Sur!')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This song always reminds me of our road trip to Big Sur!'
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows Prev and Next buttons and calls handlers', () => {
@@ -172,4 +177,4 @@ describe('MixtapeTrackViewer', () => {
     );
     expect(screen.getByTestId('mock-edit-button')).toBeInTheDocument();
   });
-}); 
+});
