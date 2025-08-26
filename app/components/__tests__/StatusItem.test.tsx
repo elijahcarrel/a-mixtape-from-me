@@ -4,6 +4,17 @@ import '@testing-library/jest-dom';
 import StatusItem from '../StatusItem';
 import { Eye } from 'lucide-react';
 
+// Mock the Tooltip component to make testing easier
+jest.mock('../Tooltip', () => {
+  return function MockTooltip({ content, children }: any) {
+    return (
+      <div data-testid="tooltip" data-content={content}>
+        {children}
+      </div>
+    );
+  };
+});
+
 describe('StatusItem', () => {
   const defaultProps = {
     icon: Eye,
@@ -13,7 +24,7 @@ describe('StatusItem', () => {
   it('renders icon and text', () => {
     render(<StatusItem {...defaultProps} />);
     
-    expect(screen.getByTitle('Test Status')).toBeInTheDocument();
+    expect(screen.getByTestId('tooltip')).toBeInTheDocument();
     expect(screen.getByText('Test Status')).toBeInTheDocument();
   });
 
@@ -25,8 +36,8 @@ describe('StatusItem', () => {
       />
     );
     
-    const icon = screen.getByTitle('Test Status');
-    expect(icon.firstChild).toHaveClass('custom-icon-class');
+    const icon = screen.getByTestId('tooltip').querySelector('svg');
+    expect(icon).toHaveClass('custom-icon-class');
   });
 
   it('applies custom text className', () => {
@@ -40,11 +51,11 @@ describe('StatusItem', () => {
     expect(screen.getByText('Test Status')).toHaveClass('custom-text-class');
   });
 
-  it('has cursor-help class on icon container', () => {
+  it('passes text content to Tooltip', () => {
     render(<StatusItem {...defaultProps} />);
     
-    const iconContainer = screen.getByTitle('Test Status');
-    expect(iconContainer).toHaveClass('cursor-help');
+    const tooltip = screen.getByTestId('tooltip');
+    expect(tooltip).toHaveAttribute('data-content', 'Test Status');
   });
 
   it('text has hidden sm:inline classes for responsive behavior', () => {
@@ -58,19 +69,40 @@ describe('StatusItem', () => {
     render(<StatusItem {...defaultProps} text="" />);
     
     expect(screen.queryByText('Test Status')).not.toBeInTheDocument();
-    expect(screen.getByTitle('')).toBeInTheDocument();
+    expect(screen.getByTestId('tooltip')).toHaveAttribute('data-content', '');
   });
 
-  it('renders with default empty className strings', () => {
+  it('automatically applies opacity-50 to icon and text', () => {
     render(<StatusItem {...defaultProps} />);
     
-    const icon = screen.getByTitle('Test Status');
+    const icon = screen.getByTestId('tooltip').querySelector('svg');
     const text = screen.getByText('Test Status');
     
-    // Should not have undefined or null classes
-    expect(icon.firstChild).not.toHaveClass('undefined');
-    expect(icon.firstChild).not.toHaveClass('null');
-    expect(text).not.toHaveClass('undefined');
-    expect(text).not.toHaveClass('null');
+    expect(icon).toHaveClass('opacity-50');
+    expect(text).toHaveClass('opacity-50');
+  });
+
+  it('combines custom iconClassName with default opacity-50', () => {
+    render(
+      <StatusItem
+        {...defaultProps}
+        iconClassName="custom-icon-class"
+      />
+    );
+    
+    const icon = screen.getByTestId('tooltip').querySelector('svg');
+    expect(icon).toHaveClass('opacity-50', 'custom-icon-class');
+  });
+
+  it('combines custom textClassName with default opacity-50', () => {
+    render(
+      <StatusItem
+        {...defaultProps}
+        textClassName="custom-text-class"
+      />
+    );
+    
+    const text = screen.getByText('Test Status');
+    expect(text).toHaveClass('opacity-50', 'custom-text-class');
   });
 });

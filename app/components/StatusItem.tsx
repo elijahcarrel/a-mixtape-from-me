@@ -1,5 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import Tooltip from './Tooltip';
 
 interface StatusItemProps {
   icon: LucideIcon;
@@ -16,12 +17,12 @@ export default function StatusItem({
 }: StatusItemProps) {
   return (
     <div className="flex items-center space-x-1 group relative">
-      <div
-        title={text}
-      >
-        <Icon size={20} className={iconClassName} />
-      </div>
-      <span className={`${textClassName} hidden sm:inline`}>
+      <Tooltip content={text}>
+        <div>
+          <Icon size={20} className={`opacity-50 ${iconClassName}`} />
+        </div>
+      </Tooltip>
+      <span className={`opacity-50 hidden sm:inline ${textClassName}`}>
         {text}
       </span>
     </div>

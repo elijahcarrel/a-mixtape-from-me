@@ -21,8 +21,7 @@ export default function StatusIndicator({
       <StatusItem
         icon={History}
         text="Undoing..."
-        iconClassName={`${styles.spinReverse} opacity-50`}
-        textClassName="opacity-50"
+        iconClassName={styles.spinReverse}
       />
     );
   }
@@ -32,8 +31,7 @@ export default function StatusIndicator({
       <StatusItem
         icon={History}
         text="Redoing..."
-        iconClassName={`${styles.spinReverse} scale-x-[-1] opacity-50`}
-        textClassName="opacity-50"
+        iconClassName={`${styles.spinReverse} scale-x-[-1]`}
       />
     );
   }
@@ -43,8 +41,7 @@ export default function StatusIndicator({
       <StatusItem
         icon={RefreshCcw}
         text="Saving..."
-        iconClassName={`${styles.spinReverse} opacity-50`}
-        textClassName="opacity-50"
+        iconClassName={styles.spinReverse}
       />
     );
   }
@@ -53,8 +50,6 @@ export default function StatusIndicator({
     <StatusItem
       icon={CloudCheck}
       text={statusText}
-      iconClassName="opacity-50"
-      textClassName="opacity-50"
     />
   );
 }

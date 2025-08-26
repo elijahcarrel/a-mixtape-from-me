@@ -10,7 +10,7 @@ jest.mock('../StatusItem', () => {
     // Get the display name or name from the icon component
     const iconName = Icon.displayName || Icon.name || 'UnknownIcon';
     return (
-      <div data-testid="status-item" data-icon={iconName} data-text={text} data-icon-class={iconClassName} data-text-class={textClassName}>
+      <div data-testid="status-item" data-icon={iconName} data-text={text} data-icon-class={iconClassName || ''} data-text-class={textClassName || ''}>
         <Icon />
         <span>{text}</span>
       </div>
@@ -41,8 +41,7 @@ describe('StatusIndicator', () => {
     const statusItem = screen.getByTestId('status-item');
     expect(statusItem).toHaveAttribute('data-icon', 'History');
     expect(statusItem).toHaveAttribute('data-text', 'Undoing...');
-    expect(statusItem).toHaveAttribute('data-icon-class', 'spinReverse opacity-50');
-    expect(statusItem).toHaveAttribute('data-text-class', 'opacity-50');
+    expect(statusItem).toHaveAttribute('data-icon-class', 'spinReverse');
   });
 
   it('renders redoing status when isRedoing is true', () => {
@@ -51,8 +50,7 @@ describe('StatusIndicator', () => {
     const statusItem = screen.getByTestId('status-item');
     expect(statusItem).toHaveAttribute('data-icon', 'History');
     expect(statusItem).toHaveAttribute('data-text', 'Redoing...');
-    expect(statusItem).toHaveAttribute('data-icon-class', 'spinReverse scale-x-[-1] opacity-50');
-    expect(statusItem).toHaveAttribute('data-text-class', 'opacity-50');
+    expect(statusItem).toHaveAttribute('data-icon-class', 'spinReverse scale-x-[-1]');
   });
 
   it('renders saving status when isSaving is true', () => {
@@ -61,8 +59,7 @@ describe('StatusIndicator', () => {
     const statusItem = screen.getByTestId('status-item');
     expect(statusItem).toHaveAttribute('data-icon', 'RefreshCcw');
     expect(statusItem).toHaveAttribute('data-text', 'Saving...');
-    expect(statusItem).toHaveAttribute('data-icon-class', 'spinReverse opacity-50');
-    expect(statusItem).toHaveAttribute('data-text-class', 'opacity-50');
+    expect(statusItem).toHaveAttribute('data-icon-class', 'spinReverse');
   });
 
   it('prioritizes undoing over other states', () => {

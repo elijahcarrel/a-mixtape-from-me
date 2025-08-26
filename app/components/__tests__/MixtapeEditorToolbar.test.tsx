@@ -410,13 +410,17 @@ describe('MixtapeEditorToolbar', () => {
       />
     );
 
-    expect(screen.getByText('Saving...')).toBeInTheDocument();
+    // Look for the visible text span, not the tooltip
+    const statusText = screen.getByTestId('status-indicator').querySelector('span');
+    expect(statusText).toHaveTextContent('Saving...');
   });
 
   it('shows saved status by default', () => {
     renderWithTheme(<MixtapeEditorToolbar {...defaultProps} />);
 
-    expect(screen.getByText('Saved')).toBeInTheDocument();
+    // Look for the visible text span, not the tooltip
+    const statusText = screen.getByTestId('status-indicator').querySelector('span');
+    expect(statusText).toHaveTextContent('Saved');
   });
 
   it('toggles public visibility and saves when checkbox is changed', () => {
