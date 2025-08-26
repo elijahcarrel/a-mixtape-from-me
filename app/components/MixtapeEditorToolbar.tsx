@@ -206,26 +206,26 @@ export default function MixtapeEditorToolbar({
           >
             {isUndoing ? (
               <>
-                <History size={16} className={styles.spinReverse} />
-                <span>Undoing...</span>
+                <History size={20} className={`${styles.spinReverse} opacity-50`} />
+                <span className="opacity-50">Undoing...</span>
               </>
             ) : isRedoing ? (
               <>
                 <History
-                  size={16}
-                  className={`${styles.spinReverse} scale-x-[-1]`}
+                  size={20}
+                  className={`${styles.spinReverse} scale-x-[-1] opacity-50`}
                 />
-                <span>Redoing...</span>
+                <span className="opacity-50">Redoing...</span>
               </>
             ) : isSaving ? (
               <>
-                <RefreshCcw size={16} className={styles.spinReverse} />
-                <span>Saving...</span>
+                <RefreshCcw size={20} className={`${styles.spinReverse} opacity-50`} />
+                <span className="opacity-50">Saving...</span>
               </>
             ) : (
               <>
-                <CloudCheck size={16} />
-                <span>{statusText}</span>
+                <CloudCheck size={20} className="opacity-50" />
+                <span className="opacity-50">{statusText}</span>
               </>
             )}
           </div>
