@@ -2,7 +2,7 @@ import {
   MixtapeTrackRequest,
   MixtapeTrackResponse,
   TrackDetails,
-} from '@/app/client';
+} from '@/client';
 
 export const normalizeTrackToRequest = (
   t: MixtapeTrackResponse | MixtapeTrackRequest

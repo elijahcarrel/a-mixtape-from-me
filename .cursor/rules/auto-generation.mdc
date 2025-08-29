@@ -29,7 +29,7 @@ npm run gen-ts-from-openapi             # OpenAPI → TypeScript
 ## TypeScript Usage
 
 ```typescript
-import { MixtapeResponse, MixtapeTrackRequest } from '@/app/client';
+import { MixtapeResponse, MixtapeTrackRequest } from '@/client';
 ```
 
 description: Auto-generation workflow for maintaining type safety across the full stack

@@ -1,6 +1,6 @@
 import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@/app/test-utils';
+import { render, screen, fireEvent } from '@/test-utils';
 import TrackList from './TrackList';
 
 const mockTrackDetails1 = {

@@ -1,17 +1,17 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { render } from '@/app/test-utils';
+import { render } from '@/test-utils';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
 import MixtapeViewer from './MixtapeViewer';
-import { MixtapeResponse } from '@/app/client';
+import { MixtapeResponse } from '@/client';
 
 // Mock next/navigation
 jest.mock('next/navigation');
 
 const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 
-jest.mock('../EditButton', () => {
+jest.mock('./EditButton', () => {
   const mockReact = require('react');
   return function MockEditButton() {
     return <div data-testid="mock-edit-button" />;

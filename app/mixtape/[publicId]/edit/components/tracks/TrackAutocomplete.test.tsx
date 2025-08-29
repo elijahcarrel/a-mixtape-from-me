@@ -1,11 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@/app/test-utils';
+import { render, screen, fireEvent, waitFor, act } from '@/test-utils';
 import '@testing-library/jest-dom';
 import TrackAutocomplete from './TrackAutocomplete';
 
 // Mock useAuthenticatedRequest
 const mockMakeRequest = jest.fn();
-jest.mock('../../hooks/useAuthenticatedRequest', () => ({
+jest.mock('@/hooks/useAuthenticatedRequest', () => ({
   useAuthenticatedRequest: () => ({
     makeRequest: mockMakeRequest,
   }),

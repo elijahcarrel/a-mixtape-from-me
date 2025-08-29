@@ -1,6 +1,6 @@
 import React from 'react';
 import CassetteSVG from '../../../components/CassetteSVG';
-import { MixtapeResponse, MixtapeTrackResponse } from '@/app/client';
+import { MixtapeResponse, MixtapeTrackResponse } from '@/client';
 import MixtapeViewerToolbar from '../../../components/MixtapeViewerToolbar';
 import SpotifyPlayer from './SpotifyPlayer';
 

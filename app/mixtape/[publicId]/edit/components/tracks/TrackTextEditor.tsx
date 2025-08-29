@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MixtapeTrackResponse } from '@/app/client';
+import { MixtapeTrackResponse } from '@/client';
 
 type Props = {
   isEditing: boolean;

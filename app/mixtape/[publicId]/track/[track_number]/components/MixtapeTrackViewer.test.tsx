@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@/app/test-utils';
+import { render, screen, fireEvent } from '@/test-utils';
 import '@testing-library/jest-dom';
 import MixtapeTrackViewer from './MixtapeTrackViewer';
-import { MixtapeResponse, TrackDetails } from '@/app/client';
+import { MixtapeResponse, TrackDetails } from '@/client';
 
 const mockTrackDetails1: TrackDetails = {
   id: 'track111',
@@ -53,7 +53,7 @@ const mockMixtape: MixtapeResponse = {
   version: 5,
 };
 
-jest.mock('../EditButton', () => {
+jest.mock('../../../components/EditButton', () => {
   const mockReact = require('react');
   return function MockEditButton() {
     return <div data-testid="mock-edit-button" />;
@@ -61,7 +61,7 @@ jest.mock('../EditButton', () => {
 });
 
 // Mock SpotifyPlayer to avoid loading external script during tests
-jest.mock('../SpotifyPlayer', () => {
+jest.mock('./SpotifyPlayer', () => {
   const mockReact = require('react');
   return function MockSpotifyPlayer(props: {
     uri: string;

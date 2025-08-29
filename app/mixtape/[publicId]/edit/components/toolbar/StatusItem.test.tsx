@@ -5,7 +5,7 @@ import StatusItem from './StatusItem';
 import { Eye } from 'lucide-react';
 
 // Mock the Tooltip component to make testing easier
-jest.mock('../Tooltip', () => {
+jest.mock('@/components/common/Tooltip', () => {
   return function MockTooltip({ content, children }: any) {
     return (
       <div data-testid="tooltip" data-content={content}>

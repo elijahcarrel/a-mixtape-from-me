@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import CassetteSVG from './CassetteSVG';
-import { MixtapeResponse } from '@/app/client';
+import { MixtapeResponse } from '@/client';
 import MixtapeViewerToolbar from './MixtapeViewerToolbar';
 
 interface MixtapeViewerProps {

@@ -4,7 +4,7 @@ import {
   MixtapeTrackRequest,
   MixtapeTrackResponse,
   MixtapeResponse,
-} from '@/app/client';
+} from '@/client';
 import { normalizeTrackToResponse } from '../util/track-util';
 import TrackAutocomplete from './tracks/TrackAutocomplete';
 import TrackList from './tracks/TrackList';

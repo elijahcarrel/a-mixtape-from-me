@@ -1,7 +1,7 @@
 'use client';
 
 import { useSortable } from '@dnd-kit/sortable';
-import { MixtapeTrackResponse } from '@/app/client';
+import { MixtapeTrackResponse } from '@/client';
 import TrackTextEditor from './TrackTextEditor';
 import { CSS } from '@dnd-kit/utilities';
 

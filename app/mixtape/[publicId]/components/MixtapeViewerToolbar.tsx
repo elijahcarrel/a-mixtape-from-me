@@ -1,5 +1,5 @@
 import React from 'react';
-import { MixtapeResponse } from '@/app/client';
+import { MixtapeResponse } from '@/client';
 import EditButton from './EditButton';
 import HeaderContainer from '../../../components/layout/HeaderContainer';
 

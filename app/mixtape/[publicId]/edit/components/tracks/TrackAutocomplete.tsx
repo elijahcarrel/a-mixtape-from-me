@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuthenticatedRequest } from '@/app/hooks/useAuthenticatedRequest';
+import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
 import { debounce } from 'lodash';
 
 interface TrackSearchResult {

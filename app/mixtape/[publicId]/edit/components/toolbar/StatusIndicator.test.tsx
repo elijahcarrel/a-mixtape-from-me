@@ -5,7 +5,7 @@ import StatusIndicator from './StatusIndicator';
 import { History, RefreshCcw, CloudCheck } from 'lucide-react';
 
 // Mock the StatusItem component to make testing easier
-jest.mock('../StatusItem', () => {
+jest.mock('./StatusItem', () => {
   return function MockStatusItem({
     icon: Icon,
     text,

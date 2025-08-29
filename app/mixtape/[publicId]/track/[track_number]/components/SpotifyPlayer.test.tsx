@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@/app/test-utils';
+import { render, act } from '@/test-utils';
 import SpotifyPlayer from './SpotifyPlayer';
 
 describe('SpotifyPlayer', () => {

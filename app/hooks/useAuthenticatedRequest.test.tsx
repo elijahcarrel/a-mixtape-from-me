@@ -23,7 +23,7 @@ jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
 }));
 
-jest.mock('../useAuth', () => ({
+jest.mock('./useAuth', () => ({
   getAuthHeaders: jest
     .fn()
     .mockResolvedValue({ 'x-stack-access-token': 'test-token' }),

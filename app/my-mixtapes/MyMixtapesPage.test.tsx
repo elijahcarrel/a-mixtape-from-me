@@ -1,11 +1,11 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent, act } from '@/app/test-utils';
+import { render, screen, waitFor, fireEvent, act } from '@/test-utils';
 import '@testing-library/jest-dom';
-import MyMixtapesPage from '../page';
+import MyMixtapesPage from './page';
 
 // Mock useAuthenticatedRequest similar to TrackAutocomplete tests
 const mockMakeRequest = jest.fn();
-jest.mock('../../hooks/useAuthenticatedRequest', () => ({
+jest.mock('@/hooks/useAuthenticatedRequest', () => ({
   useAuthenticatedRequest: () => ({
     makeRequest: mockMakeRequest,
   }),

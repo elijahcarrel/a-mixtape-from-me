@@ -3,14 +3,14 @@
 import { useState, useCallback } from 'react';
 import { Formik } from 'formik';
 import { debounce } from 'lodash';
-import { useAuthenticatedRequest } from '@/app/hooks/useAuthenticatedRequest';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   MixtapeResponse,
   MixtapeTrackRequest,
   MixtapeTrackResponse,
-} from '@/app/client';
+} from '@/client';
 import { normalizeTrackToRequest } from '../util/track-util';
 import MixtapeEditorToolbar from './toolbar/MixtapeEditorToolbar';
 import {

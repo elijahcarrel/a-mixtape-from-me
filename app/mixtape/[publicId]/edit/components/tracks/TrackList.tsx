@@ -1,6 +1,6 @@
 'use client';
 
-import { MixtapeTrackResponse } from '@/app/client';
+import { MixtapeTrackResponse } from '@/client';
 import { useState } from 'react';
 import {
   DndContext,

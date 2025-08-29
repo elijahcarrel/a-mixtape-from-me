@@ -7,7 +7,7 @@ import {
   MixtapeRequest,
   MixtapeResponse,
   MixtapeTrackResponse,
-} from '@/app/client';
+} from '@/client';
 import { MixtapeContext } from '../../MixtapeContext';
 
 // Mock next/navigation
@@ -22,7 +22,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock components with more realistic behavior
-jest.mock('../components/MixtapeEditor', () => {
+jest.mock('./components/MixtapeEditor', () => {
   const mockReact = require('react');
   return function MockMixtapeEditor({ mixtape }: MixtapeEditorProps) {
     const [tracks, setTracks] = mockReact.useState(mixtape.tracks);
@@ -80,13 +80,13 @@ jest.mock('../components/MixtapeEditor', () => {
   };
 });
 
-jest.mock('../components/LoadingDisplay', () => {
+jest.mock('@/components/layout/LoadingDisplay', () => {
   return function MockLoadingDisplay({ message }: any) {
     return <div data-testid="loading-display">{message}</div>;
   };
 });
 
-jest.mock('../components/ErrorDisplay', () => {
+jest.mock('@/components/layout/ErrorDisplay', () => {
   return function MockErrorDisplay({ message }: any) {
     return <div data-testid="error-display">{message}</div>;
   };

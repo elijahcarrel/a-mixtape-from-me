@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
-import Tooltip from '@/app/components/common/Tooltip';
+import Tooltip from '@/components/common/Tooltip';
 
 const base = 'p-2 rounded-md transition-colors duration-150 focus:outline-none';
 

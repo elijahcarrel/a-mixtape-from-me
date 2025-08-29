@@ -1,8 +1,8 @@
 import React, { act } from 'react';
-import { render, screen } from '@/app/test-utils';
+import { render, screen } from '@/test-utils';
 import '@testing-library/jest-dom';
-import { useApiRequest } from '@/app/hooks/useApiRequest';
-import { MixtapeResponse } from '@/app/client';
+import { useApiRequest } from '@/hooks/useApiRequest';
+import { MixtapeResponse } from '@/client';
 import MixtapeLayout from './layout';
 
 // Mock next/navigation
@@ -14,20 +14,20 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock useApiRequest
-jest.mock('../../hooks/useApiRequest', () => {
+jest.mock('@/hooks/useApiRequest', () => {
   return {
     useApiRequest: jest.fn(),
   };
 });
 
 // Mock displays for predictable querying
-jest.mock('../../components/LoadingDisplay', () => {
+jest.mock('@/components/layout/LoadingDisplay', () => {
   return function MockLoadingDisplay({ message }: any) {
     return <div data-testid="loading-display">{message}</div>;
   };
 });
 
-jest.mock('../../components/ErrorDisplay', () => {
+jest.mock('@/components/layout/ErrorDisplay', () => {
   return function MockErrorDisplay({ message }: any) {
     return <div data-testid="error-display">{message}</div>;
   };

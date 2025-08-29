@@ -2,9 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import MixtapeEditorToolbar from './MixtapeEditorToolbar';
-import { MixtapeResponse } from '@/app/client';
+import { MixtapeResponse } from '@/client';
 import { FormValues } from '../MixtapeEditorForm';
-import ThemeProvider from '@/app/components/providers/ThemeProvider';
+import ThemeProvider from '@/components/providers/ThemeProvider';
 import toast from 'react-hot-toast';
 
 // Mock next/navigation
@@ -19,7 +19,7 @@ jest.mock('next/navigation', () => ({
 
 // Mock useAuthenticatedRequest
 const mockMakeRequest = jest.fn();
-jest.mock('../../hooks/useAuthenticatedRequest', () => ({
+jest.mock('@/hooks/useAuthenticatedRequest', () => ({
   useAuthenticatedRequest: () => ({
     makeRequest: mockMakeRequest,
   }),

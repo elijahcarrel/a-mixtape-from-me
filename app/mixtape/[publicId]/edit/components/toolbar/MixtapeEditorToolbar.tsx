@@ -3,10 +3,10 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Undo2, Redo2, Share2, ExternalLink, Eye, X } from 'lucide-react';
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
-import { MixtapeResponse } from '@/app/client';
+import { MixtapeResponse } from '@/client';
 import HeaderContainer from '../../../../../components/layout/HeaderContainer';
 import { FormValues } from '../MixtapeEditorForm';
-import { useAuthenticatedRequest } from '@/app/hooks/useAuthenticatedRequest';
+import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
 import StatusIndicator from './StatusIndicator';
 import Link from 'next/link';
 

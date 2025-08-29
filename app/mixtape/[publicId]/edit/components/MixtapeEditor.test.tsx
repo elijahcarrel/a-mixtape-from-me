@@ -1,16 +1,16 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@/app/test-utils';
+import { render, screen, fireEvent, waitFor, act } from '@/test-utils';
 import '@testing-library/jest-dom';
 import MixtapeEditor from './MixtapeEditor';
 import {
   MixtapeResponse,
   MixtapeTrackResponse,
   TrackDetails,
-} from '@/app/client';
+} from '@/client';
 
 // Mock useAuthenticatedRequest
 const mockMakeRequest = jest.fn();
-jest.mock('../../hooks/useAuthenticatedRequest', () => ({
+jest.mock('@/hooks/useAuthenticatedRequest', () => ({
   useAuthenticatedRequest: () => ({
     makeRequest: mockMakeRequest,
   }),
@@ -18,7 +18,7 @@ jest.mock('../../hooks/useAuthenticatedRequest', () => ({
 
 // Mock useAuth hook
 const mockUseAuth = jest.fn();
-jest.mock('../../hooks/useAuth', () => ({
+jest.mock('@/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
@@ -34,7 +34,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock components
-jest.mock('../TrackAutocomplete', () => {
+jest.mock('./tracks/TrackAutocomplete', () => {
   return function MockTrackAutocomplete({ onTrackSelect }: any) {
     return (
       <div data-testid="track-autocomplete">
@@ -68,7 +68,7 @@ jest.mock('../TrackAutocomplete', () => {
   };
 });
 
-jest.mock('../TrackList', () => {
+jest.mock('./tracks/TrackList', () => {
   return function MockTrackList({
     tracks,
     onRemoveTrack,
@@ -136,7 +136,7 @@ jest.mock('../TrackList', () => {
 });
 
 // Mock HeaderContainer to include the saving indicator
-jest.mock('../layout/HeaderContainer', () => {
+jest.mock('@/components/layout/HeaderContainer', () => {
   return function MockHeaderContainer({ children, isSaving }: any) {
     return (
       <div data-testid="header-container">

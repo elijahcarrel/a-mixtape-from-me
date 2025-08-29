@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import EditButton from './EditButton';
-import ThemeProvider from '@/app/components/providers/ThemeProvider';
+import ThemeProvider from '@/components/providers/ThemeProvider';
 import '@testing-library/jest-dom';
-import { MixtapeResponse } from '@/app/client';
+import { MixtapeResponse } from '@/client';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
@@ -15,7 +15,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 const mockUseAuth = jest.fn();
-jest.mock('../hooks/useAuth', () => ({
+jest.mock('@/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 

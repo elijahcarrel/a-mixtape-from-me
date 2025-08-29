@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { debounce } from 'lodash';
-import { useAuthenticatedRequest } from '@/app/hooks/useAuthenticatedRequest';
+import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
 import { formatRelativeTime } from '../util/time';
 
 export default function MyMixtapesPage() {

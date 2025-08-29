@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pencil } from 'lucide-react';
-import { useAuth } from '@/app/hooks/useAuth';
-import { MixtapeResponse } from '@/app/client';
+import { useAuth } from '@/hooks/useAuth';
+import { MixtapeResponse } from '@/client';
 import { ToolbarButtonLink } from '../edit/components/toolbar/ToolbarButton';
 
 interface EditButtonProps {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@/app/test-utils';
+import { render, screen } from '@/test-utils';
 import '@testing-library/jest-dom';
 import CreateMixtapePage from './page';
 
@@ -14,11 +14,11 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock useApiRequest
-jest.mock('../../hooks/useApiRequest', () => ({
+jest.mock('@/hooks/useApiRequest', () => ({
   useApiRequest: jest.fn(),
 }));
 
-import { useApiRequest } from '@/app/hooks/useApiRequest';
+import { useApiRequest } from '@/hooks/useApiRequest';
 
 const mockedUseApiRequest = useApiRequest as jest.Mock;
 
