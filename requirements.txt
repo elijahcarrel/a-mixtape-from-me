@@ -20,7 +20,7 @@ pytest-postgresql==7.0.2
 # Code Quality
 ruff==0.12.7
 mypy==1.17.1
-types-requests==2.32.4.20250611
+types-requests==2.32.4.20250809
 
 # Utilities
 python-dotenv==1.1.1
