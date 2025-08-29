@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-  act,
-} from '@/app/test-utils';
+import { render, screen, waitFor, fireEvent, act } from '@/app/test-utils';
 import '@testing-library/jest-dom';
 import MyMixtapesPage from '../page';
 
