@@ -5,7 +5,7 @@ import {
   waitFor,
   fireEvent,
   act,
-} from '../../components/__tests__/test-utils';
+} from '@/app/test-utils';
 import '@testing-library/jest-dom';
 import MyMixtapesPage from '../page';
 

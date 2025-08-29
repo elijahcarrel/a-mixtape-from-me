@@ -1,6 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
-import Tooltip from '../../../../../components/common/Tooltip';
+import Tooltip from '@/app/components/common/Tooltip';
 
 interface StatusItemProps {
   icon: LucideIcon;

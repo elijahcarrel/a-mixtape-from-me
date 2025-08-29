@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '../../../../../components/__tests__/test-utils';
+import { render, screen, fireEvent } from '@/app/test-utils';
 import '@testing-library/jest-dom';
 import MixtapeTrackViewer from './MixtapeTrackViewer';
 import { MixtapeResponse, TrackDetails } from '@/app/client';

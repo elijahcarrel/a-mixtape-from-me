@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import MixtapeEditorToolbar from './MixtapeEditorToolbar';
 import { MixtapeResponse } from '@/app/client';
 import { FormValues } from '../MixtapeEditorForm';
-import ThemeProvider from '../../../../../components/providers/ThemeProvider';
+import ThemeProvider from '../../@/app/components/providers/ThemeProvider';
 import toast from 'react-hot-toast';
 
 // Mock next/navigation

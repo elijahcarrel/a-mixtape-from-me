@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { render } from '../../../components/__tests__/test-utils';
+import { render } from '@/app/test-utils';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
 import MixtapeViewer from './MixtapeViewer';

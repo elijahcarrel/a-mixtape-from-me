@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import usePrefersScheme from '../../hooks/usePrefersScheme';
+import usePrefersScheme from '@/app/hooks/usePrefersScheme';
 
 type Theme = 'light' | 'dark';
 

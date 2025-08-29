@@ -6,7 +6,7 @@ import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '@/app/client';
 import HeaderContainer from '../../../../../components/layout/HeaderContainer';
 import { FormValues } from '../MixtapeEditorForm';
-import { useAuthenticatedRequest } from '../../../../../hooks/useAuthenticatedRequest';
+import { useAuthenticatedRequest } from '@/app/hooks/useAuthenticatedRequest';
 import StatusIndicator from './StatusIndicator';
 import Link from 'next/link';
 

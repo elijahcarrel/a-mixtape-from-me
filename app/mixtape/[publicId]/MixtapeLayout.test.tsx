@@ -1,5 +1,5 @@
 import React, { act } from 'react';
-import { render, screen } from '../../components/__tests__/test-utils';
+import { render, screen } from '@/app/test-utils';
 import '@testing-library/jest-dom';
 import { useApiRequest } from '@/app/hooks/useApiRequest';
 import { MixtapeResponse } from '@/app/client';

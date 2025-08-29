@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '../../../../../components/__tests__/test-utils';
+import { render, screen, fireEvent, waitFor, act } from '@/app/test-utils';
 import '@testing-library/jest-dom';
 import TrackAutocomplete from './TrackAutocomplete';
 

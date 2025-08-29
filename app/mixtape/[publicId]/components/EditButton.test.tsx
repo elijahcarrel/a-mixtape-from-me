@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import EditButton from './EditButton';
-import ThemeProvider from '../../../components/providers/ThemeProvider';
+import ThemeProvider from '@/app/components/providers/ThemeProvider';
 import '@testing-library/jest-dom';
 import { MixtapeResponse } from '@/app/client';
 
