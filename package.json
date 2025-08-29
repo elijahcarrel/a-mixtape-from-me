@@ -38,7 +38,7 @@
     "@types/react": "19.1.9",
     "@types/react-dom": "19.1.7",
     "autoprefixer": "10.4.21",
-    "concurrently": "^9.2.0",
+    "concurrently": "^9.2.1",
     "eslint": "9.32.0",
     "eslint-config-next": "15.4.5",
     "formik": "^2.4.6",
