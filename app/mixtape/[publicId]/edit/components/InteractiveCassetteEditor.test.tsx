@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import InteractiveCassetteEditor from '../../mixtape/[publicId]/edit/components/InteractiveCassetteEditor';
+import InteractiveCassetteEditor from './InteractiveCassetteEditor';
 
 describe('InteractiveCassetteEditor', () => {
   const mockOnTitleChange = jest.fn();

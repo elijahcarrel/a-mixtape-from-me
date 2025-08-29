@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from './test-utils';
+import { render, screen, fireEvent, waitFor, act } from '@/app/test-utils';
 import '@testing-library/jest-dom';
-import MixtapeEditor from '../../mixtape/[publicId]/edit/components/MixtapeEditor';
+import MixtapeEditor from './MixtapeEditor';
 import {
   MixtapeResponse,
   MixtapeTrackResponse,

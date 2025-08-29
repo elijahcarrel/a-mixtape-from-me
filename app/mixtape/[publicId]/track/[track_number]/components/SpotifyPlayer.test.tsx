@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, act } from './test-utils';
-import SpotifyPlayer from '../../mixtape/[publicId]/components/SpotifyPlayer';
+import { render, act } from '@/app/test-utils';
+import SpotifyPlayer from './SpotifyPlayer';
 
 describe('SpotifyPlayer', () => {
   const mockController = {
