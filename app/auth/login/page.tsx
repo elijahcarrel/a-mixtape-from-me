@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import CenteredPane from '../../components/layout/CenteredPane';
+import CenteredPane from '@/components/layout/CenteredPane';
 
 export default function AuthLogin() {
   const router = useRouter();

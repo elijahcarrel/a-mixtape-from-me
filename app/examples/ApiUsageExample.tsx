@@ -2,9 +2,9 @@
 // This file is for documentation purposes and can be deleted
 
 import React from 'react';
-import { useApiRequest } from '../hooks/useApiRequest';
-import LoadingDisplay from '../components/LoadingDisplay';
-import ErrorDisplay from '../components/ErrorDisplay';
+import { useApiRequest } from '@/hooks/useApiRequest';
+import LoadingDisplay from '@/components/layout/LoadingDisplay';
+import ErrorDisplay from '@/components/layout/ErrorDisplay';
 
 // Example 1: Simple GET request
 export function ExampleGetRequest() {
