@@ -1,8 +1,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import LoadingDisplay from './LoadingDisplay';
+import { useAuth } from '@/app/hooks/useAuth';
+import LoadingDisplay from './layout/LoadingDisplay';
 
 interface RequireAuthProps {
   children: ReactNode;

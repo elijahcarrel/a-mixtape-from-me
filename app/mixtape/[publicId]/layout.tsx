@@ -3,12 +3,12 @@
 import React, { useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 
-import LoadingDisplay from '../../components/LoadingDisplay';
-import ErrorDisplay from '../../components/ErrorDisplay';
+import LoadingDisplay from '../../components/layout/LoadingDisplay';
+import ErrorDisplay from '../../components/layout/ErrorDisplay';
 import MainContainer from '../../components/layout/MainContainer';
 import ContentPane from '../../components/layout/ContentPane';
-import { useApiRequest } from '../../hooks/useApiRequest';
-import { MixtapeResponse } from '../../client';
+import { useApiRequest } from '@/app/hooks/useApiRequest';
+import { MixtapeResponse } from '@/app/client';
 import { MixtapeContext } from '../MixtapeContext';
 
 interface MixtapeLayoutProps {

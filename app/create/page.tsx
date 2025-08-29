@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useApiRequest } from '../hooks/useApiRequest';
+import { useApiRequest } from '@/app/hooks/useApiRequest';
 import MainContainer from '../components/layout/MainContainer';
 import ContentPane from '../components/layout/ContentPane';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '@/app/hooks/useAuth';
 
 export default function CreateMixtapePage() {
   const router = useRouter();

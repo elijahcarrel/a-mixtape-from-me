@@ -3,13 +3,13 @@ import { StackProvider } from '@stackframe/stack';
 import { stackServerApp } from '../stack';
 import { Inter, Caveat } from 'next/font/google';
 import Link from 'next/link';
-import UserButtonHeader from './components/UserButtonHeader';
+import UserButtonHeader from './components/layout/UserButtonHeader';
 import MainContainer from './components/layout/MainContainer';
 import HeaderContainer from './components/layout/HeaderContainer';
 import PageTitle from './components/layout/PageTitle';
-import ThemeProvider from './components/ThemeProvider';
-import StackThemeContainer from './components/StackThemeContainer';
-import ToastProvider from './components/ToastProvider';
+import ThemeProvider from './components/providers/ThemeProvider';
+import StackThemeContainer from './components/providers/StackThemeContainer';
+import ToastProvider from './components/providers/ToastProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 const caveat = Caveat({

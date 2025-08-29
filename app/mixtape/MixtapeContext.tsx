@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { MixtapeResponse } from '../client';
+import { MixtapeResponse } from '@/app/client';
 
 interface MixtapeContextValue {
   mixtape: MixtapeResponse;

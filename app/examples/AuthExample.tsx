@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '../hooks/useAuth';
-import LoadingDisplay from '../components/LoadingDisplay';
+import { useAuth } from '@/app/hooks/useAuth';
+import LoadingDisplay from '../components/layout/LoadingDisplay';
 
 export default function AuthExample() {
   const { user, isAuthenticated, isLoading } = useAuth({ requireAuth: true });
