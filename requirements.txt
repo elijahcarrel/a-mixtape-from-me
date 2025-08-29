@@ -10,7 +10,7 @@ psycopg2-binary==2.9.10
 pydantic==2.11.7
 
 # HTTP & API
-requests==2.32.4
+requests==2.32.5
 httpx==0.28.1
 
 # Testing
