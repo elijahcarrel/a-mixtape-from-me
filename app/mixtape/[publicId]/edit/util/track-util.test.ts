@@ -6,7 +6,7 @@ import type {
   MixtapeTrackRequest,
   MixtapeTrackResponse,
   TrackDetails,
-} from '../client/types.gen';
+} from '../../../../client/types.gen';
 
 describe('normalizeTrackToRequest', () => {
   it('converts MixtapeTrackResponse to MixtapeTrackRequest', () => {

@@ -1,4 +1,4 @@
-import { formatRelativeTime } from '../time';
+import { formatRelativeTime } from './time';
 
 describe('formatRelativeTime', () => {
   it('handles pluralization correctly for minutes', () => {

@@ -11,7 +11,7 @@ import {
   MixtapeTrackRequest,
   MixtapeTrackResponse,
 } from '@/app/client';
-import { normalizeTrackToRequest } from '../../../../util/track-util';
+import { normalizeTrackToRequest } from '../util/track-util';
 import MixtapeEditorToolbar from './toolbar/MixtapeEditorToolbar';
 import {
   MixtapeEditorForm,

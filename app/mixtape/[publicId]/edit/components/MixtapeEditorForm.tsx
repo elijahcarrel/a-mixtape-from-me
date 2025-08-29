@@ -5,7 +5,7 @@ import {
   MixtapeTrackResponse,
   MixtapeResponse,
 } from '@/app/client';
-import { normalizeTrackToResponse } from '../../../../util/track-util';
+import { normalizeTrackToResponse } from '../util/track-util';
 import TrackAutocomplete from './tracks/TrackAutocomplete';
 import TrackList from './tracks/TrackList';
 import InteractiveCassetteEditor from './InteractiveCassetteEditor';
