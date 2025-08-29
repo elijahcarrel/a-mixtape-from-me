@@ -32,7 +32,7 @@
     "@dnd-kit/core": "6.3.1",
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
-    "@stackframe/stack": "^2.8.27",
+    "@stackframe/stack": "^2.8.34",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "24.2.0",
     "@types/react": "19.1.9",
