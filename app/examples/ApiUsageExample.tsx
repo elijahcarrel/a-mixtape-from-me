@@ -3,8 +3,8 @@
 
 import React from 'react';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import LoadingDisplay from '../components/layout/LoadingDisplay';
-import ErrorDisplay from '../components/layout/ErrorDisplay';
+import LoadingDisplay from '@/components/layout/LoadingDisplay';
+import ErrorDisplay from '@/components/layout/ErrorDisplay';
 
 // Example 1: Simple GET request
 export function ExampleGetRequest() {

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import CenteredPane from '../../components/layout/CenteredPane';
+import CenteredPane from '@/components/layout/CenteredPane';
 
 export default function AuthLogout() {
   const router = useRouter();

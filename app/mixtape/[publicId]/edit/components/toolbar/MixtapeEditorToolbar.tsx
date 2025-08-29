@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { Undo2, Redo2, Share2, ExternalLink, Eye, X } from 'lucide-react';
 import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '@/client';
-import HeaderContainer from '../../../../../components/layout/HeaderContainer';
+import HeaderContainer from '@/components/layout/HeaderContainer';
 import { FormValues } from '../MixtapeEditorForm';
 import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
 import StatusIndicator from './StatusIndicator';

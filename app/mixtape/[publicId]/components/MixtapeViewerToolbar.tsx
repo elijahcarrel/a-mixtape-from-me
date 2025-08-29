@@ -1,7 +1,7 @@
 import React from 'react';
 import { MixtapeResponse } from '@/client';
 import EditButton from './EditButton';
-import HeaderContainer from '../../../components/layout/HeaderContainer';
+import HeaderContainer from '@/components/layout/HeaderContainer';
 
 interface MixtapeViewerToolbarProps {
   mixtape: MixtapeResponse;

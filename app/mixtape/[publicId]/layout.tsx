@@ -3,10 +3,10 @@
 import React, { useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 
-import LoadingDisplay from '../../components/layout/LoadingDisplay';
-import ErrorDisplay from '../../components/layout/ErrorDisplay';
-import MainContainer from '../../components/layout/MainContainer';
-import ContentPane from '../../components/layout/ContentPane';
+import LoadingDisplay from '@/components/layout/LoadingDisplay';
+import ErrorDisplay from '@/components/layout/ErrorDisplay';
+import MainContainer from '@/components/layout/MainContainer';
+import ContentPane from '@/components/layout/ContentPane';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { MixtapeResponse } from '@/client';
 import { MixtapeContext } from '../MixtapeContext';

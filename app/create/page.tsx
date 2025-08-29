@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import MainContainer from '../components/layout/MainContainer';
-import ContentPane from '../components/layout/ContentPane';
+import MainContainer from '@/components/layout/MainContainer';
+import ContentPane from '@/components/layout/ContentPane';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function CreateMixtapePage() {
