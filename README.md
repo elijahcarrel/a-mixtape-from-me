@@ -7,7 +7,7 @@
 
 ---
 
-## What is "A Mixtape From Me"?
+## What is this?
 
 **A Mixtape From Me** is a web app for making and sharing digital mixtapes with your own personal notes— just like the mixtapes we used to make for friends and loved ones. Add tracks, write your thoughts and feelings for each song, and share a unique, heartfelt playlist.
 
@@ -21,6 +21,14 @@ Live at: [amixtapefrom.me](https://amixtapefrom.me).
 
 ## Technologies Used
 
+### Backend
+
+- **FastAPI** (Python 3.12+) with Pydantic V2
+- **PostgreSQL** (via [Neon](https://neon.tech/))
+- **SQLModel** for database models and auto-generated schema
+- **MyPy+Ruff** for typechecking and linting
+- **Auto-generated OpenAPI spec** from FastAPI
+
 ### Frontend
 
 - **Next.js 14** (React, TypeScript, SSR)
@@ -30,19 +38,11 @@ Live at: [amixtapefrom.me](https://amixtapefrom.me).
 - **ESLint+Prettier** for linting and formatting
 - **Auto-generated TypeScript types** from OpenAPI spec
 
-### Backend
-
-- **FastAPI** (Python 3.12+) with Pydantic V2
-- **PostgreSQL** (via [Neon](https://neon.tech/))
-- **SQLModel** for database models and auto-generated schema
-- **MyPy+Ruff** for typechecking and linting
-- **Auto-generated OpenAPI spec** from FastAPI
-
 ### DevOps & Hosting
 
-- **Vercel** for frontend and serverless backend deployment
+- **Neon** for serverless Postgres database
+- **Vercel** for serverless frontend and backend deployment
 - **GitHub Actions** for CI/CD (build, lint, test)
-- **Auto-generation workflow** for types, schemas, and API specs
 
 ---
 
@@ -119,17 +119,28 @@ This will return a JSON blob containing a `refresh_token`.
 
 #### Frontend & Backend (Node.js, Python)
 
-To open a Python virtual environment and install all front-end and back-end dependencies, just run `npm run setup`. Alternatively, do this manually with the following steps:
+To open a Python virtual environment and install all front-end and back-end dependencies, just run:
 
 ```bash
-# Node dependencies
-npm install
+npm run setup
+```
 
-# Python dependencies (in a virtual environment)
-python3 -m venv venv
-. venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
+Alternatively, do this manually with the following steps:
+
+##### Frontend
+
+This does an npm install to install node dependencies with npm.
+
+```bash
+npm run frontend-setup
+```
+
+##### Banckend
+
+This sets up a virtual environment, starts it, and installs Python dependencies with pip.
+
+```
+npm run backend-setup
 ```
 
 ### 4. Running the App Locally
@@ -142,23 +153,25 @@ pip install -e .
 npm run dev
 ```
 
-- This will start the Next.js frontend (on port 3000) and the FastAPI backend (on port 8000) concurrently.
+This will start the Next.js frontend (on port 3000) and the FastAPI backend (on port 8000) concurrently.
+Both will hot-reload.
 
 #### Option 2: Run Backend & Frontend Separately
 
 ##### Backend
 
+This runs a hot-reloading Python FastAPI backend with uvicorn at localhost:8000.
+
 ```bash
-. venv/bin/activate
-python3 -m uvicorn api.main:app --reload
+npm run backend-dev
 ```
 
 ##### Frontend
 
-In another terminal, run the frontend:
+This runs the hot-reloading Next.js app at localhost:3000.
 
 ```bash
-npm run dev
+npm run frontend-dev
 ```
 
 ### 5. Open the App
@@ -193,7 +206,7 @@ npm run gen-ts-from-openapi          # OpenAPI → TypeScript types
 ## Testing
 
 - **Backend:** Uses `pytest` with dependency overrides for external services (see `backend/tests/`)
-- **Frontend:** Uses Jest and React Testing Library (see `app/components/__tests__/`)
+- **Frontend:** Uses Jest and React Testing Library (see files at `app/../*.test.ts[x]`)
 
 To run all tests:
 
