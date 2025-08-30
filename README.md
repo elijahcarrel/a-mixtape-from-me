@@ -125,6 +125,8 @@ To open a Python virtual environment and install all front-end and back-end depe
 npm run setup
 ```
 
+This is idempotent and can be re-run at any time.
+
 Alternatively, do this manually with the following steps:
 
 ##### Frontend
@@ -147,9 +149,9 @@ npm run backend-setup
 
 #### Option 1: Run Both Backend & Frontend Together
 
+After running the setup script which activates your virtual environment, just run the following:
+
 ```bash
-# (Recommended) Start your Python virtual environment first
-. venv/bin/activate
 npm run dev
 ```
 
