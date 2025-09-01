@@ -238,7 +238,7 @@ describe('MixtapeLayout', () => {
 
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape', {
         method: 'POST',
-        body: expect.objectContaining({
+        body: {
           public_id: 'test-mixtape-123',
           name: 'Untitled Mixtape',
           intro_text: null,
@@ -252,8 +252,9 @@ describe('MixtapeLayout', () => {
           spotify_playlist_url: null,
           stack_auth_user_id: null,
           version: 1,
-          // Don't check timestamps as they change each time
-        }),
+          create_time: '',
+          last_modified_time: '',
+        },
       });
     });
 

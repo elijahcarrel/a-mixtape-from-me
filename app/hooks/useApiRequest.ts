@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
-import { makeAuthenticatedRequest } from './useLazyRequest';
+import { makeApiRequest } from './makeApiRequest';
 
 interface UseApiRequestOptions<T = any> {
   url: string;
@@ -45,7 +45,7 @@ export function useApiRequest<T = any>({
     setError(null);
 
     try {
-      const responseData = await makeAuthenticatedRequest(
+      const responseData = await makeApiRequest(
         url,
         { method, body, headers },
         user,

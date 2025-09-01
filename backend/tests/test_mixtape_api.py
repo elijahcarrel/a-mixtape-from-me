@@ -12,7 +12,7 @@ from backend.tests.assertion_utils import (
 
 # --- TESTS ---
 def mixtape_payload(tracks: list, public_id: str) -> dict:
-    """Create mixtape payload. public_id is now required for both POST and PUT requests."""
+    """Create mixtape payload."""
     payload = {
         "public_id": public_id,
         "name": "Test Mixtape",
