@@ -1,5 +1,4 @@
 import threading
-from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import selectinload
@@ -75,13 +74,13 @@ def create_mixtape(
     If user is authenticated, the mixtape will be associated with them. If not, it
     will remain an anonymous mixtape.
     Returns the mixtape's public ID.
-    
+
     Args:
         request: Mixtape creation request (includes client-provided public_id)
         session: Database session
         authenticated_user: Optional authenticated user
         spotify_client: Spotify client for track validation
-        
+
     Raises:
         HTTPException 409: If the public ID is already taken
     """
@@ -89,7 +88,7 @@ def create_mixtape(
     existing_mixtape = MixtapeQuery(session=session, for_update=False, options=[]).load_by_public_id(request.public_id)
     if existing_mixtape is not None:
         raise HTTPException(status_code=409, detail=f"Public ID '{request.public_id}' is already taken")
-    
+
     # Anonymous mixtapes must be public
     if authenticated_user is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")

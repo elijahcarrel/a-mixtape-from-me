@@ -219,7 +219,7 @@
                     "mixtape"
                 ],
                 "summary": "Create Mixtape",
-                "description": "Creates a new mixtape (with tracks).\nIf user is authenticated, the mixtape will be associated with them. If not, it\nwill remain an anonymous mixtape.\nReturns the mixtape's generated public ID.\nTODO: rethink the return value (maybe make an explicit for it?)",
+                "description": "Creates a new mixtape (with tracks) using the provided public ID.\nIf user is authenticated, the mixtape will be associated with them. If not, it\nwill remain an anonymous mixtape.\nReturns the mixtape's public ID.\n\nArgs:\n    request: Mixtape creation request (includes client-provided public_id)\n    session: Database session\n    authenticated_user: Optional authenticated user\n    spotify_client: Spotify client for track validation\n\nRaises:\n    HTTPException 409: If the public ID is already taken",
                 "operationId": "create_mixtape_api_mixtape_post",
                 "requestBody": {
                     "required": true,
@@ -444,7 +444,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/MixtapeRequest"
+                                "$ref": "#/components/schemas/MixtapeUpdateRequest"
                             }
                         }
                     }
@@ -675,6 +675,13 @@
             },
             "MixtapeRequest": {
                 "properties": {
+                    "public_id": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Public Id",
+                        "description": "Client-provided unique identifier for the mixtape"
+                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255,
@@ -750,6 +757,7 @@
                 },
                 "type": "object",
                 "required": [
+                    "public_id",
                     "name",
                     "tracks"
                 ],
@@ -952,6 +960,88 @@
                     "track"
                 ],
                 "title": "MixtapeTrackResponse"
+            },
+            "MixtapeUpdateRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "Human-readable name of the mixtape"
+                    },
+                    "intro_text": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Intro Text",
+                        "description": "Optional intro text"
+                    },
+                    "subtitle1": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle1",
+                        "description": "First subtitle line (max 60 characters)"
+                    },
+                    "subtitle2": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle2",
+                        "description": "Second subtitle line (max 60 characters)"
+                    },
+                    "subtitle3": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 60
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle3",
+                        "description": "Third subtitle line (max 60 characters)"
+                    },
+                    "is_public": {
+                        "type": "boolean",
+                        "title": "Is Public",
+                        "description": "Whether the mixtape is public",
+                        "default": false
+                    },
+                    "tracks": {
+                        "items": {
+                            "$ref": "#/components/schemas/MixtapeTrackRequest"
+                        },
+                        "type": "array",
+                        "title": "Tracks",
+                        "description": "List of tracks in the mixtape"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "tracks"
+                ],
+                "title": "MixtapeUpdateRequest"
             },
             "TrackAlbum": {
                 "properties": {

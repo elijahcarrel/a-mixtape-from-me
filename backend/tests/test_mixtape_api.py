@@ -11,7 +11,7 @@ from backend.tests.assertion_utils import (
 
 
 # --- TESTS ---
-def mixtape_payload(tracks: list, public_id: str = None) -> dict:
+def mixtape_payload(tracks: list, public_id: str | None = None) -> dict:
     """Create mixtape payload. Include public_id for POST requests, omit for PUT requests."""
     payload = {
         "name": "Test Mixtape",
@@ -26,7 +26,7 @@ def mixtape_payload(tracks: list, public_id: str = None) -> dict:
         payload["public_id"] = public_id
     return payload
 
-def create_mixtape_with_id(test_client, public_id: str, tracks: list, token: str = None):
+def create_mixtape_with_id(test_client, public_id: str, tracks: list, token: str | None = None):
     """Helper function to create a mixtape with a specific public_id."""
     headers = {"x-stack-access-token": token} if token else {}
     return test_client.post("/api/mixtape", json=mixtape_payload(tracks, public_id), headers=headers)
@@ -68,11 +68,11 @@ def test_public_id_collision_returns_409(client: tuple[TestClient, str, dict]) -
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     public_id = "collision-test-uuid"
-    
+
     # Create first mixtape
     resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    
+
     # Try to create second mixtape with same public_id
     resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert resp.status_code == 409
