@@ -10,7 +10,6 @@ from backend.api_models.mixtape import (
     MixtapeResponse,
     MixtapeTrackRequest,
     MixtapeTrackResponse,
-    MixtapeUpdateRequest,
 )
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_api_models.track import (
@@ -296,7 +295,7 @@ def get_mixtape(
 @router.put("/{public_id}", response_model=MixtapeResponse)
 def update_mixtape(
     public_id: str,
-    request: MixtapeUpdateRequest,
+    request: MixtapeRequest,
     session: Session = Depends(get_write_session),
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
@@ -306,6 +305,10 @@ def update_mixtape(
     Returns the new mixtape version.
     TODO: rethink the return value.
     """
+
+    # Validate that public_id in URL matches public_id in request body
+    if public_id != request.public_id:
+        raise HTTPException(status_code=400, detail=f"Public ID in URL ('{public_id}') must match public ID in request body ('{request.public_id}')")
 
     mixtape_query = MixtapeQuery(
         session=session,

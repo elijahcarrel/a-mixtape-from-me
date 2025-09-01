@@ -444,7 +444,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/MixtapeUpdateRequest"
+                                "$ref": "#/components/schemas/MixtapeRequest"
                             }
                         }
                     }
@@ -960,88 +960,6 @@
                     "track"
                 ],
                 "title": "MixtapeTrackResponse"
-            },
-            "MixtapeUpdateRequest": {
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 255,
-                        "minLength": 1,
-                        "title": "Name",
-                        "description": "Human-readable name of the mixtape"
-                    },
-                    "intro_text": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Intro Text",
-                        "description": "Optional intro text"
-                    },
-                    "subtitle1": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "maxLength": 60
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Subtitle1",
-                        "description": "First subtitle line (max 60 characters)"
-                    },
-                    "subtitle2": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "maxLength": 60
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Subtitle2",
-                        "description": "Second subtitle line (max 60 characters)"
-                    },
-                    "subtitle3": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "maxLength": 60
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Subtitle3",
-                        "description": "Third subtitle line (max 60 characters)"
-                    },
-                    "is_public": {
-                        "type": "boolean",
-                        "title": "Is Public",
-                        "description": "Whether the mixtape is public",
-                        "default": false
-                    },
-                    "tracks": {
-                        "items": {
-                            "$ref": "#/components/schemas/MixtapeTrackRequest"
-                        },
-                        "type": "array",
-                        "title": "Tracks",
-                        "description": "List of tracks in the mixtape"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "name",
-                    "tracks"
-                ],
-                "title": "MixtapeUpdateRequest"
             },
             "TrackAlbum": {
                 "properties": {

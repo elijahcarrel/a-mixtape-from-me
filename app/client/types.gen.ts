@@ -186,47 +186,6 @@ export type MixtapeTrackResponse = {
 };
 
 /**
- * MixtapeUpdateRequest
- */
-export type MixtapeUpdateRequest = {
-    /**
-     * Name
-     * Human-readable name of the mixtape
-     */
-    name: string;
-    /**
-     * Intro Text
-     * Optional intro text
-     */
-    intro_text?: string | null;
-    /**
-     * Subtitle1
-     * First subtitle line (max 60 characters)
-     */
-    subtitle1?: string | null;
-    /**
-     * Subtitle2
-     * Second subtitle line (max 60 characters)
-     */
-    subtitle2?: string | null;
-    /**
-     * Subtitle3
-     * Third subtitle line (max 60 characters)
-     */
-    subtitle3?: string | null;
-    /**
-     * Is Public
-     * Whether the mixtape is public
-     */
-    is_public?: boolean;
-    /**
-     * Tracks
-     * List of tracks in the mixtape
-     */
-    tracks: Array<MixtapeTrackRequest>;
-};
-
-/**
  * TrackAlbum
  */
 export type TrackAlbum = {
@@ -582,7 +541,7 @@ export type GetMixtapeApiMixtapePublicIdGetResponses = {
 export type GetMixtapeApiMixtapePublicIdGetResponse = GetMixtapeApiMixtapePublicIdGetResponses[keyof GetMixtapeApiMixtapePublicIdGetResponses];
 
 export type UpdateMixtapeApiMixtapePublicIdPutData = {
-    body: MixtapeUpdateRequest;
+    body: MixtapeRequest;
     path: {
         /**
          * Public Id
