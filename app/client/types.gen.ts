@@ -33,11 +33,6 @@ export type MixtapeOverview = {
  */
 export type MixtapeRequest = {
     /**
-     * Public Id
-     * Client-provided unique identifier for the mixtape
-     */
-    public_id: string;
-    /**
      * Name
      * Human-readable name of the mixtape
      */
