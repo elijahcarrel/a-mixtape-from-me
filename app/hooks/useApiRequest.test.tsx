@@ -310,6 +310,85 @@ describe('useApiRequest', () => {
     });
   });
 
+  describe('skip functionality', () => {
+    it('should not make request when skip is true', () => {
+      const { result } = renderHook(() =>
+        useApiRequest({
+          url: '/api/test',
+          skip: true,
+        })
+      );
+
+      expect(result.current.data).toBe(null);
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBe(null);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should make request when skip changes from true to false', async () => {
+      const mockResponse = { data: 'test' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const { result, rerender } = renderHook(
+        ({ skip }) => useApiRequest({ url: '/api/test', skip }),
+        {
+          initialProps: { skip: true },
+        }
+      );
+
+      // Initially skipped
+      expect(result.current.loading).toBe(false);
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Change skip to false
+      rerender({ skip: false });
+
+      expect(result.current.loading).toBe(true);
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual(mockResponse);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should allow manual refetch even when skip is true', async () => {
+      const mockResponse = { data: 'test' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const { result } = renderHook(() =>
+        useApiRequest({
+          url: '/api/test',
+          skip: true,
+        })
+      );
+
+      // Initially skipped
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Manual refetch should work
+      act(() => {
+        result.current.refetch();
+      });
+
+      expect(result.current.loading).toBe(true);
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual(mockResponse);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('dependencies and re-renders', () => {
     it('should re-fetch when URL changes', async () => {
       const mockResponse1 = { data: 'first' };

@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { debounce } from 'lodash';
-import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { formatRelativeTime } from '../util/time';
 
 export default function MyMixtapesPage() {
@@ -15,7 +15,7 @@ export default function MyMixtapesPage() {
   const LIMIT = 10;
   const [offset, setOffset] = useState(0);
 
-  const { makeRequest } = useAuthenticatedRequest();
+  const { makeRequest } = useLazyRequest();
 
   // Keep refs for debouncing and aborting
   const abortControllerRef = useRef<AbortController | null>(null);

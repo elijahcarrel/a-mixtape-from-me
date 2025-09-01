@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Formik } from 'formik';
 import { debounce } from 'lodash';
-import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -33,7 +33,7 @@ export default function MixtapeEditor({
   const [isSaving, setIsSaving] = useState(false); // request in-flight
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
-  const { makeRequest } = useAuthenticatedRequest();
+  const { makeRequest } = useLazyRequest();
   const { isAuthenticated } = useAuth();
   const currentPath = usePathname();
   const router = useRouter();

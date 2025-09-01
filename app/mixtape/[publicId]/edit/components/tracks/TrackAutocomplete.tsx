@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { debounce } from 'lodash';
 
 interface TrackSearchResult {
@@ -214,7 +214,7 @@ interface TrackAutocompleteProps {
 export default function TrackAutocomplete({
   onTrackSelect,
 }: TrackAutocompleteProps) {
-  const { makeRequest } = useAuthenticatedRequest();
+  const { makeRequest } = useLazyRequest();
 
   const searchTracks = async (
     query: string,

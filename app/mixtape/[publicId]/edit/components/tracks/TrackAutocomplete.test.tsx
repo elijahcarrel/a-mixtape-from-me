@@ -3,10 +3,10 @@ import { render, screen, fireEvent, waitFor, act } from '@/test-utils';
 import '@testing-library/jest-dom';
 import TrackAutocomplete from './TrackAutocomplete';
 
-// Mock useAuthenticatedRequest
+// Mock useLazyRequest
 const mockMakeRequest = jest.fn();
-jest.mock('@/hooks/useAuthenticatedRequest', () => ({
-  useAuthenticatedRequest: () => ({
+jest.mock('@/hooks/useLazyRequest', () => ({
+  useLazyRequest: () => ({
     makeRequest: mockMakeRequest,
   }),
 }));
