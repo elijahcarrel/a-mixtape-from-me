@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import LoadingDisplay from '@/components/layout/LoadingDisplay';
 import ErrorDisplay from '@/components/layout/ErrorDisplay';
 import MainContainer from '@/components/layout/MainContainer';
 import ContentPane from '@/components/layout/ContentPane';
 import { useApiRequest } from '@/hooks/useApiRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
+import { useAuth } from '@/hooks/useAuth';
 import { MixtapeResponse } from '@/client';
 import { MixtapeContext } from '../MixtapeContext';
 
@@ -17,8 +19,25 @@ interface MixtapeLayoutProps {
 
 export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const params = useParams();
+  const router = useRouter();
   const publicId = params.publicId as string;
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth({
+    requireAuth: false,
+  });
+  const { makeRequest } = useLazyRequest();
+  const isCreateMode = publicId === 'new';
+  const [isFirstLoadAfterCreate, setIsFirstLoadAfterCreate] = useState(false);
 
+  // Local state to track mixtape updates from editor (for optimistic updates)
+  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
+    null
+  );
+
+  // State for create mode.
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // Fetch existing mixtape from server (skip if create mode)
   const {
     data: mixtape,
     loading,
@@ -27,38 +46,107 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   } = useApiRequest<MixtapeResponse>({
     url: `/api/mixtape/${publicId}`,
     method: 'GET',
+    skip: isCreateMode || isCreating,
   });
 
-  // Local state to track mixtape updates from editor
-  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
-    null
-  );
-  // Handle updates from the editor (save, undo, redo)
-  const handleMixtapeUpdateViaAnotherEndpoint = useCallback(
-    (updatedMixtape: MixtapeResponse) => {
-      setLocalMixtape(updatedMixtape);
-    },
-    []
+  // Create initial mixtape object for immediate rendering in create mode
+  const createInitialMixtape = useCallback(
+    (): MixtapeResponse => ({
+      public_id: publicId,
+      name: 'Untitled Mixtape',
+      intro_text: null,
+      subtitle1: null,
+      subtitle2: null,
+      subtitle3: null,
+      is_public: !isAuthenticated, // Default to private if authenticated, public if not
+      create_time: '', // Will be set by server
+      last_modified_time: '', // Will be set by server
+      stack_auth_user_id: null, // Will be set by server
+      version: 1,
+      can_undo: false,
+      can_redo: false,
+      spotify_playlist_url: null,
+      tracks: [],
+    }),
+    [publicId, isAuthenticated]
   );
 
-  // Use local state if available, otherwise use API response
-  const currentMixtape = localMixtape || mixtape;
+  // ---- FIX: Fire-once create logic ----
+  const hasCreatedRef = useRef(false);
+
+  useEffect(() => {
+    if (
+      hasCreatedRef.current || // already ran
+      createError || // already errored
+      !isCreateMode || // not in create mode
+      isAuthLoading // not ready to run yet
+    ) {
+      return;
+    }
+
+    hasCreatedRef.current = true;
+
+    // Create mixtape on server in background
+    (async () => {
+      const initialMixtape = createInitialMixtape();
+      setLocalMixtape(initialMixtape);
+      setIsCreating(true);
+      setIsFirstLoadAfterCreate(true);
+
+      try {
+        const mixtape = await makeRequest<MixtapeResponse>('/api/mixtape', {
+          method: 'POST',
+          body: initialMixtape,
+        });
+        const newUrl = `/mixtape/${mixtape.public_id}/edit`;
+        router.replace(newUrl, { scroll: false });
+      } catch (err: any) {
+          setCreateError(err.message || 'Failed to create mixtape');
+      } finally {
+        setIsCreating(false);
+      }
+    })();
+
+    // Intentionally NOT including router, makeRequest, createInitialMixtape
+    // to ensure this only fires once. These references are stable enough.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreateMode, isAuthLoading, createError]);
+
+  useEffect(() => {
+    if (isFirstLoadAfterCreate && !loading && !isCreateMode) {
+      setIsFirstLoadAfterCreate(false);
+    }
+  }, [isFirstLoadAfterCreate, loading, isCreateMode]);
+
+  // Determine which mixtape to use (priority: local updates > initial mixtape -> loaded server data)
+  const currentMixtape =
+    localMixtape || (isCreateMode ? createInitialMixtape() : mixtape);
+
+  // Handle updates from the editor (save, undo, redo)
+  const handleMixtapeUpdate = useCallback((updatedMixtape: MixtapeResponse) => {
+    setLocalMixtape(updatedMixtape);
+  }, []);
 
   const handleRefetch = useCallback(async () => {
     await refetch();
-    // Now that the mixtape has been refetched, we can clear the local state.
-    setLocalMixtape(null);
+    setLocalMixtape(null); // Clear local state after fetching fresh data
   }, [refetch]);
 
-  if (loading) {
+  // Loading state
+  const isLoading = !currentMixtape && loading && !isFirstLoadAfterCreate;
+  if (isLoading) {
+    console.log('loading: ', loading, 'currentMixtape: ', currentMixtape, 'mixtape: ', mixtape, 'localMixtape: ', localMixtape, 'isCreateMode: ', isCreateMode, 'isAuthLoading: ', isAuthLoading, 'createError: ', createError, 'error: ', error, 'publicId: ', publicId, 'isFirstLoadAfterCreate: ', isFirstLoadAfterCreate);
     return <LoadingDisplay message="Loading mixtape..." />;
   }
 
-  if (error || !currentMixtape) {
+  // Error state
+  if (createError || error || !currentMixtape) {
     return (
       <MainContainer>
         <ContentPane>
-          <ErrorDisplay message={error ?? 'Mixtape not found'} />
+          <ErrorDisplay
+            message={(createError || error) ?? 'Mixtape not found'}
+          />
           <div className="text-center mt-4">
             <button
               onClick={handleRefetch}
@@ -77,7 +165,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
       value={{
         mixtape: currentMixtape,
         refetch: handleRefetch,
-        onMixtapeUpdated: handleMixtapeUpdateViaAnotherEndpoint,
+        onMixtapeUpdated: handleMixtapeUpdate,
       }}
     >
       {children}

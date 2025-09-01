@@ -2,15 +2,19 @@ import React, { act } from 'react';
 import { render, screen } from '@/test-utils';
 import '@testing-library/jest-dom';
 import { useApiRequest } from '@/hooks/useApiRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { MixtapeResponse } from '@/client';
 import MixtapeLayout from './layout';
 
 // Mock next/navigation
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
+const mockSearchParams = new URLSearchParams();
 
 jest.mock('next/navigation', () => ({
   useParams: () => ({ publicId: 'test-mixtape-123' }),
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 // Mock useApiRequest
@@ -19,6 +23,16 @@ jest.mock('@/hooks/useApiRequest', () => {
     useApiRequest: jest.fn(),
   };
 });
+
+// Mock useLazyRequest
+jest.mock('@/hooks/useLazyRequest', () => ({
+  useLazyRequest: jest.fn(() => ({ makeRequest: jest.fn() })),
+}));
+
+// Mock useAuth
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: jest.fn(() => ({ isAuthenticated: false })),
+}));
 
 // Mock displays for predictable querying
 jest.mock('@/components/layout/LoadingDisplay', () => {
@@ -33,6 +47,7 @@ jest.mock('@/components/layout/ErrorDisplay', () => {
   };
 });
 const mockUseApiRequest = useApiRequest as jest.Mock;
+const mockUseLazyRequest = useLazyRequest as jest.Mock;
 
 const fakeMixtape: MixtapeResponse = {
   public_id: 'test-mixtape-123',
@@ -96,6 +111,13 @@ describe('MixtapeLayout', () => {
       </MixtapeLayout>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
+
+    // Should have called useApiRequest with skip: false (default)
+    expect(mockUseApiRequest).toHaveBeenCalledWith({
+      url: '/api/mixtape/test-mixtape-123',
+      method: 'GET',
+      skip: false,
+    });
   });
 
   it('renders an error display when the API request fails', () => {
@@ -144,5 +166,168 @@ describe('MixtapeLayout', () => {
 
     // useApiRequest should have been called exactly once (initial mount)
     expect(mockUseApiRequest).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Create Mode', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset search params
+      mockSearchParams.delete('create');
+    });
+
+    it('renders initial mixtape immediately in create mode', () => {
+      mockSearchParams.set('create', 'true');
+
+      const mockMakeRequest = jest.fn();
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false, // Should not be loading when skipped
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Should render children immediately with initial mixtape
+      expect(screen.getByTestId('child')).toBeInTheDocument();
+      expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
+
+      // Should have called useApiRequest with skip: true
+      expect(mockUseApiRequest).toHaveBeenCalledWith({
+        url: '/api/mixtape/test-mixtape-123',
+        method: 'GET',
+        skip: true,
+      });
+    });
+
+    it('makes POST request and removes URL parameter in create mode', async () => {
+      mockSearchParams.set('create', 'true');
+
+      const mockMakeRequest = jest.fn().mockResolvedValue(fakeMixtape);
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false, // Should not be loading when skipped
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Should immediately replace URL to remove create parameter
+      expect(mockReplace).toHaveBeenCalledWith(
+        '/mixtape/test-mixtape-123/edit',
+        { scroll: false }
+      );
+
+      // Should make POST request to create mixtape
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0)); // Wait for useEffect
+      });
+
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape', {
+        method: 'POST',
+        body: {
+          public_id: 'test-mixtape-123',
+          name: 'Untitled Mixtape',
+          intro_text: null,
+          subtitle1: null,
+          subtitle2: null,
+          subtitle3: null,
+          is_public: true, // Should be true for unauthenticated users
+          tracks: [],
+          can_undo: false,
+          can_redo: false,
+          spotify_playlist_url: null,
+          stack_auth_user_id: null,
+          version: 1,
+          create_time: '',
+          last_modified_time: '',
+        },
+      });
+    });
+
+    it('handles create mode errors gracefully', async () => {
+      mockSearchParams.set('create', 'true');
+
+      const mockMakeRequest = jest
+        .fn()
+        .mockRejectedValue(new Error('Server error'));
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false, // Should not be loading when skipped
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Wait for create request to fail
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should show error display
+      expect(screen.getByTestId('error-display')).toBeInTheDocument();
+      expect(screen.getByText('Server error')).toBeInTheDocument();
+    });
+
+    it('handles 409 conflict gracefully by ignoring error', async () => {
+      mockSearchParams.set('create', 'true');
+
+      const mockMakeRequest = jest
+        .fn()
+        .mockRejectedValue(new Error('409 Public ID already taken'));
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false, // Should not be loading when skipped
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Wait for create request and conflict resolution
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should render children (no error display) - 409 errors are silently ignored
+      expect(screen.getByTestId('child')).toBeInTheDocument();
+      expect(screen.queryByTestId('error-display')).not.toBeInTheDocument();
+
+      // Should have made only the create request (409 errors don't trigger refetch)
+      expect(mockMakeRequest).toHaveBeenCalledTimes(1);
+      expect(mockMakeRequest).toHaveBeenCalledWith(
+        '/api/mixtape',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.objectContaining({ public_id: 'test-mixtape-123' }),
+        })
+      );
+    });
   });
 });
