@@ -1,21 +1,24 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
-import { useMemo } from 'react';
 
 export default function Home() {
-  // Generate a new UUID for the mixtape
-  const newMixtapeId = useMemo(() => uuidv4(), []);
+  const router = useRouter();
+
+  const handleCreateMixtape = () => {
+    const newMixtapeId = uuidv4();
+    router.push(`/mixtape/${newMixtapeId}/edit?create=true`);
+  };
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <Link
-        href={`/mixtape/${newMixtapeId}/edit?create=true`}
-        className="text-lg hover:underline"
+      <button
+        onClick={handleCreateMixtape}
+        className="text-lg hover:underline cursor-pointer"
       >
         Create a new mixtape
-      </Link>
+      </button>
     </div>
   );
 }
