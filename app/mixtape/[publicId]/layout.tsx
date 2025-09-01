@@ -29,7 +29,8 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   // Local state to track mixtape updates from editor (for optimistic updates)
   const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(null);
   
-  // State for create mode
+  // State for create mode.
+  const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
   // Fetch existing mixtape from server (skip if create mode)
@@ -41,6 +42,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   } = useApiRequest<MixtapeResponse>({
     url: `/api/mixtape/${publicId}`,
     method: 'GET',
+    skip: isCreateMode || isCreating,
   });
 
   // Create initial mixtape object for immediate rendering in create mode
@@ -77,6 +79,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
     // Create mixtape on server in background
     (async () => {
+      setIsCreating(true);
       try {
         await makeRequest<MixtapeResponse>('/api/mixtape', {
           method: 'POST',
@@ -89,6 +92,8 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
         ) {
           setCreateError(err.message || 'Failed to create mixtape');
         }
+      } finally {
+        setIsCreating(false);
       }
     })();
 
@@ -99,7 +104,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
   // Determine which mixtape to use (priority: local updates > initial mixtape -> loaded server data)
   const currentMixtape = localMixtape || 
-                        (isCreateMode ? createInitialMixtape() : mixtape);
+                        (isCreateMode || isCreating ? createInitialMixtape() : mixtape);
 
   // Handle updates from the editor (save, undo, redo)
   const handleMixtapeUpdate = useCallback(

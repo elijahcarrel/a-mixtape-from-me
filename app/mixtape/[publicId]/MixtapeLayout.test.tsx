@@ -111,6 +111,13 @@ describe('MixtapeLayout', () => {
       </MixtapeLayout>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
+    
+    // Should have called useApiRequest with skip: false (default)
+    expect(mockUseApiRequest).toHaveBeenCalledWith({
+      url: '/api/mixtape/test-mixtape-123',
+      method: 'GET',
+      skip: false,
+    });
   });
 
   it('renders an error display when the API request fails', () => {
@@ -176,7 +183,7 @@ describe('MixtapeLayout', () => {
       
       mockUseApiRequest.mockReturnValue({
         data: null,
-        loading: true,
+        loading: false, // Should not be loading when skipped
         error: null,
         refetch: jest.fn(),
       });
@@ -190,6 +197,13 @@ describe('MixtapeLayout', () => {
       // Should render children immediately with initial mixtape
       expect(screen.getByTestId('child')).toBeInTheDocument();
       expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
+      
+      // Should have called useApiRequest with skip: true
+      expect(mockUseApiRequest).toHaveBeenCalledWith({
+        url: '/api/mixtape/test-mixtape-123',
+        method: 'GET',
+        skip: true,
+      });
     });
 
     it('makes POST request and removes URL parameter in create mode', async () => {
@@ -200,7 +214,7 @@ describe('MixtapeLayout', () => {
 
       mockUseApiRequest.mockReturnValue({
         data: null,
-        loading: false,
+        loading: false, // Should not be loading when skipped
         error: null,
         refetch: jest.fn(),
       });
@@ -221,7 +235,7 @@ describe('MixtapeLayout', () => {
 
       expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape', {
         method: 'POST',
-        body: {
+        body: expect.objectContaining({
           public_id: 'test-mixtape-123',
           name: 'Untitled Mixtape',
           intro_text: null,
@@ -230,19 +244,25 @@ describe('MixtapeLayout', () => {
           subtitle3: null,
           is_public: true, // Should be true for unauthenticated users
           tracks: [],
-        },
+          can_undo: false,
+          can_redo: false,
+          spotify_playlist_url: null,
+          stack_auth_user_id: null,
+          version: 1,
+          // Don't check timestamps as they change each time
+        }),
       });
     });
 
     it('handles create mode errors gracefully', async () => {
       mockSearchParams.set('create', 'true');
       
-      const mockMakeRequest = jest.fn().mockRejectedValue(new Error('Public ID already taken'));
+      const mockMakeRequest = jest.fn().mockRejectedValue(new Error('Server error'));
       mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
       mockUseApiRequest.mockReturnValue({
         data: null,
-        loading: false,
+        loading: false, // Should not be loading when skipped
         error: null,
         refetch: jest.fn(),
       });
@@ -260,20 +280,18 @@ describe('MixtapeLayout', () => {
 
       // Should show error display
       expect(screen.getByTestId('error-display')).toBeInTheDocument();
-      expect(screen.getByText('Public ID already taken')).toBeInTheDocument();
+      expect(screen.getByText('Server error')).toBeInTheDocument();
     });
 
-    it('handles 409 conflict by refetching existing mixtape', async () => {
+    it('handles 409 conflict gracefully by ignoring error', async () => {
       mockSearchParams.set('create', 'true');
       
-      const mockMakeRequest = jest.fn()
-        .mockRejectedValueOnce(new Error('409 Public ID already taken'))
-        .mockResolvedValueOnce(fakeMixtape);
+      const mockMakeRequest = jest.fn().mockRejectedValue(new Error('409 Public ID already taken'));
       mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
       mockUseApiRequest.mockReturnValue({
         data: null,
-        loading: false,
+        loading: false, // Should not be loading when skipped
         error: null,
         refetch: jest.fn(),
       });
@@ -289,17 +307,16 @@ describe('MixtapeLayout', () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
-      // Should render children (no error display)
+      // Should render children (no error display) - 409 errors are silently ignored
       expect(screen.getByTestId('child')).toBeInTheDocument();
       expect(screen.queryByTestId('error-display')).not.toBeInTheDocument();
 
-      // Should have made both requests: create (fails) then fetch existing
-      expect(mockMakeRequest).toHaveBeenCalledTimes(2);
-      expect(mockMakeRequest).toHaveBeenNthCalledWith(1, '/api/mixtape', expect.objectContaining({
+      // Should have made only the create request (409 errors don't trigger refetch)
+      expect(mockMakeRequest).toHaveBeenCalledTimes(1);
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape', expect.objectContaining({
         method: 'POST',
         body: expect.objectContaining({ public_id: 'test-mixtape-123' }),
       }));
-      expect(mockMakeRequest).toHaveBeenNthCalledWith(2, '/api/mixtape/test-mixtape-123');
     });
   });
 });

@@ -8,6 +8,7 @@ interface UseApiRequestOptions<T = any> {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: any;
   headers?: Record<string, string>;
+  skip?: boolean;
   onSuccess?: (data: T) => void;
   onError?: (error: string) => void;
 }
@@ -29,11 +30,12 @@ export function useApiRequest<T = any>({
   method = 'GET',
   body,
   headers = {},
+  skip = false,
   onSuccess,
   onError,
 }: UseApiRequestOptions<T>): UseApiRequestReturn<T> {
   const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const user = useUser();
@@ -61,10 +63,12 @@ export function useApiRequest<T = any>({
   };
 
   useEffect(() => {
-    makeRequest();
+    if (!skip) {
+      makeRequest();
+    }
     // TODO: fix this. Error is "React Hook useEffect has a missing dependency: 'makeRequest'. Either include it or remove the dependency array."
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, user]); // Re-run when URL or user changes
+  }, [url, user, skip]); // Re-run when URL, user, or skip changes
 
   const refetch = () => {
     makeRequest();
