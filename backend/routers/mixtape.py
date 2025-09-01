@@ -65,18 +65,32 @@ def parse_track(track: MixtapeTrackRequest, spotify_client: SpotifyClient) -> Mi
 @router.post("", response_model=MixtapeResponse, status_code=201)
 def create_mixtape(
     request: MixtapeRequest,
+    public_id: str = Query(..., description="Client-provided public ID for the mixtape"),
     session: Session = Depends(get_write_session),
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     """
-    Creates a new mixtape (with tracks).
+    Creates a new mixtape (with tracks) using the provided public ID.
     If user is authenticated, the mixtape will be associated with them. If not, it
     will remain an anonymous mixtape.
-    Returns the mixtape's generated public ID.
-    TODO: rethink the return value (maybe make an explicit for it?)
-
+    Returns the mixtape's public ID.
+    
+    Args:
+        request: Mixtape creation request
+        public_id: Client-provided public ID (must be unique)
+        session: Database session
+        authenticated_user: Optional authenticated user
+        spotify_client: Spotify client for track validation
+        
+    Raises:
+        HTTPException 400: If the public ID is already taken
     """
+    # Check if public ID is already taken
+    existing_mixtape = MixtapeQuery(session=session, for_update=False, options=[]).load_by_public_id(public_id)
+    if existing_mixtape is not None:
+        raise HTTPException(status_code=400, detail=f"Public ID '{public_id}' is already taken")
+    
     # Anonymous mixtapes must be public
     if authenticated_user is None and not request.is_public:
         raise HTTPException(status_code=400, detail="Anonymous mixtapes must be public")
@@ -86,9 +100,6 @@ def create_mixtape(
 
     # Validate and enrich tracks
     tracks = [parse_track(track, spotify_client) for track in request.tracks]
-
-    # Generate a public ID
-    public_id=str(uuid4())
 
     mixtape = Mixtape(
         stack_auth_user_id=stack_auth_user_id,

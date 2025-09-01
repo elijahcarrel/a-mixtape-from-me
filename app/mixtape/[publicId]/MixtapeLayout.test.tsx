@@ -7,10 +7,13 @@ import MixtapeLayout from './layout';
 
 // Mock next/navigation
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
+const mockSearchParams = new URLSearchParams();
 
 jest.mock('next/navigation', () => ({
   useParams: () => ({ publicId: 'test-mixtape-123' }),
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 // Mock useApiRequest
@@ -19,6 +22,11 @@ jest.mock('@/hooks/useApiRequest', () => {
     useApiRequest: jest.fn(),
   };
 });
+
+// Mock useAuth
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: jest.fn(() => ({ isAuthenticated: false })),
+}));
 
 // Mock displays for predictable querying
 jest.mock('@/components/layout/LoadingDisplay', () => {
@@ -144,5 +152,116 @@ describe('MixtapeLayout', () => {
 
     // useApiRequest should have been called exactly once (initial mount)
     expect(mockUseApiRequest).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Create Mode', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset search params
+      mockSearchParams.delete('create');
+      global.fetch = jest.fn();
+    });
+
+    it('renders initial mixtape immediately in create mode', () => {
+      mockSearchParams.set('create', 'true');
+      
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Should render children immediately with initial mixtape
+      expect(screen.getByTestId('child')).toBeInTheDocument();
+      expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
+    });
+
+    it('makes POST request and removes URL parameter in create mode', async () => {
+      mockSearchParams.set('create', 'true');
+      
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(fakeMixtape),
+      });
+      global.fetch = mockFetch;
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Should immediately replace URL to remove create parameter
+      expect(mockReplace).toHaveBeenCalledWith('/mixtape/test-mixtape-123/edit', { scroll: false });
+
+      // Should make POST request to create mixtape
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0)); // Wait for useEffect
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/mixtape?public_id=test-mixtape-123',
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: 'Untitled Mixtape',
+            intro_text: null,
+            subtitle1: null,
+            subtitle2: null,
+            subtitle3: null,
+            is_public: true, // Should be true for unauthenticated users
+            tracks: [],
+          }),
+        })
+      );
+    });
+
+    it('handles create mode errors gracefully', async () => {
+      mockSearchParams.set('create', 'true');
+      
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: () => Promise.resolve({ detail: 'Public ID already taken' }),
+      });
+      global.fetch = mockFetch;
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Wait for create request to fail
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should show error display
+      expect(screen.getByTestId('error-display')).toBeInTheDocument();
+      expect(screen.getByText('Public ID already taken')).toBeInTheDocument();
+    });
   });
 });

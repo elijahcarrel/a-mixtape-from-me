@@ -22,16 +22,22 @@ def mixtape_payload(tracks: list) -> dict:
         "tracks": tracks
     }
 
+def create_mixtape_with_id(test_client, public_id: str, tracks: list, token: str = None):
+    """Helper function to create a mixtape with a specific public_id."""
+    headers = {"x-stack-access-token": token} if token else {}
+    return test_client.post(f"/api/mixtape?public_id={public_id}", json=mixtape_payload(tracks), headers=headers)
+
 def test_create_and_get_mixtape(client: tuple[TestClient, str, dict]) -> None:
     test_client, token, _ = client
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"},
         {"track_position": 2, "track_text": "Second", "spotify_uri": "spotify:track:track2"}
     ]
-    # Create
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    # Create with client-provided public_id
+    public_id = "test-uuid-123"
+    resp = test_client.post(f"/api/mixtape?public_id={public_id}", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
+    assert resp.json()["public_id"] == public_id
     # Get
     resp = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
     assert_response_success(resp)
@@ -51,6 +57,23 @@ def test_create_and_get_mixtape(client: tuple[TestClient, str, dict]) -> None:
         assert t["track"]["id"] == f"{t['track']['uri'].replace('spotify:track:', '')}"
         assert t["track"]["name"] == expected_name
 
+def test_public_id_collision_returns_400(client: tuple[TestClient, str, dict]) -> None:
+    """Test that using an already-taken public ID returns a 400 error."""
+    test_client, token, _ = client
+    tracks = [
+        {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
+    ]
+    public_id = "collision-test-uuid"
+    
+    # Create first mixtape
+    resp = test_client.post(f"/api/mixtape?public_id={public_id}", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert_response_created(resp)
+    
+    # Try to create second mixtape with same public_id
+    resp = test_client.post(f"/api/mixtape?public_id={public_id}", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    assert resp.status_code == 400
+    assert "already taken" in resp.json()["detail"]
+
 def test_spotify_export_create_and_update(client: tuple[TestClient, str, dict], app) -> None:
     """Test creating a Spotify playlist and then updating it idempotently."""
     test_client, token, _ = client
@@ -59,13 +82,13 @@ def test_spotify_export_create_and_update(client: tuple[TestClient, str, dict], 
         {"track_position": 2, "track_text": "Second", "spotify_uri": "spotify:track:track2"},
     ]
     # Create mixtape
+    public_id = "spotify-export-test-uuid"
     resp = test_client.post(
-        "/api/mixtape",
+        f"/api/mixtape?public_id={public_id}",
         json=mixtape_payload(tracks),
         headers={"x-stack-access-token": token},
     )
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Export to Spotify for the first time (should create playlist)
     resp_export1 = test_client.post(
@@ -101,9 +124,9 @@ def test_edit_mixtape_add_remove_modify_tracks(client: tuple[TestClient, str, di
         {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:track1"},
         {"track_position": 2, "track_text": "B", "spotify_uri": "spotify:track:track2"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "edit-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Edit: remove track 2, add track 3, modify track 1
     new_tracks = [
         {"track_position": 1, "track_text": "A-modified", "spotify_uri": "spotify:track:track1"},
@@ -131,7 +154,8 @@ def test_duplicate_track_position_rejected(client: tuple[TestClient, str, dict])
         {"track_position": 1, "track_text": "A", "spotify_uri": "spotify:track:track1"},
         {"track_position": 1, "track_text": "B", "spotify_uri": "spotify:track:track2"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "duplicate-pos-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     # Should not create mixtape with duplicate track positions
     assert resp.status_code in [422, 400], f"Expected 422 or 400, got {resp.status_code}. Response: {resp.text}"
 
@@ -147,13 +171,14 @@ def test_list_my_mixtapes_pagination_and_search(client: tuple[TestClient, str, d
     track_ids = ["track1", "track2", "track3", "track4", "track5"]
     public_ids = []
     for i, name in enumerate(names):
+        public_id = f"pagination-test-uuid-{i}"
         resp = test_client.post(
-            "/api/mixtape/",
+            f"/api/mixtape?public_id={public_id}",
             json={"name": name, "intro_text": "", "is_public": True, "tracks": [{"track_position": 1, "track_text": name, "spotify_uri": f"spotify:track:{track_ids[i]}"}]},
             headers={"x-stack-access-token": token},
         )
         assert_response_created(resp)
-        public_ids.append(resp.json()["public_id"])
+        public_ids.append(public_id)
     # Test limit
     resp = test_client.get("/api/mixtape?limit=2", headers={"x-stack-access-token": token})
     assert_response_success(resp)
@@ -183,9 +208,9 @@ def test_public_mixtape_viewable_by_unauthenticated_user(client: tuple[TestClien
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create public mixtape
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "public-view-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Unauthenticated GET should succeed
     resp = test_client.get(f"/api/mixtape/{public_id}")
     assert_response_success(resp)
@@ -202,9 +227,9 @@ def test_only_owner_can_edit_mixtape(client: tuple[TestClient, str, dict], app) 
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create mixtape as user1
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "owner-edit-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Register a second user
     mock_auth = app.dependency_overrides[auth.get_stack_auth_backend]()
     user2 = {"id": "user456", "email": "other@example.com", "name": "Other User"}
@@ -222,9 +247,9 @@ def test_create_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> None:
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create anonymous mixtape (no auth header)
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "anon-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Verify it's viewable by anyone
     resp = test_client.get(f"/api/mixtape/{public_id}")
     assert_response_success(resp)
@@ -238,9 +263,9 @@ def test_claim_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> None:
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create anonymous mixtape
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "claim-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Claim it
     resp = test_client.post(f"/api/mixtape/{public_id}/claim", headers={"x-stack-access-token": token})
     assert_response_success(resp)
@@ -259,9 +284,9 @@ def test_cannot_claim_already_claimed_mixtape(client: tuple[TestClient, str, dic
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create anonymous mixtape
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "claim-already-claimed-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Claim it
     resp = test_client.post(f"/api/mixtape/{public_id}/claim", headers={"x-stack-access-token": token})
     assert_response_success(resp)
@@ -276,9 +301,9 @@ def test_edit_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> None:
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create anonymous mixtape
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "edit-anon-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Edit it without authentication (should work for anonymous mixtapes)
     new_tracks = [
         {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"},
@@ -301,7 +326,8 @@ def test_anonymous_mixtapes_not_in_user_list(client: tuple[TestClient, str, dict
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create anonymous mixtape
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "anon-not-in-list-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
     # Verify it doesn't appear in user's list
     resp = test_client.get("/api/mixtape", headers={"x-stack-access-token": token})
@@ -315,9 +341,9 @@ def test_claim_then_edit_restricted(client: tuple[TestClient, str, dict], app) -
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create anonymous mixtape
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "claim-then-edit-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Claim it
     resp = test_client.post(f"/api/mixtape/{public_id}/claim", headers={"x-stack-access-token": token})
     assert_response_success(resp)
@@ -344,12 +370,14 @@ def test_anonymous_mixtape_must_be_public(client: tuple[TestClient, str, dict]) 
         "is_public": False,  # This should cause the error
         "tracks": tracks
     }
-    resp = test_client.post("/api/mixtape", json=payload)
+    public_id = "anon-private-test-uuid"
+    resp = test_client.post(f"/api/mixtape?public_id={public_id}", json=payload)
     assert resp.status_code == 400
     assert "Anonymous mixtapes must be public" in resp.json()["detail"]
     # Verify anonymous public mixtape still works
     payload["is_public"] = True
-    resp = test_client.post("/api/mixtape", json=payload)
+    public_id = "anon-public-test-uuid"
+    resp = test_client.post(f"/api/mixtape?public_id={public_id}", json=payload)
     assert_response_created(resp)
 
 def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClient, str, dict]) -> None:
@@ -358,9 +386,9 @@ def test_anonymous_mixtape_cannot_be_made_private_via_put(client: tuple[TestClie
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
     # Create anonymous mixtape
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "anon-private-put-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
     # Try to make it private via PUT (should fail)
     payload = {
         "name": "Test Mixtape",
@@ -398,8 +426,9 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
     create_tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
+    public_id = "concurrent-test-uuid"
     resp_create = test_client.post(
-        "/api/mixtape",
+        f"/api/mixtape?public_id={public_id}",
         json={
             "name": "Initial Mixtape",
             "intro_text": "Intro",
@@ -409,7 +438,6 @@ def test_concurrent_put_requests_processed_sequentially(client: tuple[TestClient
         headers={"x-stack-access-token": token},
     )
     assert_response_created(resp_create)
-    public_id = resp_create.json()["public_id"]
 
     # Enable test pause mechanism before issuing PUT requests
     mixtape_router._TEST_PAUSE_EVENT = threading.Event()
@@ -487,9 +515,9 @@ def test_undo_mixtape_basic(client: tuple[TestClient, str, dict]) -> None:
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "undo-basic-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Edit mixtape
     new_tracks = [
@@ -519,9 +547,9 @@ def test_redo_mixtape_basic(client: tuple[TestClient, str, dict]) -> None:
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "redo-basic-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     new_tracks = [
         {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
@@ -553,9 +581,9 @@ def test_undo_redo_chain(client: tuple[TestClient, str, dict]) -> None:
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "undo-redo-chain-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Edit 1: Add track
     new_tracks = [
@@ -609,9 +637,9 @@ def test_edit_breaks_redo_chain(client: tuple[TestClient, str, dict]) -> None:
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "edit-breaks-redo-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     new_tracks = [
         {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
@@ -642,9 +670,9 @@ def test_cannot_undo_new_mixtape(client: tuple[TestClient, str, dict]) -> None:
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "cannot-undo-new-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Try to undo - should fail
     resp = test_client.post(f"/api/mixtape/{public_id}/undo", headers={"x-stack-access-token": token})
@@ -658,9 +686,9 @@ def test_cannot_redo_mixtape_without_undo(client: tuple[TestClient, str, dict]) 
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "cannot-redo-without-undo-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Try to redo - should fail
     resp = test_client.post(f"/api/mixtape/{public_id}/redo", headers={"x-stack-access-token": token})
@@ -675,9 +703,9 @@ def test_undo_redo_anonymous_mixtape(client: tuple[TestClient, str, dict]) -> No
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks))
+    public_id = "undo-redo-anon-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Edit anonymous mixtape
     new_tracks = [
@@ -707,9 +735,9 @@ def test_undo_redo_private_mixtape_requires_auth(client: tuple[TestClient, str, 
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json={"name": "Private Mixtape", "intro_text": "Private!", "is_public": False, "tracks": tracks}, headers={"x-stack-access-token": token})
+    public_id = "private-auth-test-uuid"
+    resp = test_client.post(f"/api/mixtape?public_id={public_id}", json={"name": "Private Mixtape", "intro_text": "Private!", "is_public": False, "tracks": tracks}, headers={"x-stack-access-token": token})
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Edit to create undo history
     new_tracks = [
@@ -744,9 +772,9 @@ def test_undo_redo_preserves_tracks(client: tuple[TestClient, str, dict]) -> Non
         {"track_position": 1, "track_text": "First Track", "spotify_uri": "spotify:track:track1"},
         {"track_position": 2, "track_text": "Second Track", "spotify_uri": "spotify:track:track2"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "undo-redo-tracks-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Edit tracks
     new_tracks = [
@@ -785,9 +813,9 @@ def test_undo_redo_concurrent_requests(client: tuple[TestClient, str, dict]) -> 
     tracks = [
         {"track_position": 1, "track_text": "First", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "concurrent-undo-redo-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     new_tracks = [
         {"track_position": 1, "track_text": "Modified", "spotify_uri": "spotify:track:track1"}
@@ -862,9 +890,9 @@ def test_append_only_version_history_basic_scenario(client: tuple[TestClient, st
     tracks = [
         {"track_position": 1, "track_text": "Original Track", "spotify_uri": "spotify:track:track1"}
     ]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "append-only-basic-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     # Verify initial state
     resp = test_client.get(f"/api/mixtape/{public_id}", headers={"x-stack-access-token": token})
@@ -909,9 +937,9 @@ def test_append_only_double_undo_scenario(client: tuple[TestClient, str, dict]) 
 
     # Setup: Create mixtape and make 4 edits to reach version 5
     tracks = [{"track_position": 1, "track_text": "Original", "spotify_uri": "spotify:track:track1"}]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "double-undo-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     for i in range(2, 6):
         new_tracks = [{"track_position": 1, "track_text": f"Version {i}", "spotify_uri": "spotify:track:track1"}]
@@ -942,9 +970,9 @@ def test_append_only_redo_after_undo_scenario(client: tuple[TestClient, str, dic
 
     # Setup: Create mixtape and make 4 edits to reach version 5
     tracks = [{"track_position": 1, "track_text": "Original", "spotify_uri": "spotify:track:track1"}]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "redo-after-undo-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     for i in range(2, 6):
         new_tracks = [{"track_position": 1, "track_text": f"Version {i}", "spotify_uri": "spotify:track:track1"}]
@@ -972,9 +1000,9 @@ def test_append_only_edit_after_undo_breaks_chain(client: tuple[TestClient, str,
 
     # Setup: Create mixtape and make 4 edits to reach version 5
     tracks = [{"track_position": 1, "track_text": "Original", "spotify_uri": "spotify:track:track1"}]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "edit-after-undo-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     for i in range(2, 6):
         new_tracks = [{"track_position": 1, "track_text": f"Version {i}", "spotify_uri": "spotify:track:track1"}]
@@ -1010,9 +1038,9 @@ def test_append_only_versions_always_increment(client: tuple[TestClient, str, di
 
     # Create mixtape
     tracks = [{"track_position": 1, "track_text": "Track", "spotify_uri": "spotify:track:track1"}]
-    resp = test_client.post("/api/mixtape", json=mixtape_payload(tracks), headers={"x-stack-access-token": token})
+    public_id = "versions-increment-test-uuid"
+    resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    public_id = resp.json()["public_id"]
 
     expected_version = 1
 

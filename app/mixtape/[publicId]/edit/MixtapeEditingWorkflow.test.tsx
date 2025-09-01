@@ -259,4 +259,35 @@ describe('Mixtape Editing Workflow', () => {
     expect(screen.getByText('Track 2')).toBeInTheDocument();
     expect(screen.getByText('Track 3')).toBeInTheDocument();
   });
+
+  it('works with initial mixtape in create mode', () => {
+    const initialMixtape: MixtapeResponse = {
+      ...mockMixtapeData,
+      name: 'Untitled Mixtape',
+      tracks: [],
+    };
+
+    const mockRefetch5 = jest.fn();
+    const mockOnMixtapeUpdated5 = jest.fn();
+    render(
+      <MixtapeContext.Provider
+        value={{
+          mixtape: initialMixtape,
+          refetch: mockRefetch5,
+          onMixtapeUpdated: mockOnMixtapeUpdated5,
+        }}
+      >
+        <EditMixtapePage />
+      </MixtapeContext.Provider>
+    );
+
+    expect(screen.getByTestId('mixtape-editor')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Untitled Mixtape')).toBeInTheDocument();
+    expect(screen.getByText('Tracks: 0')).toBeInTheDocument();
+
+    // Should be able to add tracks to empty mixtape
+    const addTrackButton = screen.getByTestId('add-track-btn');
+    fireEvent.click(addTrackButton);
+    expect(screen.getByText('Tracks: 1')).toBeInTheDocument();
+  });
 });
