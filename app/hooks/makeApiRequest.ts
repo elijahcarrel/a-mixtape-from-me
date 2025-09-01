@@ -1,9 +1,7 @@
-import { useRouter } from 'next/navigation';
-import { useUser } from '@stackframe/stack';
 import { getAuthHeaders } from './useAuth';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
-async function makeAuthenticatedRequest<T = any>(
+export async function makeApiRequest<T = any>(
   url: string,
   options: {
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -54,30 +52,3 @@ async function makeAuthenticatedRequest<T = any>(
 
   return response.json();
 }
-
-// useAuthenticatedRequest:
-// - Returns a makeRequest function for one-off API calls
-// - Used for imperative operations (like saving, claiming, searching)
-// - Returns a Promise directly
-// - Used in components that need to trigger API calls in response to user actions
-export function useAuthenticatedRequest() {
-  const user = useUser();
-  const router = useRouter();
-
-  const makeRequest = async <T = any>(
-    url: string,
-    options: {
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-      body?: any;
-      headers?: Record<string, string>;
-      signal?: AbortSignal;
-    } = {}
-  ): Promise<T> => {
-    return makeAuthenticatedRequest(url, options, user, router);
-  };
-
-  return { makeRequest };
-}
-
-// Export the internal function for testing
-export { makeAuthenticatedRequest };

@@ -17,10 +17,10 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock useAuthenticatedRequest
+// Mock useLazyRequest
 const mockMakeRequest = jest.fn();
-jest.mock('@/hooks/useAuthenticatedRequest', () => ({
-  useAuthenticatedRequest: () => ({
+jest.mock('@/hooks/useLazyRequest', () => ({
+  useLazyRequest: () => ({
     makeRequest: mockMakeRequest,
   }),
 }));
