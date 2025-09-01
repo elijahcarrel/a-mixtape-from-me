@@ -111,7 +111,7 @@ describe('MixtapeLayout', () => {
       </MixtapeLayout>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
-    
+
     // Should have called useApiRequest with skip: false (default)
     expect(mockUseApiRequest).toHaveBeenCalledWith({
       url: '/api/mixtape/test-mixtape-123',
@@ -177,10 +177,10 @@ describe('MixtapeLayout', () => {
 
     it('renders initial mixtape immediately in create mode', () => {
       mockSearchParams.set('create', 'true');
-      
+
       const mockMakeRequest = jest.fn();
       mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
-      
+
       mockUseApiRequest.mockReturnValue({
         data: null,
         loading: false, // Should not be loading when skipped
@@ -197,7 +197,7 @@ describe('MixtapeLayout', () => {
       // Should render children immediately with initial mixtape
       expect(screen.getByTestId('child')).toBeInTheDocument();
       expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
-      
+
       // Should have called useApiRequest with skip: true
       expect(mockUseApiRequest).toHaveBeenCalledWith({
         url: '/api/mixtape/test-mixtape-123',
@@ -208,7 +208,7 @@ describe('MixtapeLayout', () => {
 
     it('makes POST request and removes URL parameter in create mode', async () => {
       mockSearchParams.set('create', 'true');
-      
+
       const mockMakeRequest = jest.fn().mockResolvedValue(fakeMixtape);
       mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
@@ -226,7 +226,10 @@ describe('MixtapeLayout', () => {
       );
 
       // Should immediately replace URL to remove create parameter
-      expect(mockReplace).toHaveBeenCalledWith('/mixtape/test-mixtape-123/edit', { scroll: false });
+      expect(mockReplace).toHaveBeenCalledWith(
+        '/mixtape/test-mixtape-123/edit',
+        { scroll: false }
+      );
 
       // Should make POST request to create mixtape
       await act(async () => {
@@ -256,8 +259,10 @@ describe('MixtapeLayout', () => {
 
     it('handles create mode errors gracefully', async () => {
       mockSearchParams.set('create', 'true');
-      
-      const mockMakeRequest = jest.fn().mockRejectedValue(new Error('Server error'));
+
+      const mockMakeRequest = jest
+        .fn()
+        .mockRejectedValue(new Error('Server error'));
       mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
       mockUseApiRequest.mockReturnValue({
@@ -285,8 +290,10 @@ describe('MixtapeLayout', () => {
 
     it('handles 409 conflict gracefully by ignoring error', async () => {
       mockSearchParams.set('create', 'true');
-      
-      const mockMakeRequest = jest.fn().mockRejectedValue(new Error('409 Public ID already taken'));
+
+      const mockMakeRequest = jest
+        .fn()
+        .mockRejectedValue(new Error('409 Public ID already taken'));
       mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
       mockUseApiRequest.mockReturnValue({
@@ -313,10 +320,13 @@ describe('MixtapeLayout', () => {
 
       // Should have made only the create request (409 errors don't trigger refetch)
       expect(mockMakeRequest).toHaveBeenCalledTimes(1);
-      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape', expect.objectContaining({
-        method: 'POST',
-        body: expect.objectContaining({ public_id: 'test-mixtape-123' }),
-      }));
+      expect(mockMakeRequest).toHaveBeenCalledWith(
+        '/api/mixtape',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.objectContaining({ public_id: 'test-mixtape-123' }),
+        })
+      );
     });
   });
 });

@@ -23,12 +23,16 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const searchParams = useSearchParams();
   const publicId = params.publicId as string;
   const isCreateMode = searchParams.get('create') === 'true';
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth({ requireAuth: false });
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth({
+    requireAuth: false,
+  });
   const { makeRequest } = useLazyRequest();
 
   // Local state to track mixtape updates from editor (for optimistic updates)
-  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(null);
-  
+  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
+    null
+  );
+
   // State for create mode.
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -46,44 +50,56 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   });
 
   // Create initial mixtape object for immediate rendering in create mode
-  const createInitialMixtape = useCallback((): MixtapeResponse => ({
-    public_id: publicId,
-    name: 'Untitled Mixtape',
-    intro_text: null,
-    subtitle1: null,
-    subtitle2: null,
-    subtitle3: null,
-    is_public: !isAuthenticated, // Default to private if authenticated, public if not
-    create_time: new Date().toISOString(),
-    last_modified_time: new Date().toISOString(),
-    stack_auth_user_id: null, // Will be set by server
-    version: 1,
-    can_undo: false,
-    can_redo: false,
-    spotify_playlist_url: null,
-    tracks: [],
-  }), [publicId, isAuthenticated]);
+  const createInitialMixtape = useCallback(
+    (): MixtapeResponse => ({
+      public_id: publicId,
+      name: 'Untitled Mixtape',
+      intro_text: null,
+      subtitle1: null,
+      subtitle2: null,
+      subtitle3: null,
+      is_public: !isAuthenticated, // Default to private if authenticated, public if not
+      create_time: '', // Will be set by server
+      last_modified_time: '', // Will be set by server
+      stack_auth_user_id: null, // Will be set by server
+      version: 1,
+      can_undo: false,
+      can_redo: false,
+      spotify_playlist_url: null,
+      tracks: [],
+    }),
+    [publicId, isAuthenticated]
+  );
 
   // ---- FIX: Fire-once create logic ----
   const hasCreatedRef = useRef(false);
 
   useEffect(() => {
-    if (hasCreatedRef.current) return; // already ran
-    if (!isCreateMode || createError || isAuthLoading) return;
+    if (
+      hasCreatedRef.current || // already ran
+      createError || // already errored
+      !isCreateMode || // not in create mode
+      isAuthLoading // not ready to run yet
+    ) {
+      return;
+    }
 
     hasCreatedRef.current = true;
 
-    // Immediately clean up URL (don't wait for server response)
-    const newUrl = `/mixtape/${publicId}/edit`;
-    router.replace(newUrl, { scroll: false });
-
     // Create mixtape on server in background
     (async () => {
+      const initialMixtape = createInitialMixtape();
+      setLocalMixtape(initialMixtape);
       setIsCreating(true);
+
+      // Immediately clean up URL (don't wait for server response)
+      const newUrl = `/mixtape/${publicId}/edit`;
+      router.replace(newUrl, { scroll: false });
+
       try {
         await makeRequest<MixtapeResponse>('/api/mixtape', {
           method: 'POST',
-          body: createInitialMixtape(),
+          body: initialMixtape,
         });
       } catch (err: any) {
         if (
@@ -103,16 +119,13 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   }, [isCreateMode, isAuthLoading, createError, publicId]);
 
   // Determine which mixtape to use (priority: local updates > initial mixtape -> loaded server data)
-  const currentMixtape = localMixtape || 
-                        (isCreateMode || isCreating ? createInitialMixtape() : mixtape);
+  const currentMixtape =
+    localMixtape || (isCreateMode ? createInitialMixtape() : mixtape);
 
   // Handle updates from the editor (save, undo, redo)
-  const handleMixtapeUpdate = useCallback(
-    (updatedMixtape: MixtapeResponse) => {
-      setLocalMixtape(updatedMixtape);
-    },
-    []
-  );
+  const handleMixtapeUpdate = useCallback((updatedMixtape: MixtapeResponse) => {
+    setLocalMixtape(updatedMixtape);
+  }, []);
 
   const handleRefetch = useCallback(async () => {
     await refetch();
@@ -130,7 +143,9 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
     return (
       <MainContainer>
         <ContentPane>
-          <ErrorDisplay message={(createError || error) ?? 'Mixtape not found'} />
+          <ErrorDisplay
+            message={(createError || error) ?? 'Mixtape not found'}
+          />
           <div className="text-center mt-4">
             <button
               onClick={handleRefetch}
