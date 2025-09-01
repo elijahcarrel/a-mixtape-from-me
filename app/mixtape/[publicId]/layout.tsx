@@ -68,12 +68,13 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
       // Make the create request
       const createMixtape = async () => {
         try {
-          const response = await fetch(`/api/mixtape?public_id=${publicId}`, {
+          const response = await fetch('/api/mixtape', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+              public_id: publicId,
               name: 'Untitled Mixtape',
               intro_text: null,
               subtitle1: null,
@@ -85,6 +86,16 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
           });
 
           if (!response.ok) {
+            if (response.status === 409) {
+              // Mixtape already exists, this is fine - just refetch it
+              // This can happen due to React re-renders
+              const existingMixtape = await fetch(`/api/mixtape/${publicId}`);
+              if (existingMixtape.ok) {
+                const mixtapeData = await existingMixtape.json();
+                setCreatedMixtape(mixtapeData);
+                return;
+              }
+            }
             const errorData = await response.json();
             throw new Error(errorData.detail || `HTTP ${response.status}`);
           }

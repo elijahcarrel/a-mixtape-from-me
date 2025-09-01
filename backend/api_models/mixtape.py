@@ -14,6 +14,31 @@ class MixtapeTrackResponse(BaseModel):
     track: TrackDetails = Field(..., description="Details about the track, such as name, artist, and Spotify URI.")
 
 class MixtapeRequest(BaseModel):
+    public_id: str = Field(..., min_length=1, max_length=255, description="Client-provided unique identifier for the mixtape")
+    name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the mixtape")
+    intro_text: str | None = Field(None, description="Optional intro text")
+    subtitle1: str | None = Field(None, max_length=60, description="First subtitle line (max 60 characters)")
+    subtitle2: str | None = Field(None, max_length=60, description="Second subtitle line (max 60 characters)")
+    subtitle3: str | None = Field(None, max_length=60, description="Third subtitle line (max 60 characters)")
+    is_public: bool = Field(False, description="Whether the mixtape is public")
+    tracks: list[MixtapeTrackRequest] = Field(..., description="List of tracks in the mixtape")
+
+    @field_validator('tracks')
+    @classmethod
+    def unique_track_positions(cls, v):
+        positions = [t.track_position for t in v]
+        if len(positions) != len(set(positions)):
+            raise ValueError('Track positions must be unique within a mixtape')
+        return v
+
+    @field_validator('subtitle1', 'subtitle2', 'subtitle3')
+    @classmethod
+    def strip_newlines(cls, v):
+        if v is not None:
+            return v.replace('\n', ' ').replace('\r', ' ')
+        return v
+
+class MixtapeUpdateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Human-readable name of the mixtape")
     intro_text: str | None = Field(None, description="Optional intro text")
     subtitle1: str | None = Field(None, max_length=60, description="First subtitle line (max 60 characters)")

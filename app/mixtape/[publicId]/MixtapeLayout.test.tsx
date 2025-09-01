@@ -214,11 +214,12 @@ describe('MixtapeLayout', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        '/api/mixtape?public_id=test-mixtape-123',
+        '/api/mixtape',
         expect.objectContaining({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            public_id: 'test-mixtape-123',
             name: 'Untitled Mixtape',
             intro_text: null,
             subtitle1: null,
@@ -262,6 +263,49 @@ describe('MixtapeLayout', () => {
       // Should show error display
       expect(screen.getByTestId('error-display')).toBeInTheDocument();
       expect(screen.getByText('Public ID already taken')).toBeInTheDocument();
+    });
+
+    it('handles 409 conflict by refetching existing mixtape', async () => {
+      mockSearchParams.set('create', 'true');
+      
+      const mockFetch = jest.fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 409,
+          json: () => Promise.resolve({ detail: 'Public ID already taken' }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(fakeMixtape),
+        });
+      global.fetch = mockFetch;
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Wait for create request and conflict resolution
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should render children (no error display)
+      expect(screen.getByTestId('child')).toBeInTheDocument();
+      expect(screen.queryByTestId('error-display')).not.toBeInTheDocument();
+
+      // Should have made both requests
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenNthCalledWith(1, '/api/mixtape', expect.any(Object));
+      expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/mixtape/test-mixtape-123');
     });
   });
 });

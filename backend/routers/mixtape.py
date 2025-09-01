@@ -11,6 +11,7 @@ from backend.api_models.mixtape import (
     MixtapeResponse,
     MixtapeTrackRequest,
     MixtapeTrackResponse,
+    MixtapeUpdateRequest,
 )
 from backend.client.spotify import SpotifyClient, get_spotify_client
 from backend.convert_client_api_models.track import (
@@ -65,7 +66,6 @@ def parse_track(track: MixtapeTrackRequest, spotify_client: SpotifyClient) -> Mi
 @router.post("", response_model=MixtapeResponse, status_code=201)
 def create_mixtape(
     request: MixtapeRequest,
-    public_id: str = Query(..., description="Client-provided public ID for the mixtape"),
     session: Session = Depends(get_write_session),
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
@@ -77,19 +77,18 @@ def create_mixtape(
     Returns the mixtape's public ID.
     
     Args:
-        request: Mixtape creation request
-        public_id: Client-provided public ID (must be unique)
+        request: Mixtape creation request (includes client-provided public_id)
         session: Database session
         authenticated_user: Optional authenticated user
         spotify_client: Spotify client for track validation
         
     Raises:
-        HTTPException 400: If the public ID is already taken
+        HTTPException 409: If the public ID is already taken
     """
     # Check if public ID is already taken
-    existing_mixtape = MixtapeQuery(session=session, for_update=False, options=[]).load_by_public_id(public_id)
+    existing_mixtape = MixtapeQuery(session=session, for_update=False, options=[]).load_by_public_id(request.public_id)
     if existing_mixtape is not None:
-        raise HTTPException(status_code=400, detail=f"Public ID '{public_id}' is already taken")
+        raise HTTPException(status_code=409, detail=f"Public ID '{request.public_id}' is already taken")
     
     # Anonymous mixtapes must be public
     if authenticated_user is None and not request.is_public:
@@ -103,7 +102,7 @@ def create_mixtape(
 
     mixtape = Mixtape(
         stack_auth_user_id=stack_auth_user_id,
-        public_id=public_id,
+        public_id=request.public_id,
         name=request.name,
         intro_text=request.intro_text,
         subtitle1=request.subtitle1,
@@ -298,7 +297,7 @@ def get_mixtape(
 @router.put("/{public_id}", response_model=MixtapeResponse)
 def update_mixtape(
     public_id: str,
-    request: MixtapeRequest,
+    request: MixtapeUpdateRequest,
     session: Session = Depends(get_write_session),
     authenticated_user: AuthenticatedUser | None = Depends(get_optional_user),
     spotify_client: SpotifyClient = Depends(get_spotify_client),
