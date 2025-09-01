@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import LoadingDisplay from '@/components/layout/LoadingDisplay';
@@ -32,7 +32,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   // State for create mode
   const [createError, setCreateError] = useState<string | null>(null);
 
-  // TODO: only fetch from server if NOT in create mode
+  // Fetch existing mixtape from server (skip if create mode)
   const {
     data: mixtape,
     loading,
@@ -62,33 +62,40 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
     tracks: [],
   }), [publicId, isAuthenticated]);
 
-  // Handle create mode: remove URL param and create mixtape on server
+  // ---- FIX: Fire-once create logic ----
+  const hasCreatedRef = useRef(false);
+
   useEffect(() => {
+    if (hasCreatedRef.current) return; // already ran
     if (!isCreateMode || createError || isAuthLoading) return;
+
+    hasCreatedRef.current = true;
 
     // Immediately clean up URL (don't wait for server response)
     const newUrl = `/mixtape/${publicId}/edit`;
     router.replace(newUrl, { scroll: false });
 
     // Create mixtape on server in background
-    const createOnServer = async () => {
+    (async () => {
       try {
         await makeRequest<MixtapeResponse>('/api/mixtape', {
           method: 'POST',
           body: createInitialMixtape(),
         });
       } catch (err: any) {
-        // Handle 409 conflicts gracefully.
-        if (err.message?.includes('409') || err.message?.includes('already taken')) {
-          // Do nothing.
-        } else {
+        if (
+          !err.message?.includes('409') &&
+          !err.message?.includes('already taken')
+        ) {
           setCreateError(err.message || 'Failed to create mixtape');
         }
       }
-    };
+    })();
 
-    createOnServer();
-  }, [isCreateMode, createInitialMixtape, publicId, isAuthLoading, router, createError, makeRequest]);
+    // Intentionally NOT including router, makeRequest, createInitialMixtape
+    // to ensure this only fires once. These references are stable enough.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreateMode, isAuthLoading, createError, publicId]);
 
   // Determine which mixtape to use (priority: local updates > initial mixtape -> loaded server data)
   const currentMixtape = localMixtape || 
@@ -104,8 +111,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
   const handleRefetch = useCallback(async () => {
     await refetch();
-    // Now that the mixtape has been refetched, we can clear the local state.
-    setLocalMixtape(null);
+    setLocalMixtape(null); // Clear local state after fetching fresh data
   }, [refetch]);
 
   // Loading state
