@@ -135,6 +135,9 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   // Loading state
   const isLoading = !currentMixtape && loading && !isFirstLoadAfterCreate;
   if (isLoading) {
+    // TODO: we do not want to enter this state for the first load after create.
+    // Unfortunately, we are (twice).
+    // Fix this.
     console.log('loading: ', loading, 'currentMixtape: ', currentMixtape, 'mixtape: ', mixtape, 'localMixtape: ', localMixtape, 'isCreateMode: ', isCreateMode, 'isAuthLoading: ', isAuthLoading, 'createError: ', createError, 'error: ', error, 'publicId: ', publicId, 'isFirstLoadAfterCreate: ', isFirstLoadAfterCreate);
     return <LoadingDisplay message="Loading mixtape..." />;
   }
