@@ -4,10 +4,10 @@ import '@testing-library/jest-dom';
 import MixtapeEditor from './MixtapeEditor';
 import { MixtapeResponse, MixtapeTrackResponse, TrackDetails } from '@/client';
 
-// Mock useAuthenticatedRequest
+// Mock useLazyRequest
 const mockMakeRequest = jest.fn();
-jest.mock('@/hooks/useAuthenticatedRequest', () => ({
-  useAuthenticatedRequest: () => ({
+jest.mock('@/hooks/useLazyRequest', () => ({
+  useLazyRequest: () => ({
     makeRequest: mockMakeRequest,
   }),
 }));

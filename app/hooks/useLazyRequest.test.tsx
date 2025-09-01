@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { useAuthenticatedRequest } from './useAuthenticatedRequest';
+import { useLazyRequest } from './useLazyRequest';
 
 // Mock dependencies
 const mockUser = {
@@ -32,14 +32,14 @@ jest.mock('./useAuth', () => ({
 // Mock fetch globally
 global.fetch = mockFetch;
 
-describe('useAuthenticatedRequest', () => {
+describe('useLazyRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockClear();
   });
 
   it('should return makeRequest function', () => {
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
 
     expect(result.current.makeRequest).toBeDefined();
     expect(typeof result.current.makeRequest).toBe('function');
@@ -52,7 +52,7 @@ describe('useAuthenticatedRequest', () => {
       json: () => Promise.resolve(mockResponse),
     });
 
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
 
     const response = await result.current.makeRequest('/api/test');
 
@@ -76,7 +76,7 @@ describe('useAuthenticatedRequest', () => {
       json: () => Promise.resolve(mockResponse),
     });
 
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
     const abortController = new AbortController();
 
     const response = await result.current.makeRequest('/api/test', {
@@ -100,7 +100,7 @@ describe('useAuthenticatedRequest', () => {
       json: () => Promise.resolve(mockResponse),
     });
 
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
 
     const response = await result.current.makeRequest('/api/test', {
       method: 'POST',
@@ -121,7 +121,7 @@ describe('useAuthenticatedRequest', () => {
     const errorMessage = 'Network error';
     mockFetch.mockRejectedValueOnce(new Error(errorMessage));
 
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
 
     await expect(result.current.makeRequest('/api/test')).rejects.toThrow(
       errorMessage
@@ -135,7 +135,7 @@ describe('useAuthenticatedRequest', () => {
       text: () => Promise.resolve('Unauthorized'),
     });
 
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
 
     await expect(result.current.makeRequest('/api/test')).rejects.toThrow(
       'Authentication required'
@@ -151,7 +151,7 @@ describe('useAuthenticatedRequest', () => {
       text: () => Promise.resolve(errorText),
     });
 
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
 
     await expect(result.current.makeRequest('/api/test')).rejects.toThrow(
       errorText
@@ -165,7 +165,7 @@ describe('useAuthenticatedRequest', () => {
       json: () => Promise.resolve(mockResponse),
     });
 
-    const { result } = renderHook(() => useAuthenticatedRequest());
+    const { result } = renderHook(() => useLazyRequest());
 
     const response = await result.current.makeRequest('/api/test', {
       headers: { 'Custom-Header': 'custom-value' },

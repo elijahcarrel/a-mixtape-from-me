@@ -2,6 +2,7 @@ import React, { act } from 'react';
 import { render, screen } from '@/test-utils';
 import '@testing-library/jest-dom';
 import { useApiRequest } from '@/hooks/useApiRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { MixtapeResponse } from '@/client';
 import MixtapeLayout from './layout';
 
@@ -23,6 +24,11 @@ jest.mock('@/hooks/useApiRequest', () => {
   };
 });
 
+// Mock useLazyRequest
+jest.mock('@/hooks/useLazyRequest', () => ({
+  useLazyRequest: jest.fn(() => ({ makeRequest: jest.fn() })),
+}));
+
 // Mock useAuth
 jest.mock('@/hooks/useAuth', () => ({
   useAuth: jest.fn(() => ({ isAuthenticated: false })),
@@ -41,6 +47,7 @@ jest.mock('@/components/layout/ErrorDisplay', () => {
   };
 });
 const mockUseApiRequest = useApiRequest as jest.Mock;
+const mockUseLazyRequest = useLazyRequest as jest.Mock;
 
 const fakeMixtape: MixtapeResponse = {
   public_id: 'test-mixtape-123',
@@ -159,11 +166,13 @@ describe('MixtapeLayout', () => {
       jest.clearAllMocks();
       // Reset search params
       mockSearchParams.delete('create');
-      global.fetch = jest.fn();
     });
 
     it('renders initial mixtape immediately in create mode', () => {
       mockSearchParams.set('create', 'true');
+      
+      const mockMakeRequest = jest.fn();
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
       
       mockUseApiRequest.mockReturnValue({
         data: null,
@@ -186,11 +195,8 @@ describe('MixtapeLayout', () => {
     it('makes POST request and removes URL parameter in create mode', async () => {
       mockSearchParams.set('create', 'true');
       
-      const mockFetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(fakeMixtape),
-      });
-      global.fetch = mockFetch;
+      const mockMakeRequest = jest.fn().mockResolvedValue(fakeMixtape);
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
       mockUseApiRequest.mockReturnValue({
         data: null,
@@ -213,34 +219,26 @@ describe('MixtapeLayout', () => {
         await new Promise(resolve => setTimeout(resolve, 0)); // Wait for useEffect
       });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/mixtape',
-        expect.objectContaining({
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            public_id: 'test-mixtape-123',
-            name: 'Untitled Mixtape',
-            intro_text: null,
-            subtitle1: null,
-            subtitle2: null,
-            subtitle3: null,
-            is_public: true, // Should be true for unauthenticated users
-            tracks: [],
-          }),
-        })
-      );
+      expect(mockMakeRequest).toHaveBeenCalledWith('/api/mixtape', {
+        method: 'POST',
+        body: {
+          public_id: 'test-mixtape-123',
+          name: 'Untitled Mixtape',
+          intro_text: null,
+          subtitle1: null,
+          subtitle2: null,
+          subtitle3: null,
+          is_public: true, // Should be true for unauthenticated users
+          tracks: [],
+        },
+      });
     });
 
     it('handles create mode errors gracefully', async () => {
       mockSearchParams.set('create', 'true');
       
-      const mockFetch = jest.fn().mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: () => Promise.resolve({ detail: 'Public ID already taken' }),
-      });
-      global.fetch = mockFetch;
+      const mockMakeRequest = jest.fn().mockRejectedValue(new Error('Public ID already taken'));
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
       mockUseApiRequest.mockReturnValue({
         data: null,
@@ -268,17 +266,10 @@ describe('MixtapeLayout', () => {
     it('handles 409 conflict by refetching existing mixtape', async () => {
       mockSearchParams.set('create', 'true');
       
-      const mockFetch = jest.fn()
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 409,
-          json: () => Promise.resolve({ detail: 'Public ID already taken' }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve(fakeMixtape),
-        });
-      global.fetch = mockFetch;
+      const mockMakeRequest = jest.fn()
+        .mockRejectedValueOnce(new Error('409 Public ID already taken'))
+        .mockResolvedValueOnce(fakeMixtape);
+      mockUseLazyRequest.mockReturnValue({ makeRequest: mockMakeRequest });
 
       mockUseApiRequest.mockReturnValue({
         data: null,
@@ -302,10 +293,13 @@ describe('MixtapeLayout', () => {
       expect(screen.getByTestId('child')).toBeInTheDocument();
       expect(screen.queryByTestId('error-display')).not.toBeInTheDocument();
 
-      // Should have made both requests
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(mockFetch).toHaveBeenNthCalledWith(1, '/api/mixtape', expect.any(Object));
-      expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/mixtape/test-mixtape-123');
+      // Should have made both requests: create (fails) then fetch existing
+      expect(mockMakeRequest).toHaveBeenCalledTimes(2);
+      expect(mockMakeRequest).toHaveBeenNthCalledWith(1, '/api/mixtape', expect.objectContaining({
+        method: 'POST',
+        body: expect.objectContaining({ public_id: 'test-mixtape-123' }),
+      }));
+      expect(mockMakeRequest).toHaveBeenNthCalledWith(2, '/api/mixtape/test-mixtape-123');
     });
   });
 });

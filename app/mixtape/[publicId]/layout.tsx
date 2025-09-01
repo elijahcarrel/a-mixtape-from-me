@@ -8,6 +8,7 @@ import ErrorDisplay from '@/components/layout/ErrorDisplay';
 import MainContainer from '@/components/layout/MainContainer';
 import ContentPane from '@/components/layout/ContentPane';
 import { useApiRequest } from '@/hooks/useApiRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { useAuth } from '@/hooks/useAuth';
 import { MixtapeResponse } from '@/client';
 import { MixtapeContext } from '../MixtapeContext';
@@ -23,9 +24,24 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const publicId = params.publicId as string;
   const isCreateMode = searchParams.get('create') === 'true';
   const { isAuthenticated } = useAuth({ requireAuth: false });
+  const { makeRequest } = useLazyRequest();
 
-  // Create initial mixtape object for create mode
-  const initialMixtape: MixtapeResponse | null = isCreateMode ? {
+  // Local state to track mixtape updates from editor (for optimistic updates)
+  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(null);
+  
+  // State for create mode
+  const [serverMixtape, setServerMixtape] = useState<MixtapeResponse | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // Only fetch from server if NOT in create mode
+  // TODO: Could refactor to use useLazyRequest for GET as well for consistency
+  const getRequest = useApiRequest<MixtapeResponse>({
+    url: `/api/mixtape/${publicId}`,
+    method: 'GET',
+  });
+
+  // Create initial mixtape object for immediate rendering in create mode
+  const createInitialMixtape = useCallback((): MixtapeResponse => ({
     public_id: publicId,
     name: 'Untitled Mixtape',
     intro_text: null,
@@ -41,128 +57,93 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
     can_redo: false,
     spotify_playlist_url: null,
     tracks: [],
-  } : null;
+  }), [publicId, isAuthenticated]);
 
-  // Local state to track mixtape updates from editor
-  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
-    null
-  );
-  
-  // State for create mode
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [createdMixtape, setCreatedMixtape] = useState<MixtapeResponse | null>(null);
-
-  // Always call the hook but we'll handle the logic conditionally
-  const getRequest = useApiRequest<MixtapeResponse>({
-    url: `/api/mixtape/${publicId}`,
-    method: 'GET',
-  });
-
-  // Handle create mode with useEffect
+  // Handle create mode: remove URL param and create mixtape on server
   useEffect(() => {
-    if (isCreateMode && !createdMixtape && !createError) {
-      // Immediately remove the ?create=true parameter
-      const newUrl = `/mixtape/${publicId}/edit`;
-      router.replace(newUrl, { scroll: false });
+    if (!isCreateMode || serverMixtape || createError) return;
 
-      // Make the create request
-      const createMixtape = async () => {
-        try {
-          const response = await fetch('/api/mixtape', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              public_id: publicId,
-              name: 'Untitled Mixtape',
-              intro_text: null,
-              subtitle1: null,
-              subtitle2: null,
-              subtitle3: null,
-              is_public: !isAuthenticated,
-              tracks: [],
-            }),
-          });
+    // Immediately clean up URL (don't wait for server response)
+    const newUrl = `/mixtape/${publicId}/edit`;
+    router.replace(newUrl, { scroll: false });
 
-          if (!response.ok) {
-            if (response.status === 409) {
-              // Mixtape already exists, this is fine - just refetch it
-              // This can happen due to React re-renders
-              const existingMixtape = await fetch(`/api/mixtape/${publicId}`);
-              if (existingMixtape.ok) {
-                const mixtapeData = await existingMixtape.json();
-                setCreatedMixtape(mixtapeData);
-                return;
-              }
-            }
-            const errorData = await response.json();
-            throw new Error(errorData.detail || `HTTP ${response.status}`);
+    // Create mixtape on server in background
+    const createOnServer = async () => {
+      try {
+        const mixtapeData = await makeRequest<MixtapeResponse>('/api/mixtape', {
+          method: 'POST',
+          body: {
+            public_id: publicId,
+            name: 'Untitled Mixtape',
+            intro_text: null,
+            subtitle1: null,
+            subtitle2: null,
+            subtitle3: null,
+            is_public: !isAuthenticated,
+            tracks: [],
+          },
+        });
+        setServerMixtape(mixtapeData);
+      } catch (err: any) {
+        // Handle 409 conflicts gracefully (React re-renders)
+        if (err.message?.includes('409') || err.message?.includes('already taken')) {
+          try {
+            // Mixtape already exists, just fetch it
+            const existingMixtape = await makeRequest<MixtapeResponse>(`/api/mixtape/${publicId}`);
+            setServerMixtape(existingMixtape);
+          } catch (fetchErr: any) {
+            setCreateError(fetchErr.message || 'Failed to fetch existing mixtape');
           }
-
-          const mixtapeData = await response.json();
-          setCreatedMixtape(mixtapeData);
-        } catch (err: any) {
+        } else {
           setCreateError(err.message || 'Failed to create mixtape');
         }
-      };
+      }
+    };
 
-      createMixtape();
-    }
-  }, [isCreateMode, publicId, router, isAuthenticated, createdMixtape, createError]);
+    createOnServer();
+  }, [isCreateMode, publicId, router, isAuthenticated, serverMixtape, createError, makeRequest]);
 
-  // Choose which mixtape data to use
-  const mixtape = isCreateMode ? createdMixtape : getRequest.data;
-  const loading = isCreateMode ? false : getRequest.loading; // Never show loading in create mode
-  const error = createError || (!isCreateMode ? getRequest.error : null);
-  const refetch = getRequest.refetch;
+  // Determine which mixtape to use (priority: local updates > server data > initial)
+  const currentMixtape = localMixtape || 
+                        serverMixtape || 
+                        (isCreateMode ? createInitialMixtape() : getRequest.data);
+
+  // Determine loading and error states
+  const isLoading = isCreateMode ? false : getRequest.loading; // Never show loading in create mode
+  const currentError = createError || (!isCreateMode ? getRequest.error : null);
 
   // Handle updates from the editor (save, undo, redo)
-  const handleMixtapeUpdateViaAnotherEndpoint = useCallback(
+  const handleMixtapeUpdate = useCallback(
     (updatedMixtape: MixtapeResponse) => {
       setLocalMixtape(updatedMixtape);
     },
     []
   );
 
-  // Determine which mixtape to use
-  const currentMixtape = localMixtape || 
-                        (isCreateMode ? (mixtape || initialMixtape) : mixtape);
-
+  // Handle refetch requests
   const handleRefetch = useCallback(async () => {
-    await refetch();
-    // Now that the mixtape has been refetched, we can clear the local state.
-    setLocalMixtape(null);
-  }, [refetch]);
-
-  // Handle loading states
-  if (isCreateMode && loading) {
-    // In create mode, show the initial mixtape immediately while creating
-    // (this allows immediate editing without waiting for server response)
-    const tempMixtape = initialMixtape;
-    if (!tempMixtape) {
-      return <LoadingDisplay message="Preparing new mixtape..." />;
+    if (isCreateMode) {
+      // In create mode, refetch means re-fetching the server mixtape
+      // TODO: This could be simplified by using a single data source
+      try {
+        const mixtapeData = await makeRequest<MixtapeResponse>(`/api/mixtape/${publicId}`);
+        setServerMixtape(mixtapeData);
+        setLocalMixtape(null); // Clear local state
+      } catch (err: any) {
+        setCreateError(err.message || 'Failed to refetch mixtape');
+      }
+    } else {
+      await getRequest.refetch();
+      setLocalMixtape(null); // Clear local state
     }
-    
-    return (
-      <MixtapeContext.Provider
-        value={{
-          mixtape: tempMixtape,
-          refetch: handleRefetch,
-          onMixtapeUpdated: handleMixtapeUpdateViaAnotherEndpoint,
-        }}
-      >
-        {children}
-      </MixtapeContext.Provider>
-    );
-  }
+  }, [isCreateMode, publicId, makeRequest, getRequest]);
 
-  if (!isCreateMode && loading) {
+  // Loading state
+  if (isLoading) {
     return <LoadingDisplay message="Loading mixtape..." />;
   }
 
-  // Handle errors
-  const currentError = createError || error;
+  // Error state
   if (currentError || (!isCreateMode && !currentMixtape)) {
     return (
       <MainContainer>
@@ -181,8 +162,10 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
     );
   }
 
+  // Success state - should always have a mixtape at this point
   if (!currentMixtape) {
-    return <LoadingDisplay message="Loading mixtape..." />;
+    // This should never happen, but just in case
+    return <LoadingDisplay message="Preparing mixtape..." />;
   }
 
   return (
@@ -190,7 +173,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
       value={{
         mixtape: currentMixtape,
         refetch: handleRefetch,
-        onMixtapeUpdated: handleMixtapeUpdateViaAnotherEndpoint,
+        onMixtapeUpdated: handleMixtapeUpdate,
       }}
     >
       {children}

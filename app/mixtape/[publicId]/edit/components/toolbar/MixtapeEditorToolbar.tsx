@@ -6,7 +6,7 @@ import { ToolbarButton, ToolbarButtonLink } from './ToolbarButton';
 import { MixtapeResponse } from '@/client';
 import HeaderContainer from '@/components/layout/HeaderContainer';
 import { FormValues } from '../MixtapeEditorForm';
-import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import StatusIndicator from './StatusIndicator';
 import Link from 'next/link';
 
@@ -34,7 +34,7 @@ export default function MixtapeEditorToolbar({
   setStatusText,
 }: MixtapeEditorToolbarProps) {
   const router = useRouter();
-  const { makeRequest } = useAuthenticatedRequest();
+  const { makeRequest } = useLazyRequest();
 
   // Prefetch viewer route for faster navigation
   useEffect(() => {

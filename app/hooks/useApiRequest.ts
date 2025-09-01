@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
-import { makeAuthenticatedRequest } from './useAuthenticatedRequest';
+import { makeAuthenticatedRequest } from './useLazyRequest';
 
 interface UseApiRequestOptions<T = any> {
   url: string;

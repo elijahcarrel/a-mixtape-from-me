@@ -55,12 +55,12 @@ async function makeAuthenticatedRequest<T = any>(
   return response.json();
 }
 
-// useAuthenticatedRequest:
+// useLazyRequest:
 // - Returns a makeRequest function for one-off API calls
 // - Used for imperative operations (like saving, claiming, searching)
 // - Returns a Promise directly
 // - Used in components that need to trigger API calls in response to user actions
-export function useAuthenticatedRequest() {
+export function useLazyRequest() {
   const user = useUser();
   const router = useRouter();
 

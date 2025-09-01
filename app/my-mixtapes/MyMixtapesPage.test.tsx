@@ -3,10 +3,10 @@ import { render, screen, waitFor, fireEvent, act } from '@/test-utils';
 import '@testing-library/jest-dom';
 import MyMixtapesPage from './page';
 
-// Mock useAuthenticatedRequest similar to TrackAutocomplete tests
+// Mock useLazyRequest similar to TrackAutocomplete tests
 const mockMakeRequest = jest.fn();
-jest.mock('@/hooks/useAuthenticatedRequest', () => ({
-  useAuthenticatedRequest: () => ({
+jest.mock('@/hooks/useLazyRequest', () => ({
+  useLazyRequest: () => ({
     makeRequest: mockMakeRequest,
   }),
 }));
