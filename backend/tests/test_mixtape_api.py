@@ -168,7 +168,7 @@ def test_put_public_id_mismatch_rejected(client: tuple[TestClient, str, dict]) -
     public_id = "mismatch-test-uuid"
     resp = create_mixtape_with_id(test_client, public_id, tracks, token)
     assert_response_created(resp)
-    
+
     # Try to update with different public_id in body
     wrong_public_id = "wrong-uuid"
     resp = test_client.put(f"/api/mixtape/{public_id}", json={"public_id": wrong_public_id, "name": "Updated", "intro_text": "Updated!", "is_public": True, "tracks": tracks}, headers={"x-stack-access-token": token})
