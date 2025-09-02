@@ -1,0 +1,136 @@
+'use client';
+
+import React, { useState, useCallback, useEffect, useRef, createContext, useContext } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
+import { useAuth } from '@/hooks/useAuth';
+import { MixtapeResponse } from '@/client';
+
+// Higher-level context for managing create flow across route changes
+interface MixtapeCreateContextValue {
+  createdMixtapes: Map<string, MixtapeResponse>;
+  isCreating: boolean;
+  createError: string | null;
+  clearCreatedMixtape: (id: string) => void;
+}
+
+const MixtapeCreateContext = createContext<MixtapeCreateContextValue | undefined>(undefined);
+
+export function useMixtapeCreate() {
+  const ctx = useContext(MixtapeCreateContext);
+  if (ctx === undefined) {
+    throw new Error('useMixtapeCreate must be used within a MixtapeCreateProvider');
+  }
+  return ctx;
+}
+
+interface MixtapeLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
+  const params = useParams();
+  const router = useRouter();
+  const publicId = params.publicId as string;
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth({
+    requireAuth: false,
+  });
+  const { makeRequest } = useLazyRequest();
+  const isCreateMode = publicId === 'new';
+
+  // Global state for created mixtapes (persists across route changes)
+  const [createdMixtapes, setCreatedMixtapes] = useState<Map<string, MixtapeResponse>>(new Map());
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // Create initial mixtape object for immediate rendering in create mode
+  const createInitialMixtape = useCallback(
+    (): MixtapeResponse => ({
+      public_id: publicId,
+      name: 'Untitled Mixtape',
+      intro_text: null,
+      subtitle1: null,
+      subtitle2: null,
+      subtitle3: null,
+      is_public: !isAuthenticated, // Default to private if authenticated, public if not
+      create_time: '', // Will be set by server
+      last_modified_time: '', // Will be set by server
+      stack_auth_user_id: null, // Will be set by server
+      version: 1,
+      can_undo: false,
+      can_redo: false,
+      spotify_playlist_url: null,
+      tracks: [],
+    }),
+    [publicId, isAuthenticated]
+  );
+
+  // Fire-once create logic
+  const hasCreatedRef = useRef(false);
+
+  useEffect(() => {
+    if (
+      hasCreatedRef.current || // already ran
+      createError || // already errored
+      !isCreateMode || // not in create mode
+      isAuthLoading // not ready to run yet
+    ) {
+      return;
+    }
+
+    hasCreatedRef.current = true;
+
+    // Create mixtape on server in background
+    (async () => {
+      const initialMixtape = createInitialMixtape();
+      setCreatedMixtapes(prev => new Map(prev).set('new', initialMixtape));
+      setIsCreating(true);
+
+      try {
+        const mixtape = await makeRequest<MixtapeResponse>('/api/mixtape', {
+          method: 'POST',
+          body: initialMixtape,
+        });
+        
+        // Store the created mixtape with its real ID
+        await setCreatedMixtapes(prev => {
+          const newMap = new Map(prev);
+          newMap.delete('new'); // Remove the temporary entry
+          newMap.set(mixtape.public_id, mixtape);
+          return newMap;
+        });
+        
+        const newUrl = `/mixtape/${mixtape.public_id}/edit`;
+        router.replace(newUrl, { scroll: false });
+      } catch (err: any) {
+        setCreateError(err.message || 'Failed to create mixtape');
+      } finally {
+        setIsCreating(false);
+      }
+    })();
+
+    // Intentionally NOT including router, makeRequest, createInitialMixtape
+    // to ensure this only fires once. These references are stable enough.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreateMode, isAuthLoading]);
+
+  // Provide context value with created mixtape awareness
+  const contextValue = {
+    createdMixtapes,
+    isCreating,
+    createError,
+    clearCreatedMixtape: (id: string) => {
+      setCreatedMixtapes(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+    },
+  };
+
+  return (
+    <MixtapeCreateContext.Provider value={contextValue}>
+      {children}
+    </MixtapeCreateContext.Provider>
+  );
+}
