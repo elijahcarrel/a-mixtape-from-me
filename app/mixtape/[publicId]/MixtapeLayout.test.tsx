@@ -2,15 +2,20 @@ import React, { act } from 'react';
 import { render, screen } from '@/test-utils';
 import '@testing-library/jest-dom';
 import { useApiRequest } from '@/hooks/useApiRequest';
+import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { MixtapeResponse } from '@/client';
 import MixtapeLayout from './layout';
+import { useMixtapeCreate } from '../layout';
 
 // Mock next/navigation
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
+const mockSearchParams = new URLSearchParams();
 
 jest.mock('next/navigation', () => ({
   useParams: () => ({ publicId: 'test-mixtape-123' }),
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 // Mock useApiRequest
@@ -19,6 +24,26 @@ jest.mock('@/hooks/useApiRequest', () => {
     useApiRequest: jest.fn(),
   };
 });
+
+// Mock useLazyRequest
+jest.mock('@/hooks/useLazyRequest', () => ({
+  useLazyRequest: jest.fn(() => ({ makeRequest: jest.fn() })),
+}));
+
+// Mock useAuth
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: jest.fn(() => ({ isAuthenticated: false })),
+}));
+
+// Mock useMixtapeCreate
+jest.mock('../layout', () => ({
+  useMixtapeCreate: jest.fn(() => ({
+    createdMixtape: null,
+    isCreating: false,
+    didCreate: false,
+    createError: null,
+  })),
+}));
 
 // Mock displays for predictable querying
 jest.mock('@/components/layout/LoadingDisplay', () => {
@@ -33,6 +58,8 @@ jest.mock('@/components/layout/ErrorDisplay', () => {
   };
 });
 const mockUseApiRequest = useApiRequest as jest.Mock;
+const mockUseLazyRequest = useLazyRequest as jest.Mock;
+const mockUseMixtapeCreate = useMixtapeCreate as jest.Mock;
 
 const fakeMixtape: MixtapeResponse = {
   public_id: 'test-mixtape-123',
@@ -66,6 +93,13 @@ const fakeMixtape: MixtapeResponse = {
 describe('MixtapeLayout', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    // Reset the mock to default values
+    mockUseMixtapeCreate.mockReturnValue({
+      createdMixtape: null,
+      isCreating: false,
+      didCreate: false,
+      createError: null,
+    });
   });
 
   it('displays loading spinner while fetching', () => {
@@ -96,6 +130,13 @@ describe('MixtapeLayout', () => {
       </MixtapeLayout>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
+
+    // Should have called useApiRequest with skip: false (no created mixtape)
+    expect(mockUseApiRequest).toHaveBeenCalledWith({
+      url: '/api/mixtape/test-mixtape-123',
+      method: 'GET',
+      skip: false,
+    });
   });
 
   it('renders an error display when the API request fails', () => {
@@ -144,5 +185,93 @@ describe('MixtapeLayout', () => {
 
     // useApiRequest should have been called exactly once (initial mount)
     expect(mockUseApiRequest).toHaveBeenCalledTimes(1);
+  });
+
+  describe('With Created Mixtape Context', () => {
+    it('uses created mixtape when available instead of fetching', () => {
+      const createdMixtape = { ...fakeMixtape, name: 'Created Mixtape' };
+      mockUseMixtapeCreate.mockReturnValue({
+        createdMixtape,
+        isCreating: false,
+        didCreate: true,
+        createError: null,
+      });
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: true, // Would be loading if not skipped
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Should render children with created mixtape
+      expect(screen.getByTestId('child')).toBeInTheDocument();
+      expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
+
+      // Should have skipped API request since we have a created mixtape
+      expect(mockUseApiRequest).toHaveBeenCalledWith({
+        url: '/api/mixtape/test-mixtape-123',
+        method: 'GET',
+        skip: true, // Should skip when we have created mixtape
+      });
+    });
+
+    it('shows create error when create fails', () => {
+      mockUseMixtapeCreate.mockReturnValue({
+        createdMixtape: null,
+        isCreating: false,
+        didCreate: false,
+        createError: 'Failed to create mixtape',
+      });
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Should show error display
+      expect(screen.getByTestId('error-display')).toBeInTheDocument();
+      expect(screen.getByText('Failed to create mixtape')).toBeInTheDocument();
+    });
+
+    it('shows loading when creating', () => {
+      mockUseMixtapeCreate.mockReturnValue({
+        createdMixtape: fakeMixtape, // Has initial mixtape
+        isCreating: true,
+        didCreate: false,
+        createError: null,
+      });
+
+      mockUseApiRequest.mockReturnValue({
+        data: null,
+        loading: false, // API request is skipped
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      render(
+        <MixtapeLayout>
+          <div data-testid="child" />
+        </MixtapeLayout>
+      );
+
+      // Should render children immediately (no loading) since we have created mixtape
+      expect(screen.getByTestId('child')).toBeInTheDocument();
+      expect(screen.queryByTestId('loading-display')).not.toBeInTheDocument();
+    });
   });
 });

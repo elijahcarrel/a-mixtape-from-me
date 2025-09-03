@@ -10,6 +10,7 @@ import ContentPane from '@/components/layout/ContentPane';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { MixtapeResponse } from '@/client';
 import { MixtapeContext } from '../MixtapeContext';
+import { useMixtapeCreate } from '../layout';
 
 interface MixtapeLayoutProps {
   children: React.ReactNode;
@@ -18,7 +19,21 @@ interface MixtapeLayoutProps {
 export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const params = useParams();
   const publicId = params.publicId as string;
+  const isCreateMode = publicId === 'new';
 
+  // Get create context from higher-level provider
+  const { createdMixtape, isCreating, didCreate, createError } =
+    useMixtapeCreate();
+  // TODO: we probably don't need all three of these variables. Figure out if we can simplify.
+  const isOrWasCreating = isCreateMode || isCreating || didCreate;
+  const createdMixtapeIfApplicable = isOrWasCreating ? createdMixtape : null;
+
+  // Local state to track mixtape updates from editor (for optimistic updates)
+  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
+    null
+  );
+
+  // Fetch existing mixtape from server (skip if create mode or we have a created mixtape)
   const {
     data: mixtape,
     loading,
@@ -27,38 +42,37 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   } = useApiRequest<MixtapeResponse>({
     url: `/api/mixtape/${publicId}`,
     method: 'GET',
+    skip: isOrWasCreating,
   });
 
-  // Local state to track mixtape updates from editor
-  const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
-    null
-  );
-  // Handle updates from the editor (save, undo, redo)
-  const handleMixtapeUpdateViaAnotherEndpoint = useCallback(
-    (updatedMixtape: MixtapeResponse) => {
-      setLocalMixtape(updatedMixtape);
-    },
-    []
-  );
+  // Determine which mixtape to use (priority: local updates > just-created mixtape from POST request > loaded server data from GET request)
+  const currentMixtape = localMixtape || createdMixtapeIfApplicable || mixtape;
 
-  // Use local state if available, otherwise use API response
-  const currentMixtape = localMixtape || mixtape;
+  // Handle updates from the editor (save, undo, redo)
+  const handleMixtapeUpdate = useCallback((updatedMixtape: MixtapeResponse) => {
+    setLocalMixtape(updatedMixtape);
+  }, []);
 
   const handleRefetch = useCallback(async () => {
     await refetch();
-    // Now that the mixtape has been refetched, we can clear the local state.
-    setLocalMixtape(null);
+    // TODO: there may be a race condition here. If the user has continued to edit the local state while refetching is occurring, we should not clear the local it.
+    setLocalMixtape(null); // Clear local state after fetching fresh data
   }, [refetch]);
 
-  if (loading) {
+  // Loading state - only show loading if we don't have any mixtape data
+  const isLoading = !currentMixtape && loading;
+  if (isLoading) {
     return <LoadingDisplay message="Loading mixtape..." />;
   }
 
-  if (error || !currentMixtape) {
+  // Error state
+  if (createError || error || !currentMixtape) {
     return (
       <MainContainer>
         <ContentPane>
-          <ErrorDisplay message={error ?? 'Mixtape not found'} />
+          <ErrorDisplay
+            message={(createError || error) ?? 'Mixtape not found'}
+          />
           <div className="text-center mt-4">
             <button
               onClick={handleRefetch}
@@ -77,7 +91,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
       value={{
         mixtape: currentMixtape,
         refetch: handleRefetch,
-        onMixtapeUpdated: handleMixtapeUpdateViaAnotherEndpoint,
+        onMixtapeUpdated: handleMixtapeUpdate,
       }}
     >
       {children}
