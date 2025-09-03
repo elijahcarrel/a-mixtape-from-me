@@ -4,14 +4,14 @@ import React, { useState, useCallback, useEffect, useRef, createContext, useCont
 import { useParams, useRouter } from 'next/navigation';
 import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { useAuth } from '@/hooks/useAuth';
-import { MixtapeResponse } from '@/client';
+import { MixtapeRequest, MixtapeResponse } from '@/client';
 
 // Higher-level context for managing create flow across route changes
 interface MixtapeCreateContextValue {
-  createdMixtapes: Map<string, MixtapeResponse>;
+  createdMixtape: MixtapeResponse | null;
   isCreating: boolean;
+  didCreate: boolean;
   createError: string | null;
-  clearCreatedMixtape: (id: string) => void;
 }
 
 const MixtapeCreateContext = createContext<MixtapeCreateContextValue | undefined>(undefined);
@@ -28,6 +28,34 @@ interface MixtapeLayoutProps {
   children: React.ReactNode;
 }
 
+const createInitialMixtapeRequest = (isAuthenticated: boolean): MixtapeRequest => ({
+    name: 'Untitled Mixtape',
+    intro_text: null,
+    subtitle1: null,
+    subtitle2: null,
+    subtitle3: null,
+    is_public: !isAuthenticated, // Default to private if authenticated, public if not
+    tracks: [],
+});
+
+const createFallbackMixtapeResponse = (isAuthenticated: boolean): MixtapeResponse => ({
+    public_id: '', // Will be filled by server.
+    name: 'Untitled Mixtape',
+    intro_text: null,
+    subtitle1: null,
+    subtitle2: null,
+    subtitle3: null,
+    is_public: !isAuthenticated, // Default to private if authenticated, public if not
+    create_time: '', // Will be set by server
+    last_modified_time: '', // Will be set by server
+    stack_auth_user_id: null, // Will be set by server
+    version: 1,
+    can_undo: false,
+    can_redo: false,
+    spotify_playlist_url: null,
+    tracks: [],
+})
+
 export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const params = useParams();
   const router = useRouter();
@@ -39,31 +67,10 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const isCreateMode = publicId === 'new';
 
   // Global state for created mixtapes (persists across route changes)
-  const [createdMixtapes, setCreatedMixtapes] = useState<Map<string, MixtapeResponse>>(new Map());
+  const [createdMixtape, setCreatedMixtape] = useState<MixtapeResponse | null>(createFallbackMixtapeResponse(isAuthenticated));
   const [isCreating, setIsCreating] = useState(false);
+  const [didCreate, setDidCreate] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-
-  // Create initial mixtape object for immediate rendering in create mode
-  const createInitialMixtape = useCallback(
-    (): MixtapeResponse => ({
-      public_id: publicId,
-      name: 'Untitled Mixtape',
-      intro_text: null,
-      subtitle1: null,
-      subtitle2: null,
-      subtitle3: null,
-      is_public: !isAuthenticated, // Default to private if authenticated, public if not
-      create_time: '', // Will be set by server
-      last_modified_time: '', // Will be set by server
-      stack_auth_user_id: null, // Will be set by server
-      version: 1,
-      can_undo: false,
-      can_redo: false,
-      spotify_playlist_url: null,
-      tracks: [],
-    }),
-    [publicId, isAuthenticated]
-  );
 
   // Fire-once create logic
   const hasCreatedRef = useRef(false);
@@ -82,8 +89,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
     // Create mixtape on server in background
     (async () => {
-      const initialMixtape = createInitialMixtape();
-      setCreatedMixtapes(prev => new Map(prev).set('new', initialMixtape));
+      const initialMixtape = createInitialMixtapeRequest(isAuthenticated);
       setIsCreating(true);
 
       try {
@@ -93,13 +99,8 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
         });
         
         // Store the created mixtape with its real ID
-        await setCreatedMixtapes(prev => {
-          const newMap = new Map(prev);
-          newMap.delete('new'); // Remove the temporary entry
-          newMap.set(mixtape.public_id, mixtape);
-          return newMap;
-        });
-        
+        setCreatedMixtape(mixtape);
+        setDidCreate(true);
         const newUrl = `/mixtape/${mixtape.public_id}/edit`;
         router.replace(newUrl, { scroll: false });
       } catch (err: any) {
@@ -116,16 +117,10 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
   // Provide context value with created mixtape awareness
   const contextValue = {
-    createdMixtapes,
+    createdMixtape,
     isCreating,
+    didCreate,
     createError,
-    clearCreatedMixtape: (id: string) => {
-      setCreatedMixtapes(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(id);
-        return newMap;
-      });
-    },
   };
 
   return (

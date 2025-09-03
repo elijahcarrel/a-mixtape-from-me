@@ -22,8 +22,10 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const isCreateMode = publicId === 'new';
   
   // Get create context from higher-level provider
-  const { createdMixtapes, isCreating, createError } = useMixtapeCreate();
-  const createdMixtape = createdMixtapes.get(publicId);
+  const { createdMixtape, isCreating, didCreate, createError } = useMixtapeCreate();
+  // TODO: we probably don't need all three of these variables. Figure out if we can simplify.
+  const isOrWasCreating = isCreateMode || isCreating || didCreate;
+  const createdMixtapeIfApplicable = isOrWasCreating ? createdMixtape : null;
   
   // Local state to track mixtape updates from editor (for optimistic updates)
   const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
@@ -42,8 +44,8 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
     skip: isCreateMode || isCreating || !!createdMixtape,
   });
 
-  // Determine which mixtape to use (priority: local updates > created mixtape > loaded server data)
-  const currentMixtape = localMixtape || createdMixtape || mixtape;
+  // Determine which mixtape to use (priority: local updates > just-created mixtape from POST request > loaded server data from GET request)
+  const currentMixtape = localMixtape || createdMixtapeIfApplicable || mixtape;
 
   // Handle updates from the editor (save, undo, redo)
   const handleMixtapeUpdate = useCallback((updatedMixtape: MixtapeResponse) => {
@@ -52,19 +54,18 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
   const handleRefetch = useCallback(async () => {
     await refetch();
+    // TODO: there may be a race condition here. If the user has continued to edit the local state while refetching is occurring, we should not clear the local it.
     setLocalMixtape(null); // Clear local state after fetching fresh data
   }, [refetch]);
 
   // Loading state - only show loading if we don't have any mixtape data
   const isLoading = !currentMixtape && loading;
   if (isLoading) {
-    console.log('loading: ', loading, 'currentMixtape: ', currentMixtape, 'mixtape: ', mixtape, 'localMixtape: ', localMixtape, 'isCreateMode: ', isCreateMode, 'createError: ', createError, 'error: ', error, 'publicId: ', publicId, 'createdMixtapes: ', createdMixtapes, 'isCreating: ', isCreating);
     return <LoadingDisplay message="Loading mixtape..." />;
   }
 
   // Error state
   if (createError || error || !currentMixtape) {
-    console.log('loading: ', loading, 'currentMixtape: ', currentMixtape, 'mixtape: ', mixtape, 'localMixtape: ', localMixtape, 'isCreateMode: ', isCreateMode, 'createError: ', createError, 'error: ', error, 'publicId: ', publicId, 'createdMixtapes: ', createdMixtapes, 'isCreating: ', isCreating);
     return (
       <MainContainer>
         <ContentPane>
