@@ -1,6 +1,13 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useRef, createContext, useContext } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  createContext,
+  useContext,
+} from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,12 +21,16 @@ interface MixtapeCreateContextValue {
   createError: string | null;
 }
 
-const MixtapeCreateContext = createContext<MixtapeCreateContextValue | undefined>(undefined);
+const MixtapeCreateContext = createContext<
+  MixtapeCreateContextValue | undefined
+>(undefined);
 
 export function useMixtapeCreate() {
   const ctx = useContext(MixtapeCreateContext);
   if (ctx === undefined) {
-    throw new Error('useMixtapeCreate must be used within a MixtapeCreateProvider');
+    throw new Error(
+      'useMixtapeCreate must be used within a MixtapeCreateProvider'
+    );
   }
   return ctx;
 }
@@ -28,33 +39,37 @@ interface MixtapeLayoutProps {
   children: React.ReactNode;
 }
 
-const createInitialMixtapeRequest = (isAuthenticated: boolean): MixtapeRequest => ({
-    name: 'Untitled Mixtape',
-    intro_text: null,
-    subtitle1: null,
-    subtitle2: null,
-    subtitle3: null,
-    is_public: !isAuthenticated, // Default to private if authenticated, public if not
-    tracks: [],
+const createInitialMixtapeRequest = (
+  isAuthenticated: boolean
+): MixtapeRequest => ({
+  name: 'Untitled Mixtape',
+  intro_text: null,
+  subtitle1: null,
+  subtitle2: null,
+  subtitle3: null,
+  is_public: !isAuthenticated, // Default to private if authenticated, public if not
+  tracks: [],
 });
 
-const createFallbackMixtapeResponse = (isAuthenticated: boolean): MixtapeResponse => ({
-    public_id: '', // Will be filled by server.
-    name: 'Untitled Mixtape',
-    intro_text: null,
-    subtitle1: null,
-    subtitle2: null,
-    subtitle3: null,
-    is_public: !isAuthenticated, // Default to private if authenticated, public if not
-    create_time: '', // Will be set by server
-    last_modified_time: '', // Will be set by server
-    stack_auth_user_id: null, // Will be set by server
-    version: 1,
-    can_undo: false,
-    can_redo: false,
-    spotify_playlist_url: null,
-    tracks: [],
-})
+const createFallbackMixtapeResponse = (
+  isAuthenticated: boolean
+): MixtapeResponse => ({
+  public_id: '', // Will be filled by server.
+  name: 'Untitled Mixtape',
+  intro_text: null,
+  subtitle1: null,
+  subtitle2: null,
+  subtitle3: null,
+  is_public: !isAuthenticated, // Default to private if authenticated, public if not
+  create_time: '', // Will be set by server
+  last_modified_time: '', // Will be set by server
+  stack_auth_user_id: null, // Will be set by server
+  version: 1,
+  can_undo: false,
+  can_redo: false,
+  spotify_playlist_url: null,
+  tracks: [],
+});
 
 export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const params = useParams();
@@ -67,7 +82,9 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const isCreateMode = publicId === 'new';
 
   // Global state for created mixtapes (persists across route changes)
-  const [createdMixtape, setCreatedMixtape] = useState<MixtapeResponse | null>(createFallbackMixtapeResponse(isAuthenticated));
+  const [createdMixtape, setCreatedMixtape] = useState<MixtapeResponse | null>(
+    createFallbackMixtapeResponse(isAuthenticated)
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [didCreate, setDidCreate] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -97,7 +114,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
           method: 'POST',
           body: initialMixtape,
         });
-        
+
         // Store the created mixtape with its real ID
         setCreatedMixtape(mixtape);
         setDidCreate(true);

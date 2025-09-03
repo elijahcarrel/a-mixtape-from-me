@@ -49,7 +49,8 @@ const mockUseAuth = useAuth as jest.Mock;
 
 // Test component that uses the context
 function TestConsumer() {
-  const { createdMixtape, isCreating, didCreate, createError } = useMixtapeCreate();
+  const { createdMixtape, isCreating, didCreate, createError } =
+    useMixtapeCreate();
   return (
     <div>
       <div data-testid="created-mixtape">{createdMixtape?.name || 'null'}</div>
@@ -75,7 +76,9 @@ describe('MixtapeCreateProvider', () => {
 
   it('provides default context values for non-create mode', () => {
     // Mock non-create mode
-    require('next/navigation').useParams.mockReturnValue({ publicId: 'existing-123' });
+    require('next/navigation').useParams.mockReturnValue({
+      publicId: 'existing-123',
+    });
 
     render(
       <MixtapeCreateLayout>
@@ -83,7 +86,9 @@ describe('MixtapeCreateProvider', () => {
       </MixtapeCreateLayout>
     );
 
-    expect(screen.getByTestId('created-mixtape')).toHaveTextContent('Untitled Mixtape');
+    expect(screen.getByTestId('created-mixtape')).toHaveTextContent(
+      'Untitled Mixtape'
+    );
     expect(screen.getByTestId('is-creating')).toHaveTextContent('false');
     expect(screen.getByTestId('did-create')).toHaveTextContent('false');
     expect(screen.getByTestId('create-error')).toHaveTextContent('null');
@@ -104,7 +109,9 @@ describe('MixtapeCreateProvider', () => {
     );
 
     // Should immediately provide fallback mixtape
-    expect(screen.getByTestId('created-mixtape')).toHaveTextContent('Untitled Mixtape');
+    expect(screen.getByTestId('created-mixtape')).toHaveTextContent(
+      'Untitled Mixtape'
+    );
     expect(screen.getByTestId('is-creating')).toHaveTextContent('true');
     expect(screen.getByTestId('did-create')).toHaveTextContent('false');
 
@@ -211,7 +218,9 @@ describe('MixtapeCreateProvider', () => {
     });
 
     // Should update context with created mixtape
-    expect(screen.getByTestId('created-mixtape')).toHaveTextContent('Untitled Mixtape');
+    expect(screen.getByTestId('created-mixtape')).toHaveTextContent(
+      'Untitled Mixtape'
+    );
     expect(screen.getByTestId('is-creating')).toHaveTextContent('false');
     expect(screen.getByTestId('did-create')).toHaveTextContent('true');
     expect(screen.getByTestId('create-error')).toHaveTextContent('null');

@@ -20,13 +20,14 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const params = useParams();
   const publicId = params.publicId as string;
   const isCreateMode = publicId === 'new';
-  
+
   // Get create context from higher-level provider
-  const { createdMixtape, isCreating, didCreate, createError } = useMixtapeCreate();
+  const { createdMixtape, isCreating, didCreate, createError } =
+    useMixtapeCreate();
   // TODO: we probably don't need all three of these variables. Figure out if we can simplify.
   const isOrWasCreating = isCreateMode || isCreating || didCreate;
   const createdMixtapeIfApplicable = isOrWasCreating ? createdMixtape : null;
-  
+
   // Local state to track mixtape updates from editor (for optimistic updates)
   const [localMixtape, setLocalMixtape] = useState<MixtapeResponse | null>(
     null
