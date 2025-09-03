@@ -34,6 +34,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   );
 
   // Fetch existing mixtape from server (skip if create mode or we have a created mixtape)
+  console.log('isCreateMode: ', isCreateMode, 'isCreating: ', isCreating, 'createdMixtape: ', createdMixtape, 'isOrWasCreating: ', isOrWasCreating, 'createdMixtapeIfApplicable: ', createdMixtapeIfApplicable, 'didCreate: ', didCreate, 'createError: ', createError);
   const {
     data: mixtape,
     loading,
@@ -42,7 +43,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   } = useApiRequest<MixtapeResponse>({
     url: `/api/mixtape/${publicId}`,
     method: 'GET',
-    skip: isCreateMode || isCreating || !!createdMixtape,
+    skip: isOrWasCreating,
   });
 
   // Determine which mixtape to use (priority: local updates > just-created mixtape from POST request > loaded server data from GET request)
