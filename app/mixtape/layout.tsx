@@ -12,6 +12,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useLazyRequest } from '@/hooks/useLazyRequest';
 import { useAuth } from '@/hooks/useAuth';
 import { MixtapeRequest, MixtapeResponse } from '@/client';
+import { User } from '@stackframe/stack';
 
 // Higher-level context for managing create flow across route changes
 interface MixtapeCreateContextValue {
@@ -52,7 +53,8 @@ const createInitialMixtapeRequest = (
 });
 
 const createFallbackMixtapeResponse = (
-  isAuthenticated: boolean
+  isAuthenticated: boolean,
+  user: User | null,
 ): MixtapeResponse => ({
   public_id: '', // Will be filled by server.
   name: 'Untitled Mixtape',
@@ -63,7 +65,7 @@ const createFallbackMixtapeResponse = (
   is_public: !isAuthenticated, // Default to private if authenticated, public if not
   create_time: '', // Will be set by server
   last_modified_time: '', // Will be set by server
-  stack_auth_user_id: null, // Will be set by server
+  stack_auth_user_id: isAuthenticated ? (user?.id || null) : null, // Will be set by server. For now, use a placeholder if and only if we would expect one.
   version: 1,
   can_undo: false,
   can_redo: false,
@@ -75,7 +77,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const params = useParams();
   const router = useRouter();
   const publicId = params.publicId as string;
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth({
+  const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth({
     requireAuth: false,
   });
   const { makeRequest } = useLazyRequest();
@@ -83,7 +85,7 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
 
   // Global state for created mixtapes (persists across route changes)
   const [createdMixtape, setCreatedMixtape] = useState<MixtapeResponse | null>(
-    createFallbackMixtapeResponse(isAuthenticated)
+    createFallbackMixtapeResponse(isAuthenticated, user)
   );
   const [isCreating, setIsCreating] = useState(false);
   const [didCreate, setDidCreate] = useState(false);
