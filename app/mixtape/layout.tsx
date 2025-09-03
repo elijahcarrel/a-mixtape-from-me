@@ -54,7 +54,7 @@ const createInitialMixtapeRequest = (
 
 const createFallbackMixtapeResponse = (
   isAuthenticated: boolean,
-  user: User | null,
+  user: User | null
 ): MixtapeResponse => ({
   public_id: '', // Will be filled by server.
   name: 'Untitled Mixtape',
@@ -65,7 +65,7 @@ const createFallbackMixtapeResponse = (
   is_public: !isAuthenticated, // Default to private if authenticated, public if not
   create_time: '', // Will be set by server
   last_modified_time: '', // Will be set by server
-  stack_auth_user_id: isAuthenticated ? (user?.id || null) : null, // Will be set by server. For now, use a placeholder if and only if we would expect one.
+  stack_auth_user_id: isAuthenticated ? user?.id || null : null, // Will be set by server. For now, use a placeholder if and only if we would expect one.
   version: 1,
   can_undo: false,
   can_redo: false,
@@ -77,7 +77,11 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   const params = useParams();
   const router = useRouter();
   const publicId = params.publicId as string;
-  const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth({
+  const {
+    isAuthenticated,
+    isLoading: isAuthLoading,
+    user,
+  } = useAuth({
     requireAuth: false,
   });
   const { makeRequest } = useLazyRequest();

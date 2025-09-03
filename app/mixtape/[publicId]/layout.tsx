@@ -34,7 +34,6 @@ export default function MixtapeLayout({ children }: MixtapeLayoutProps) {
   );
 
   // Fetch existing mixtape from server (skip if create mode or we have a created mixtape)
-  console.log('isCreateMode: ', isCreateMode, 'isCreating: ', isCreating, 'createdMixtape: ', createdMixtape, 'isOrWasCreating: ', isOrWasCreating, 'createdMixtapeIfApplicable: ', createdMixtapeIfApplicable, 'didCreate: ', didCreate, 'createError: ', createError);
   const {
     data: mixtape,
     loading,
