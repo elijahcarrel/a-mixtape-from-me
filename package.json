@@ -34,7 +34,7 @@
     "@dnd-kit/utilities": "3.2.2",
     "@stackframe/stack": "^2.8.34",
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "24.2.0",
+    "@types/node": "24.3.0",
     "@types/react": "19.1.9",
     "@types/react-dom": "19.1.7",
     "autoprefixer": "10.4.21",
