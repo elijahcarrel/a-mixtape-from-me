@@ -14,7 +14,7 @@ requests==2.32.5
 httpx==0.28.1
 
 # Testing
-pytest==8.4.1
+pytest==8.4.2
 pytest-postgresql==7.0.2
 
 # Code Quality
