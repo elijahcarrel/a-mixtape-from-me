@@ -7,7 +7,7 @@ sqlmodel==0.0.24
 psycopg2-binary==2.9.10
 
 # Data Validation
-pydantic==2.11.7
+pydantic==2.11.9
 
 # HTTP & API
 requests==2.32.5
